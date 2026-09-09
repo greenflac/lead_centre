@@ -1,15 +1,22 @@
-"""Извлечение фактов из текста обращения моделью Claude. Модель предлагает — код решает.
+"""Извлечение фактов из текста обращения языковой моделью. Модель предлагает — код решает.
+
+Провайдер сменный, как источник компаний в `sources/base.py`: движок про провайдера знает
+только то, что тот вернёт текст. `LLM_PROVIDER` = `anthropic` (structured outputs) или
+`pollinations` (OpenAI-совместимый шлюз). Демо не должно останавливаться из-за того, у кого
+из провайдеров кончились деньги.
 
 Три исхода вместо двух (Р1):
   * `LeadFacts` — извлекли, факты годные (в т.ч. `is_spam=True` — это тоже результат);
   * `LeadFacts` из режима OFFLINE — детерминированная заглушка, `confidence=0.0`;
-  * `ExtractionError` — не смогли извлечь (нет ключа, сеть, невалидный ответ).
-Пустой `LeadFacts` вместо ошибки не возвращается никогда: «модель ничего не нашла» и
-«мы не доехали до модели» — разные вещи для отчёта и для менеджера.
+  * исключение — не смогли извлечь; `ProviderBudgetError` («кончились деньги/бюджет»)
+    отделён от прочих `ExtractionError`, потому что чинится он не кодом, а кошельком.
+Пустой `LeadFacts` вместо ошибки не возвращается никогда.
 
-Персональные данные (телефон, почта) вырезаются из текста ДО отправки в модель
-(`scrub_pii`), а `has_contact` считает код по факту вырезанного, а не модель (Е2):
-модель контактов не видит и видеть не должна.
+Что общее для всех провайдеров и потому лежит в конвейере, а не в провайдере:
+  * вырезание телефонов и почты (`scrub_pii`) — свойство конвейера, не провайдера;
+  * валидация ответа и сборка `LeadFacts` (`parse_facts`) — одно знание, одно место (Е1);
+  * `has_contact` считает код по факту вырезанного, а не модель (Е2): модель контактов
+    не видит и видеть не должна.
 """
 from __future__ import annotations
 
@@ -17,21 +24,29 @@ import json
 import os
 import re
 import time
+import urllib.error
+import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Protocol
 
 from leadcentre.models import InboundMessage, LeadFacts, RequestType
 
 # --- константы-решения ---
 
-DEFAULT_MODEL = "claude-opus-5"          # ВЫБРАНО: значение по умолчанию, переопределяется LLM_MODEL
+DEFAULT_PROVIDER = "anthropic"           # ВЫБРАНО: основной; переопределяется LLM_PROVIDER
+ANTHROPIC_MODEL = "claude-opus-5"        # ВЫБРАНО: по умолчанию, переопределяется LLM_MODEL
+POLLINATIONS_MODEL = "openai"            # ИЗМЕРЕНО: алиас GPT-OSS 20B, GET /models 2026-09-09
+POLLINATIONS_URL = "https://text.pollinations.ai/openai"
+USER_AGENT = "leadcentre/0.1 (+SORP Lead Centre)"
 MAX_TOKENS = 4096                        # ВЫБРАНО: ответ — один JSON-объект, с запасом
 EFFORT = "low"                           # ВЫБРАНО: извлечение из абзаца текста — простая задача
 TIMEOUT_S = 60.0                         # ВЫБРАНО: чат-канал, дольше ждать смысла нет
 MAX_RETRIES = 2                          # ВЫБРАНО: столько же, сколько по умолчанию у SDK
 MIN_PHONE_DIGITS = 9                     # ВЫБРАНО: короче — это не телефон, а «8 человек» или дата
-MIXED_SHARE = 0.2                        # ВЫБРАНО: доля второго алфавита, ниже которой это не «mixed»,
-                                         # а имя собственное латиницей внутри русской фразы (TECOM, IFZA)
+# ВЫБРАНО: доля второго алфавита, ниже которой это не «mixed», а имя собственное
+# латиницей внутри русской фразы (TECOM, IFZA).
+MIXED_SHARE = 0.2
 
 PROMPT_VERSION = "extract_v1"
 PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / f"{PROMPT_VERSION}.md"
@@ -42,10 +57,19 @@ EMAIL_MASK = "[email]"
 # Порядок: почта раньше телефона, иначе хвост номера внутри адреса маскируется как телефон.
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
 PHONE_RE = re.compile(r"(?<![\w])\+?\d[\d\-\s().]{5,}\d(?![\w])")
+FENCE_RE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$")
 
 
 class ExtractionError(RuntimeError):
     """Третий исход: извлечь не смогли. Не сворачивается в пустой LeadFacts (Р1)."""
+
+
+class ProviderBudgetError(ExtractionError):
+    """Провайдер недоступен по лимитам: деньги/бюджет ключа, а не сеть и не код.
+
+    Отдельный тип, потому что и лечится отдельно: кодом это не чинится, повторять запрос
+    бессмысленно, а сообщение должно говорить человеку, куда идти.
+    """
 
 
 @dataclass(frozen=True)
@@ -65,10 +89,21 @@ class Scrubbed:
 
 
 @dataclass(frozen=True)
+class Completion:
+    """Ответ провайдера, приведённый к общему виду. Дальше конвейер про провайдера не знает."""
+
+    text: str
+    model: str
+    input_tokens: int
+    output_tokens: int
+
+
+@dataclass(frozen=True)
 class Extraction:
     """Факты плюс то, чем они получены: для отчёта, логов и счёта за токены."""
 
     facts: LeadFacts
+    provider: str
     model: str
     elapsed_s: float
     input_tokens: int
@@ -78,7 +113,7 @@ class Extraction:
     dropped_quotes: int      # цитат, которых в обращении нет: модель их придумала
 
 
-# --- минимизация персональных данных ---
+# --- минимизация персональных данных (общая для всех провайдеров) ---
 
 
 def _mask_phone(match: re.Match[str]) -> str:
@@ -93,7 +128,7 @@ def _mask_phone(match: re.Match[str]) -> str:
 
 
 def scrub_pii(text: str) -> Scrubbed:
-    """Вырезает телефоны и адреса почты. Всё, что уходит в модель, проходит через это."""
+    """Вырезает телефоны и адреса почты. Всё, что уходит в любую модель, проходит через это."""
     without_email, emails = EMAIL_RE.subn(EMAIL_MASK, text)
     phones = 0
 
@@ -154,33 +189,235 @@ def load_prompt() -> str:
         raise ExtractionError(f"не читается промпт {PROMPT_PATH}: {exc}") from exc
 
 
-def build_request_body(message: InboundMessage) -> tuple[dict, Scrubbed]:
-    """Тело запроса к модели. Отдельной функцией — чтобы негативный контроль по
-    телефону проверял ровно то, что уходит в сеть, а не его пересказ (И5)."""
+def user_content(message: InboundMessage, scrubbed: Scrubbed) -> str:
+    """Пользовательская часть запроса. Текст сюда попадает только после `scrub_pii`."""
+    return (
+        f"Канал: {message.channel}. Дата: {message.received_at.isoformat()}.\n"
+        f"Текст обращения:\n{scrubbed.text}"
+    )
+
+
+# --- провайдеры ---
+
+
+class Provider(Protocol):
+    """Сменный адаптер модели. Тело запроса и разбор ответа — его дело; вырезание ПД,
+    валидация фактов и сборка LeadFacts — дело конвейера, одинаковое для всех."""
+
+    name: str
+
+    def model(self) -> str: ...
+
+    def build_body(self, system: str, content: str) -> dict: ...
+
+    def complete(self, body: dict) -> Completion: ...
+
+
+class AnthropicProvider:
+    """Claude через официальный SDK. Схему держит сам API (structured outputs)."""
+
+    name = "anthropic"
+
+    def model(self) -> str:
+        return os.environ.get("LLM_MODEL") or ANTHROPIC_MODEL
+
+    def build_body(self, system: str, content: str) -> dict:
+        return {
+            "model": self.model(),
+            "max_tokens": MAX_TOKENS,
+            "system": system,
+            "messages": [{"role": "user", "content": content}],
+            "output_config": {
+                "effort": EFFORT,
+                "format": {"type": "json_schema", "schema": _schema()},
+            },
+        }
+
+    def _client(self):
+        api_key = os.environ.get("CLAUDE_KEY") or os.environ.get("ANTHROPIC_API_KEY")
+        if not api_key:
+            raise ExtractionError("нет ключа: ни CLAUDE_KEY, ни ANTHROPIC_API_KEY не заданы")
+        try:
+            import anthropic
+        except ImportError as exc:  # П2: дешёвая проверка раньше сетевой
+            raise ExtractionError("нет пакета anthropic: pip install anthropic") from exc
+        return anthropic.Anthropic(api_key=api_key, timeout=TIMEOUT_S, max_retries=MAX_RETRIES)
+
+    def complete(self, body: dict) -> Completion:
+        client = self._client()
+        try:
+            response = client.messages.create(**body)
+        except Exception as exc:
+            # 400 «credit balance is too low» приходит как обычный BadRequestError —
+            # по коду ответа его от опечатки в теле не отличить, отличаем по тексту.
+            text = str(exc)
+            if "credit balance" in text or "billing" in text.lower():
+                raise ProviderBudgetError(
+                    "anthropic: кончились деньги на аккаунте — "
+                    "API отвечает 400 «credit balance is too low». "
+                    "Что делать: пополнить баланс в Console → Plans & Billing "
+                    "либо переключиться на другого провайдера: LLM_PROVIDER=pollinations. "
+                    f"Ответ API как есть: {text}"
+                ) from exc
+            raise ExtractionError(
+                f"anthropic: запрос не удался: {type(exc).__name__}: {text}"
+            ) from exc
+
+        if response.stop_reason not in ("end_turn", "stop_sequence"):
+            raise ExtractionError(f"anthropic: модель не договорила: {response.stop_reason}")
+        text = next((b.text for b in response.content if b.type == "text"), None)
+        if text is None:
+            raise ExtractionError("anthropic: в ответе нет текстового блока")
+        return Completion(
+            text=text,
+            model=response.model,
+            input_tokens=response.usage.input_tokens,
+            output_tokens=response.usage.output_tokens,
+        )
+
+
+class OpenAICompatibleProvider:
+    """Шлюз формата OpenAI chat completions (у нас — Pollinations).
+
+    Structured outputs здесь нет, поэтому схему держим сами: кладём её в системный промпт
+    и валидируем ответ тем же `parse_facts`, что и у Anthropic (Е1). `response_format`
+    просим, но на него не рассчитываем — невалидный ответ будет `ExtractionError`.
+    """
+
+    name = "pollinations"
+
+    def model(self) -> str:
+        return os.environ.get("LLM_MODEL") or POLLINATIONS_MODEL
+
+    def build_body(self, system: str, content: str) -> dict:
+        schema_note = (
+            "\n\n## Формат ответа\n\n"
+            "Верни РОВНО один JSON-объект по этой JSON-схеме, без пояснений, "
+            "без markdown-ограждения, без текста до и после:\n\n"
+            f"{json.dumps(_schema(), ensure_ascii=False, indent=2)}"
+        )
+        return {
+            "model": self.model(),
+            "max_tokens": MAX_TOKENS,
+            "temperature": 0,     # ВЫБРАНО: извлечение фактов, разнообразие тут вредно
+            "response_format": {"type": "json_object"},
+            "messages": [
+                {"role": "system", "content": system + schema_note},
+                {"role": "user", "content": content},
+            ],
+        }
+
+    def complete(self, body: dict) -> Completion:
+        api_key = os.environ.get("POLLINATIONS_API_KEY")
+        if not api_key:
+            raise ExtractionError("нет ключа POLLINATIONS_API_KEY")
+        request = urllib.request.Request(
+            POLLINATIONS_URL,
+            data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                # ИЗМЕРЕНО 2026-09-09: без своего User-Agent шлюз за Cloudflare отдаёт
+                # 403 «error code: 1010» на дефолтный python-urllib/*.
+                "User-Agent": USER_AGENT,
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=TIMEOUT_S) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", "replace")
+            if exc.code == 402 or "KEY_BUDGET_EXHAUSTED" in detail:
+                raise ProviderBudgetError(
+                    "pollinations: исчерпан бюджет ключа — шлюз отвечает 402 "
+                    "KEY_BUDGET_EXHAUSTED. Что делать: поднять лимит ключа на "
+                    "enter.pollinations.ai/keys (пополнение кошелька лимит НЕ поднимает) "
+                    "либо переключиться на другого провайдера: LLM_PROVIDER=anthropic. "
+                    f"Ответ шлюза как есть: HTTP {exc.code} {detail}"
+                ) from exc
+            raise ExtractionError(
+                f"pollinations: HTTP {exc.code}: {detail}"
+            ) from exc
+        except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
+            raise ExtractionError(
+                f"pollinations: запрос не удался: {type(exc).__name__}: {exc}"
+            ) from exc
+
+        try:
+            choice = payload["choices"][0]
+            text = choice["message"]["content"]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise ExtractionError(f"pollinations: неожиданная форма ответа: {payload}") from exc
+        if choice.get("finish_reason") not in (None, "stop"):
+            raise ExtractionError(
+                f"pollinations: модель не договорила: finish_reason={choice['finish_reason']}"
+            )
+        if not text:
+            raise ExtractionError("pollinations: пустой content в ответе")
+        usage = payload.get("usage") or {}
+        return Completion(
+            text=text,
+            model=payload.get("model") or body["model"],
+            input_tokens=int(usage.get("prompt_tokens") or 0),
+            output_tokens=int(usage.get("completion_tokens") or 0),
+        )
+
+
+PROVIDERS: dict[str, type] = {
+    AnthropicProvider.name: AnthropicProvider,
+    OpenAICompatibleProvider.name: OpenAICompatibleProvider,
+}
+
+
+def get_provider(name: str | None = None) -> Provider:
+    """Провайдер по имени или по `LLM_PROVIDER`. Неизвестное имя — ошибка, а не тихий дефолт."""
+    key = (name or os.environ.get("LLM_PROVIDER") or DEFAULT_PROVIDER).strip().lower()
+    if key not in PROVIDERS:
+        raise ExtractionError(
+            f"неизвестный LLM_PROVIDER={key!r}; известны: {', '.join(sorted(PROVIDERS))}"
+        )
+    return PROVIDERS[key]()
+
+
+# --- конвейер: одинаковый для всех провайдеров ---
+
+
+def build_request_body(
+    message: InboundMessage, provider: Provider | None = None
+) -> tuple[dict, Scrubbed]:
+    """Тело запроса к выбранному провайдеру. Отдельной функцией — чтобы негативный контроль
+    по телефону проверял ровно то, что уходит в сеть, а не его пересказ (И5).
+
+    Вырезание ПД стоит здесь, а не в провайдере: провайдер физически не может получить
+    неочищенный текст, каким бы он ни был.
+    """
+    provider = provider or get_provider()
     scrubbed = scrub_pii(message.text)
-    body = {
-        "model": os.environ.get("LLM_MODEL") or DEFAULT_MODEL,
-        "max_tokens": MAX_TOKENS,
-        "system": load_prompt(),
-        "messages": [
-            {
-                "role": "user",
-                "content": (
-                    f"Канал: {message.channel}. Дата: {message.received_at.isoformat()}.\n"
-                    f"Текст обращения:\n{scrubbed.text}"
-                ),
-            }
-        ],
-        "output_config": {"effort": EFFORT, "format": {"type": "json_schema", "schema": _schema()}},
-    }
+    body = provider.build_body(load_prompt(), user_content(message, scrubbed))
     return body, scrubbed
 
 
-# --- разбор ответа ---
+def parse_facts(text: str, scrubbed: Scrubbed) -> tuple[LeadFacts, int]:
+    """Текст ответа любого провайдера → `LeadFacts`. Одна валидация на всех (Е1).
 
+    Невалидное — `ExtractionError`, а не пустой `LeadFacts` (Р1). Цитаты сличаются с тем
+    текстом, который уходил в модель: чего в нём нет, то модель придумала (Е2).
+    """
+    stripped = FENCE_RE.sub("", text.strip())
+    try:
+        raw = json.loads(stripped)
+    except json.JSONDecodeError as exc:
+        raise ExtractionError(
+            f"ответ модели не разбирается как JSON: {exc}; было: {text!r}"
+        ) from exc
+    if not isinstance(raw, dict):
+        raise ExtractionError(f"ответ модели — не объект, а {type(raw).__name__}")
 
-def _to_facts(raw: dict, scrubbed: Scrubbed) -> tuple[LeadFacts, int]:
-    """Валидированный схемой JSON → LeadFacts. Цитаты сличаются с текстом (Е2)."""
+    missing = [f for f in _schema()["required"] if f not in raw]
+    if missing:
+        raise ExtractionError(f"в ответе модели нет обязательных полей: {', '.join(missing)}")
+
     types: list[RequestType] = []
     for value in raw.get("request_types") or []:
         try:
@@ -190,21 +427,30 @@ def _to_facts(raw: dict, scrubbed: Scrubbed) -> tuple[LeadFacts, int]:
         if kind not in types:
             types.append(kind)
 
-    # Цитата — доказательство; недословную выбрасываем и считаем, а не молчим.
+    language = raw.get("language") or "en"
+    if language not in ("ru", "en", "ar", "mixed"):
+        raise ExtractionError(f"неизвестный language: {language!r}")
+
+    headcount = _optional_int(raw.get("headcount"), "headcount")
+    timeline_days = _optional_int(raw.get("timeline_days"), "timeline_days")
+
     quotes = [q for q in (raw.get("quotes") or []) if q and q in scrubbed.text]
     dropped = len(raw.get("quotes") or []) - len(quotes)
 
-    confidence = float(raw.get("confidence") or 0.0)
+    try:
+        confidence = float(raw.get("confidence") or 0.0)
+    except (TypeError, ValueError) as exc:
+        raise ExtractionError(f"confidence не число: {raw.get('confidence')!r}") from exc
     if not 0.0 <= confidence <= 1.0:
         raise ExtractionError(f"confidence вне диапазона: {confidence}")
 
     facts = LeadFacts(
         request_types=tuple(types),
-        jurisdiction_hint=raw.get("jurisdiction_hint"),
-        headcount=raw.get("headcount"),
-        timeline_days=raw.get("timeline_days"),
-        budget_hint=raw.get("budget_hint"),
-        language=raw.get("language") or "en",
+        jurisdiction_hint=_optional_str(raw.get("jurisdiction_hint"), "jurisdiction_hint"),
+        headcount=headcount,
+        timeline_days=timeline_days,
+        budget_hint=_optional_str(raw.get("budget_hint"), "budget_hint"),
+        language=language,
         is_spam=bool(raw.get("is_spam")),
         # has_contact — по свидетельству вырезанного, а не по слову модели (Е2).
         has_contact=scrubbed.has_contact,
@@ -212,6 +458,22 @@ def _to_facts(raw: dict, scrubbed: Scrubbed) -> tuple[LeadFacts, int]:
         quotes=tuple(quotes),
     )
     return facts, dropped
+
+
+def _optional_int(value: object, field: str) -> int | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ExtractionError(f"{field} не целое число: {value!r}")
+    return value
+
+
+def _optional_str(value: object, field: str) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ExtractionError(f"{field} не строка: {value!r}")
+    return value.strip() or None
 
 
 # --- режим OFFLINE ---
@@ -226,7 +488,7 @@ def detect_language(text: str) -> str:
     letters = [c for c in text if c.isalpha()]
     if not letters:
         return "en"
-    share = sum(1 for c in letters if "\u0400" <= c <= "\u04ff") / len(letters)
+    share = sum(1 for c in letters if "Ѐ" <= c <= "ӿ") / len(letters)
     if share >= 1.0 - MIXED_SHARE:
         return "ru"
     if share <= MIXED_SHARE:
@@ -249,6 +511,7 @@ def _offline_extraction(message: InboundMessage) -> Extraction:
     )
     return Extraction(
         facts=facts,
+        provider="offline",
         model="offline-stub",
         elapsed_s=0.0,
         input_tokens=0,
@@ -263,52 +526,28 @@ def is_offline() -> bool:
     return os.environ.get("OFFLINE", "") not in ("", "0")
 
 
-# --- вызов модели ---
+# --- точка входа ---
 
 
-def _client():
-    """Ключ — из CLAUDE_KEY, запасной вариант ANTHROPIC_API_KEY (в этой среде первый)."""
-    api_key = os.environ.get("CLAUDE_KEY") or os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        raise ExtractionError("нет ключа: ни CLAUDE_KEY, ни ANTHROPIC_API_KEY не заданы")
-    try:
-        import anthropic
-    except ImportError as exc:  # П2: дешёвая проверка раньше сетевой
-        raise ExtractionError("нет пакета anthropic: pip install anthropic") from exc
-    return anthropic.Anthropic(api_key=api_key, timeout=TIMEOUT_S, max_retries=MAX_RETRIES)
-
-
-def extract_detailed(message: InboundMessage) -> Extraction:
-    """Извлечение с приборными данными: время, токены, что вырезано, что выброшено."""
+def extract_detailed(message: InboundMessage, provider: Provider | None = None) -> Extraction:
+    """Извлечение с приборными данными: провайдер, время, токены, что вырезано, что выброшено."""
     if is_offline():
         return _offline_extraction(message)
 
-    client = _client()
-    body, scrubbed = build_request_body(message)
+    provider = provider or get_provider()
+    body, scrubbed = build_request_body(message, provider)
     started = time.monotonic()
-    try:
-        response = client.messages.create(**body)
-    except Exception as exc:  # сеть, 4xx, 5xx — всё это «не смогли», а не пустые факты
-        raise ExtractionError(f"запрос к модели не удался: {type(exc).__name__}: {exc}") from exc
+    completion = provider.complete(body)
     elapsed = time.monotonic() - started
 
-    if response.stop_reason not in ("end_turn", "stop_sequence"):
-        raise ExtractionError(f"модель не договорила: stop_reason={response.stop_reason}")
-    text = next((b.text for b in response.content if b.type == "text"), None)
-    if text is None:
-        raise ExtractionError("в ответе модели нет текстового блока")
-    try:
-        raw = json.loads(text)
-    except json.JSONDecodeError as exc:
-        raise ExtractionError(f"ответ модели не разбирается как JSON: {exc}") from exc
-
-    facts, dropped = _to_facts(raw, scrubbed)
+    facts, dropped = parse_facts(completion.text, scrubbed)
     return Extraction(
         facts=facts,
-        model=response.model,
+        provider=provider.name,
+        model=completion.model,
         elapsed_s=elapsed,
-        input_tokens=response.usage.input_tokens,
-        output_tokens=response.usage.output_tokens,
+        input_tokens=completion.input_tokens,
+        output_tokens=completion.output_tokens,
         offline=False,
         scrubbed=scrubbed,
         dropped_quotes=dropped,
@@ -316,5 +555,5 @@ def extract_detailed(message: InboundMessage) -> Extraction:
 
 
 def extract(message: InboundMessage) -> LeadFacts:
-    """Факты из обращения. Не смогли — `ExtractionError`, а не пустой LeadFacts (Р1)."""
+    """Факты из обращения. Не смогли — исключение, а не пустой LeadFacts (Р1)."""
     return extract_detailed(message).facts
