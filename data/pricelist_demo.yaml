@@ -13,6 +13,9 @@
 #               (сам ресерч помечен НЕПРОВЕРЕНО по первоисточнику, Ц4);
 #   ВЫБРАНО   — назначено автором для демонстрации, замера под ним нет.
 #
+# Подписи label_ar/unit_ar составлены НЕ носителем арабского и носителем не вычитаны
+# (НЕПРОВЕРЕНО, Ц4): перед показом клиенту их обязан просмотреть человек.
+#
 # Формат: диапазон min/max в AED. Точечных цен в файле нет намеренно —
 # движок черновиков (reply.py) не имеет права назвать точную цифру.
 
@@ -24,8 +27,10 @@ items:
   office_mini_year:
     label_ru: "мини-офис в бизнес-центре"
     label_en: "small private office in a business centre"
+    label_ar: "مكتب صغير في مركز أعمال"
     unit_ru: "в год"
     unit_en: "per year"
+    unit_ar: "سنويًا"
     min: 35000
     max: 60000
     origin: "ВЫБРАНО (автор, 2026-09-09) вокруг 45 000 из ресерч 07 §1, таблица юнит-экономики"
@@ -33,8 +38,10 @@ items:
   flexi_desk_year:
     label_ru: "флекси-деск"
     label_en: "flexi-desk"
+    label_ar: "مكتب مرن"
     unit_ru: "в год"
     unit_en: "per year"
+    unit_ar: "سنويًا"
     min: 6000
     max: 15000
     origin: "ВЫБРАНО (автор, 2026-09-09): отдельного замера нет, ориентир — пакеты фризон с флекси"
@@ -42,8 +49,10 @@ items:
   setup_mainland_package:
     label_ru: "регистрация компании mainland (лицензия и госсборы, пакет)"
     label_en: "mainland company setup package (licence and government fees)"
+    label_ar: "تأسيس شركة في البر الرئيسي (الرخصة والرسوم الحكومية)"
     unit_ru: "разово"
     unit_en: "one-off"
+    unit_ar: "دفعة واحدة"
     min: 15000
     max: 35000
     origin: "РЕСЕРЧ 07 §1: DET-лицензия 10-20k + сервисный сбор setup 6.5k (ВЫБРАНО там же)"
@@ -51,8 +60,10 @@ items:
   setup_freezone_package:
     label_ru: "регистрация компании во фризоне (пакет)"
     label_en: "free zone company setup package"
+    label_ar: "تأسيس شركة في منطقة حرة"
     unit_ru: "разово"
     unit_en: "one-off"
+    unit_ar: "دفعة واحدة"
     min: 12500
     max: 27000
     origin: "РЕСЕРЧ 07 §1: IFZA 12.9k (0 виз) - 26.9k (6 виз), Meydan от 12.5k"
@@ -60,8 +71,10 @@ items:
   visa_employment:
     label_ru: "рабочая виза под ключ, на человека"
     label_en: "employment visa, all-in, per person"
+    label_ar: "تأشيرة عمل شاملة للفرد"
     unit_ru: "за визу"
     unit_en: "per visa"
+    unit_ar: "لكل تأشيرة"
     min: 3500
     max: 7000
     origin: "РЕСЕРЧ 07 §1: mainland 5-7k, free zone 3.5-6k"
@@ -69,8 +82,10 @@ items:
   accounting_month:
     label_ru: "бухгалтерское сопровождение"
     label_en: "accounting services"
+    label_ar: "خدمات المحاسبة"
     unit_ru: "в месяц"
     unit_en: "per month"
+    unit_ar: "شهريًا"
     min: 1500
     max: 6000
     origin: "РЕСЕРЧ 07 §1: базовая 1.5-3k/мес, стандарт 3.5-6k/мес"

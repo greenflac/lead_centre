@@ -22,7 +22,7 @@ const LOW_CONFIDENCE = 0.5;
 const TARGET_LANGUAGES = ["ru"];
 // A single signal is not enough to be hot: at one signal, HIGH went to 30 of 70 requests
 // and stopped meaning anything.
-const SIGNALS_FOR_HIGH = 1;
+const SIGNALS_FOR_HIGH = 2;
 const LANGUAGE_NEEDS_ANOTHER_SIGNAL = true;
 const LADDER: Tier[] = ["LOW", "MEDIUM", "HIGH"];
 const INBOUND_BASE: Tier = "MEDIUM";
