@@ -65,3 +65,4 @@
 
 ## Журнал закрытых доменов по ходу работы (append-only)
 - 2026-09-09: список выше собран из отчётов агентов 01–07 и curl-проверки dubaipulse/bayanat.
+- 2026-09-09, ресерч 08: hubspot.com, resolve247.ai, bitrix24.com, helpdesk.bitrix24.com, crm.org, layer3labs.io, respond.io, wati.io, leadar-uae.com, proppilot.ai, korvax.ai, propertyfinder.ae (PF Expert), semnexus.com, yowox.com, theaiagentindex.com, nomadx.ae, innovatrixinfotech.com, gravitybase.ai — нужны для официальных прайсов и лимитов.
