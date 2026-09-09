@@ -1,9 +1,17 @@
 # SORP Lead Centre
 
+[![ci](https://github.com/greenflac/lead_centre/actions/workflows/ci.yml/badge.svg?branch=claude%2Fwhitelist-env-vars-3x2zo6)](https://github.com/greenflac/lead_centre/actions/workflows/ci.yml?query=branch%3Aclaude%2Fwhitelist-env-vars-3x2zo6)
+
 Inbound request triage and a registry watchlist, both running through one qualification
 engine. A proactive test project for the SORP Group "AI developer (vibe coding)" vacancy
 (`docs/brief/01_vacancy.md`); it is not a production system and is not connected to any
 SORP data.
+
+![Inbox: the request list with priorities and an open card](web/screenshots/01-inbox.png)
+
+*The main screen: every inbound request already carries a priority, the reasons behind it,
+the facts extracted from the text, and a draft reply in the customer's language. The header
+counts what was scored and how many invariant violations there were.*
 
 ## The problem it addresses
 
@@ -11,28 +19,56 @@ An inbound request from the site form, WhatsApp or a chat widget sits in a queue
 manager gets to it. The request was already paid for with advertising. What the engine does
 is turn the raw text into a card a manager can act on in seconds: what the customer is
 asking for, how many people, what deadline, which language, a priority with the reasons for
-it, quoted evidence from the text itself, and a draft reply in the customer's language.
-A human presses every button; nothing is sent to a customer by the system.
+it, quoted evidence from the text itself, and a draft reply. A human presses every button;
+nothing is sent to a customer by the system.
 
 The second half is lead discovery: the same engine reads a public company registry and puts
 companies with a datable, provable reason on a watchlist — no contact details, deliberately.
 
+## Running it
+
+Python 3.11. `pip install -e ".[dev]"`.
+
+```bash
+make test-ci     # the whole test suite, network blocked by the machine, not by agreement
+make run         # score registry companies from the cached sample, no network, no API key
+python eval/run_eval.py --labels eval/labels_synthetic.csv   # the measurement bench
+```
+
+Everything else:
+
+```bash
+make test-ci-selfcheck  # negative control: a network call in that mode must fail
+make discover           # the same scoring run, against the live GLEIF API
+make mutate             # test run with the bytecode cache cleared (see the defect story)
+python eval/run_eval.py --engine=llm --limit 10 --labels ...  # with live extraction, costs money
+OFFLINE=1 python -m leadcentre.api                            # API on :8000
+cd web && npm install && npm run dev                          # dashboard on :3000
+```
+
+`OFFLINE=1` means cached data and no network anywhere. The dashboard runs on generated mock
+data with no backend attached, and switches to the API with a single environment variable
+(`NEXT_PUBLIC_API_URL`); the header says which mode is on.
+
+Keys are read from the environment: `CLAUDE_KEY` for the model, `SUPABASE_URL` plus keys for
+the store, `HUBSPOT_PERSONAL_KEY` for the CRM sink. Without them the code falls back to the
+local store and the null CRM sink — explicitly, never silently: an unknown value of
+`LEADCENTRE_STORE` or `LLM_PROVIDER` is an error, not a default.
+
 ## Architecture
 
-```
-inbound text (form / WhatsApp / chat)  ─┐
-                                        ├─►  scrub PII  ─►  extract facts (LLM, JSON schema)
-GLEIF registry adapter (lapsed / fresh) ─┘                        │
-                                                                  ▼
-                                                    score  (rubric as data, code decides)
-                                                                  │
-                                            ┌─────────────────────┴──────────────────┐
-                                            ▼                                        ▼
-                                    draft reply (RU/EN) ─► lint            store (local / Supabase)
-                                            │                                        │
-                                            └──────────►  FastAPI  ◄─────────────────┘
-                                                             │
-                                                    Next.js dashboard ─► Approve → CRM sink
+```mermaid
+flowchart LR
+    A["Inbound text<br/>form, WhatsApp, chat"] --> S["Scrub PII"]
+    B["GLEIF registry adapter<br/>SourceAdapter protocol"] --> E["Score<br/>rubric as data + invariants"]
+    S --> X["Extract facts<br/>LLM, JSON schema"]
+    X --> E
+    E --> D["Draft reply + lint"]
+    E --> ST["Store<br/>local JSON or Supabase"]
+    D --> API["FastAPI"]
+    ST --> API
+    API --> UI["Next.js dashboard"]
+    UI --> CRM["CRM sink<br/>approved by a human"]
 ```
 
 Three properties are deliberate:
@@ -48,57 +84,53 @@ either.
 returns structured facts and nothing else. The tier comes from `engine/rubric.py` — thresholds
 and the matrix are data in one file — plus invariants in `engine/score.py`: HIGH requires at
 least one verbatim evidence quote, low extraction confidence caps the tier, a broken invariant
-returns `INVALID` rather than a guess. A reason line is produced for every tier, and the
-dashboard shows it verbatim.
+returns `INVALID` rather than a guess.
+
+![A lead card: extracted facts, reasons, evidence quotes, draft reply](web/screenshots/02b-lead-card-closeup.png)
+
+*Every priority is explained: the reasons come from the rubric, and the quotes are the
+customer's own sentences. A request with no quote cannot be raised to HIGH — the engine
+returns "not scored" instead of guessing.*
 
 **Three outcomes, not two.** Every check returns `ok` / `not ok` / `could not check`, and
 prints `checked N, violations M, could not K`. Zero violations out of zero checks is not a
 pass. The same rule holds for the store (`success` / `rejected` / `unavailable`), the CRM
 sink (`sent` / `rejected` / `unavailable` / `skipped`) and the reply linter.
 
+![Provider budget error: a readable message, the raw server detail and a retry button](web/screenshots/06-error-provider-budget.png)
+
+*The failure path is part of the product. When the model provider refuses on budget or rate
+limits, the API answers 402 with a machine-readable code and the dashboard shows this — not
+a white screen, not an empty list that looks like "no leads".*
+
 Model routing is by message length: requests up to 600 characters go to Haiku 4.5, longer
 ones to Opus 5 (`engine/extract.py`). The threshold is a chosen constant with its rationale
 next to it; the card records which model actually served the lead, taken from the API
-response rather than from intent.
+response rather than from intent. Russian and English drafts are deterministic templates;
+Arabic is written by the model inside limits set by the code and has to pass the same linter,
+otherwise the card comes back with no draft and a reason.
 
 Repository map:
 
 | Path | What is there |
 |---|---|
-| `leadcentre/engine/` | extract, rubric, score, reply, lint, shared fact heuristics |
+| `leadcentre/engine/` | extract, rubric, score, reply, lint, transliteration, shared fact heuristics |
 | `leadcentre/sources/` | `SourceAdapter` protocol + GLEIF adapter |
 | `leadcentre/store/`, `leadcentre/crm/` | local JSON / Supabase store, Null and HubSpot sinks |
 | `leadcentre/api.py` | FastAPI, 9 routes; logic in functions, handlers only parse |
 | `eval/` | measurement bench: Cohen's kappa, confusion matrix, stability, negative controls |
-| `prompts/` | versioned extraction prompts (v1, v2, v3), loaded by the code, never inlined |
+| `prompts/` | versioned prompts (`extract_v1`…`v4`, `translit_v1`), loaded by the code |
 | `web/` | Next.js dashboard, mock mode and live mode (`web/README.md`) |
 | `data/` | 70 synthetic requests, GLEIF samples, demo price list |
 | `docs/` | blueprint, data notes, environment measurements, research |
 
-## Running it
+## The registry side
 
-Python 3.11. `pip install -e ".[dev]" fastapi uvicorn httpx`.
+![Discovered tab: companies from the LEI registry with licence numbers and reasons](web/screenshots/05-discovered.png)
 
-```bash
-make test-ci            # tests with network blocked by the machine, not by agreement
-make test-ci-selfcheck  # negative control: a network call in that mode must fail
-make run                # score registry companies from the cached sample, no network
-make discover           # same, against the live GLEIF API
-make mutate             # test run with the bytecode cache cleared (see the defect story)
-python eval/run_eval.py --labels eval/labels_synthetic.csv     # the bench, no model calls
-python eval/run_eval.py --engine=llm --limit 10 --labels ...   # with live extraction, costs money
-OFFLINE=1 python -m leadcentre.api                             # API on :8000
-cd web && npm install && npm run dev                           # dashboard on :3000
-```
-
-`OFFLINE=1` means cached data and no network anywhere. The dashboard runs on generated mock
-data with no backend attached, and switches to the API with a single environment variable
-(`NEXT_PUBLIC_API_URL`); the header says which mode is on.
-
-Keys are read from the environment: `CLAUDE_KEY` for the model, `SUPABASE_URL` plus keys for
-the store, `HUBSPOT_PERSONAL_KEY` for the CRM sink. Without them the code falls back to the
-local store and the null CRM sink — explicitly, never silently: an unknown value of
-`LEADCENTRE_STORE` or `LLM_PROVIDER` is an error, not a default.
+*A watchlist, not a mailing list: name, city, registration authority, licence number and a
+dated reason ("LEI registration lapsed 5 days ago"). There is no phone column, no e-mail
+column and no "contact them" button, and the tab says so.*
 
 ## What is measured
 
@@ -106,11 +138,11 @@ Every number below came out of this repository. The command that produced it is 
 
 | Measurement | Value | Where from |
 |---|---|---|
-| Tests | 275 passed | `make test-ci` |
-| Agreement with the author's labels, Cohen's kappa | 0.787 (po 0.867, pe 0.373, 30 pairs) | `python eval/run_eval.py --labels eval/labels_synthetic.csv` |
+| Tests | 353 passed | `make test-ci` |
+| Agreement with the author's labels, Cohen's kappa | 0.838 (po 0.900, pe 0.382, 30 pairs, 27 matched) | `python eval/run_eval.py --labels eval/labels_synthetic.csv` |
 | Stability, 3 runs of the same input | 1.0000 on 70 requests | same run |
 | Negative controls | 6 of 6 | same run |
-| Priority distribution on the 70-request seed | 13 HIGH / 40 MEDIUM / 17 LOW, 0 invariant violations | `web/mock/stats.json`, generated by `web/scripts/gen_mock.py` |
+| Priority distribution on the 70-request seed | 13 HIGH / 41 MEDIUM / 16 LOW, 0 invariant violations | the engine over `data/inbound_seed.csv` |
 | Cost per lead over the seed | $0.0033 cold cache, $0.0030 warm | token counts of the whole set, Haiku/Opus prices |
 | Extraction latency | ~5 s per lead (8 edge-case requests, 35.1 s total, Haiku 4.5) | run recorded in `HANDOFF_claude-whitelist-env-vars-3x2zo6.md` |
 | Registry volume, UAE | 9 362 legal entities with an LEI, of which 3 937 have a lapsed LEI registration | `docs/data/gleif_schema.md` |
@@ -127,10 +159,11 @@ bench author and is marked as such in the file itself.
 The bench is checked against itself, because a metric that never moves measures nothing: with
 all labels forced to one class it prints `DEGENERATE` and exits "could not check" (code 2)
 rather than 0; with labels shuffled on six seeds the kappa falls to between −0.2308 and
-+0.1282 (measured against the 0.7436 baseline the bench had at the time). Decision constants are checked by mutation in both directions — 20 of 20
-engine mutations killed (thresholds, matrix cells, target city, registrar code, the axis-C
-ladder). One is honestly not covered: `URGENT_DEFAULT_DAYS` survives mutation on the current
-labels, and that is recorded as debt in `eval/README.md` rather than papered over.
++0.1282 (measured against the 0.7436 baseline the bench had at the time). Decision constants
+are checked by mutation in both directions — 20 of 20 engine mutations killed (thresholds,
+matrix cells, target city, registrar code, the intent ladder). One is honestly not covered:
+`URGENT_DEFAULT_DAYS` survives mutation on the current labels, and that is recorded as debt
+in `eval/README.md` rather than papered over.
 
 Tests do not reach the network, and that is enforced by `ci/sitecustomize.py` loaded through
 `PYTHONPATH`, not by convention. `make test-ci-selfcheck` is the negative control for the ban
@@ -157,6 +190,8 @@ itself: a silent ban is indistinguishable from a missing one.
 - **Personal data is cut before the model call.** Phone numbers and e-mail addresses are
   stripped from the text before it is sent anywhere, and `has_contact` is derived from what
   the scrubber actually removed rather than from the model's opinion.
+- **Screenshots are taken by hand after engine changes.** If a number inside an image
+  disagrees with the table above, the table is the measured one.
 
 ## What this system does not do
 
@@ -181,14 +216,13 @@ human on every outgoing action.
   $0.00299 per lead versus 8.1 s and $0.01598) rests on 3 requests, and one instability is
   known and unfixed: on the longest request Haiku returned a relative deadline as 7 days four
   times and 38 days twice over six runs, which is why long messages are routed to Opus.
+- **Arabic drafts have not been read by a native speaker.** The card says so on the draft
+  itself.
 - **Prompt caching does not pay off on the cheap model.** Measured: with a ~2.9k-token prompt
   Haiku reports zero cache reads and zero cache writes — the prefix is below the model's
   threshold. On Opus the cache works (input 5.4× cheaper on a warm read) but with a 5-minute
   TTL, so it only helps above one lead per five minutes. Recorded as a negative result rather
   than dropped.
-- **The screenshots in `web/screenshots/` predate the HIGH-threshold fix** described below:
-  they show 30/20/20 in the header where the current engine produces 13/40/17. They were not
-  retaken, and this note is cheaper than a screenshot that quietly disagrees with the code.
 - **The API sends no CORS headers** (measured), so the dashboard proxies live calls through
   its own origin instead. Adding the middleware is a decision for whoever owns the API.
 
