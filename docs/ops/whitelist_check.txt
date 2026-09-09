@@ -1,115 +1,122 @@
-# Прогон: 2026-09-09T06:58:56Z UTC, вайтлист: docs/ops/whitelist.txt
-360dialog.com                      apex=BLOCKED - 56     www=OK 308 0
-airtable.com                       apex=BLOCKED - 56     www=OK 200 0
-amazon.com                         apex=BLOCKED - 56     www=ORIGIN 503 0
-anthropic.com                      apex=BLOCKED - 56     www=OK 200 0
-apify.com                          apex=BLOCKED - 56     www=OK 301 0
-arabianbusiness.com                apex=BLOCKED - 56     www=ORIGIN 403 0
-arxiv.org                          apex=OK 200 0         www=OK 301 0
-aws-news.com                       apex=BLOCKED - 56     www=OK 301 0
-bayanat.ae                         apex=BLOCKED - 56     www=BLOCKED - 35
-bayt.com                           apex=BLOCKED - 56     www=ORIGIN 403 0
-bayut.com                          apex=BLOCKED - 56     www=ORIGIN 503 0
-belkins.io                         apex=BLOCKED - 56     www=OK 301 0
-bitrix24.com                       apex=BLOCKED - 56     www=OK 200 0
-businessemirates.ae                apex=BLOCKED - 56     www=OK 200 0
-cbre.com                           apex=BLOCKED - 56     www=ORIGIN 403 0
-chambers.com                       apex=BLOCKED - 56     www=OK 301 0
-chilipiper.com                     apex=BLOCKED - 56     www=OK 200 0
-claude.com                         apex=BLOCKED - 56     www=OK 301 0
-clydeco.com                        apex=BLOCKED - 56     www=OK 301 0
-csa-research.com                   apex=BLOCKED - 56     www=OK 301 0
-difc.com                           apex=BLOCKED - 56     www=OK 200 0
-dlapiperdataprotection.com         apex=BLOCKED - 56     www=OK 200 0
-dmcc.ae                            apex=BLOCKED - 56     www=OK 301 0
-docker.com                         apex=BLOCKED - 56     www=OK 200 0
-docker.io                          apex=BLOCKED - 56     www=OK 302 0
-dso.ae                             apex=BLOCKED - 56     www=OK 200 0
-dubai.ae                           apex=BLOCKED - 56     www=ORIGIN 403 0
-dubaichambers.com                  apex=BLOCKED - 56     www=OK 302 0
-dubaipulse.gov.ae                  apex=BLOCKED - 56     www=BLOCKED - 35
-dubaisouth.ae                      apex=BLOCKED - 56     www=OK 307 0
-dubizzle.com                       apex=BLOCKED - 56     www=OK 200 0
-easyoffices.com                    apex=BLOCKED - 56     www=OK 200 0
-economy.ae                         apex=BLOCKED - 56     www=BLOCKED - 60
-facebook.com                       apex=BLOCKED - 56     www=OK 200 0
-forbes.ru                          apex=BLOCKED - 56     www=OK 200 0
-gdrfad.gov.ae                      apex=BLOCKED - 56     www=OK 301 0
-github.com                         apex=ORIGIN 400 0     www=OK 301 0
-githubusercontent.com              apex=BLOCKED - 56     www=ORIGIN 500 0
-gong.io                            apex=BLOCKED - 56     www=OK 200 0
-google.com                         apex=BLOCKED - 56     www=OK 200 0
-growth.gov.ae                      apex=BLOCKED - 56     www=BLOCKED - 60
-gulfbusiness.com                   apex=BLOCKED - 56     www=OK 301 0
-gulfnews.com                       apex=BLOCKED - 56     www=OK 301 0
-gulftalent.com                     apex=BLOCKED - 56     www=OK 302 0
-hadefpartners.com                  apex=BLOCKED - 56     www=OK 302 0
-hbr.org                            apex=BLOCKED - 56     www=OK 301 0
-hubapi.com                         apex=BLOCKED - 56     www=BLOCKED - 56
-hubspot.com                        apex=BLOCKED - 56     www=OK 200 0
-hunter.io                          apex=BLOCKED - 56     www=OK 301 0
-ifza.com                           apex=BLOCKED - 56     www=OK 301 0
-insidesales.com                    apex=BLOCKED - 56     www=OK 200 0
-instagram.com                      apex=BLOCKED - 56     www=OK 200 0
-instantly.ai                       apex=BLOCKED - 56     www=OK 301 0
-invest.dubai.ae                    apex=ORIGIN 403 0     www=BLOCKED - 56
-iwgplc.com                         apex=BLOCKED - 56     www=OK 200 0
-jamanetwork.com                    apex=BLOCKED - 56     www=ORIGIN 403 0
-jll.com                            apex=BLOCKED - 56     www=OK 302 0
-kaggle.com                         apex=BLOCKED - 56     www=OK 200 0
-kayrouzandassociates.com           apex=BLOCKED - 56     www=OK 200 0
-khaleejtimes.com                   apex=BLOCKED - 56     www=OK 200 0
-kommersant.ru                      apex=BLOCKED - 56     www=OK 200 0
-legal500.com                       apex=BLOCKED - 56     www=OK 200 0
-lemlist.com                        apex=BLOCKED - 56     www=OK 200 0
-linkedin.com                       apex=BLOCKED - 56     www=OK 200 0
-make.com                           apex=BLOCKED - 56     www=OK 301 0
-matchoffice.com                    apex=BLOCKED - 56     www=OK 200 0
-mediaoffice.ae                     apex=BLOCKED - 56     www=OK 200 0
-meydanfz.ae                        apex=BLOCKED - 56     www=OK 200 0
-microsoft.com                      apex=OK 301 0         www=OK 200 0
-moet.gov.ae                        apex=BLOCKED - 56     www=OK 200 0
-mohre.gov.ae                       apex=BLOCKED - 56     www=BLOCKED - 35
-my.site.com                        apex=BLOCKED - 56     www=ORIGIN 502 0
-n8n.io                             apex=BLOCKED - 56     www=OK 301 0
-npmjs.com                          apex=OK 301 0         www=ORIGIN 403 0
-npmjs.org                          apex=OK 301 0         www=OK 301 0
-pipedrive.com                      apex=BLOCKED - 56     www=OK 200 0
-propertyfinder.ae                  apex=BLOCKED - 56     www=OK 200 0
-propertyfinder.com                 apex=BLOCKED - 56     www=OK 200 0
-pypi.org                           apex=OK 200 0         www=OK 301 0
-pythonhosted.org                   apex=OK 200 0         www=BLOCKED - 56
-rakez.com                          apex=BLOCKED - 56     www=OK 301 0
-rbc.ru                             apex=BLOCKED - 56     www=ORIGIN 401 0
-regus.com                          apex=BLOCKED - 56     www=OK 200 0
-resend.com                         apex=BLOCKED - 56     www=OK 200 0
-respond.io                         apex=BLOCKED - 56     www=OK 301 0
-retool.com                         apex=BLOCKED - 56     www=OK 307 0
-russianemirates.family             apex=BLOCKED - 56     www=OK 301 0
-savills.com                        apex=BLOCKED - 56     www=ORIGIN 403 0
-serper.dev                         apex=BLOCKED - 56     www=ORIGIN 404 0
-servcorp.ae                        apex=BLOCKED - 56     www=OK 302 0
-shams.ae                           apex=BLOCKED - 56     www=OK 301 0
-sopro.io                           apex=BLOCKED - 56     www=OK 301 0
-sorp.ae                            apex=BLOCKED - 56     www=OK 301 0
-sorptaxaccounting.com              apex=BLOCKED - 56     www=BLOCKED - 56
-streamlit.io                       apex=BLOCKED - 56     www=OK 301 0
-supabase.co                        apex=BLOCKED - 56     www=BLOCKED - 56
-supabase.com                       apex=BLOCKED - 56     www=OK 301 0
-tamimi.com                         apex=BLOCKED - 56     www=OK 200 0
-tass.com                           apex=BLOCKED - 56     www=OK 301 0
-tdra.gov.ae                        apex=BLOCKED - 56     www=OK 301 0
-thenationalnews.com                apex=BLOCKED - 56     www=OK 200 0
-twilio.com                         apex=BLOCKED - 56     www=OK 301 0
-u.ae                               apex=BLOCKED - 56     www=OK 301 0
-uaelegislation.gov.ae              apex=BLOCKED - 56     www=ORIGIN 403 0
-uppersetup.com                     apex=BLOCKED - 56     www=OK 308 0
-vc.ru                              apex=BLOCKED - 56     www=OK 301 0
-vercel.app                         apex=BLOCKED - 56     www=OK 308 0
-vercel.com                         apex=BLOCKED - 56     www=OK 308 0
-wati.io                            apex=BLOCKED - 56     www=OK 200 0
-whatsapp.com                       apex=BLOCKED - 56     www=OK 200 0
-whatsappbusiness.com               apex=BLOCKED - 56     www=OK 301 0
-wordstream.com                     apex=BLOCKED - 56     www=ORIGIN 403 0
-zawya.com                          apex=BLOCKED - 56     www=OK 301 0
-zoho.com                           apex=BLOCKED - 56     www=OK 200 0
+# Прогон: 2026-09-09T07:15:55Z UTC, вайтлист: docs/ops/whitelist.txt
+360dialog.com                      apex=OK 200         www=OK 308
+airtable.com                       apex=OK 301         www=OK 200
+amazon.com                         apex=OK 301         www=ORIGIN 503
+anthropic.com                      apex=OK 301         www=OK 200
+apify.com                          apex=OK 200         www=OK 301
+arabianbusiness.com                apex=ORIGIN 403     www=ORIGIN 403
+arxiv.org                          apex=OK 200         www=OK 301
+aws-news.com                       apex=OK 200         www=OK 301
+bayanat.ae                         apex=OK 200         www=ORIGIN 404
+bayt.com                           apex=OK 301         www=ORIGIN 403
+bayut.com                          apex=OK 301         www=ORIGIN 503
+belkins.io                         apex=OK 200         www=OK 301
+bitrix24.com                       apex=OK 301         www=OK 200
+businessemirates.ae                apex=OK 200         www=OK 200
+cbre.com                           apex=OK 302         www=ORIGIN 403
+chambers.com                       apex=OK 200         www=OK 301
+chilipiper.com                     apex=NETFAIL 35     www=OK 200
+claude.com                         apex=OK 200         www=OK 301
+clydeco.com                        apex=OK 301         www=OK 301
+csa-research.com                   apex=OK 200         www=OK 301
+difc.com                           apex=OK 301         www=OK 200
+dlapiperdataprotection.com         apex=OK 301         www=OK 200
+dmcc.ae                            apex=OK 200         www=OK 301
+docker.com                         apex=OK 301         www=OK 200
+docker.io                          apex=OK 302         www=OK 302
+dso.ae                             apex=OK 200         www=OK 200
+dubai.ae                           apex=ORIGIN 403     www=ORIGIN 403
+dubaichambers.com                  apex=OK 302         www=OK 302
+dubaipulse.gov.ae                  apex=NETFAIL 35     www=NETFAIL 35
+dubaisouth.ae                      apex=OK 308         www=OK 307
+dubizzle.com                       apex=OK 200         www=OK 200
+easyoffices.com                    apex=OK 200         www=OK 200
+economy.ae                         apex=NETFAIL 35     www=NETFAIL 60
+facebook.com                       apex=OK 301         www=OK 200
+forbes.ru                          apex=OK 308         www=OK 200
+gdrfad.gov.ae                      apex=OK 301         www=OK 301
+github.com                         apex=ORIGIN 400     www=OK 301
+githubusercontent.com              apex=NODNS -        www=ORIGIN 500
+gong.io                            apex=OK 301         www=OK 200
+google.com                         apex=OK 301         www=OK 200
+growth.gov.ae                      apex=NETFAIL 60     www=NETFAIL 60
+gulfbusiness.com                   apex=ORIGIN 403     www=OK 301
+gulfnews.com                       apex=OK 200         www=OK 301
+gulftalent.com                     apex=OK 301         www=OK 302
+hadefpartners.com                  apex=OK 200         www=OK 302
+hbr.org                            apex=OK 200         www=OK 301
+hubapi.com                         apex=OK 302         www=NODNS -
+hubspot.com                        apex=OK 301         www=OK 200
+hunter.io                          apex=OK 200         www=OK 301
+ifza.com                           apex=OK 301         www=OK 301
+insidesales.com                    apex=OK 301         www=OK 200
+instagram.com                      apex=OK 301         www=OK 200
+instantly.ai                       apex=OK 200         www=OK 301
+invest.dubai.ae                    apex=ORIGIN 403     www=NODNS -
+iwgplc.com                         apex=OK 301         www=OK 200
+jamanetwork.com                    apex=ORIGIN 403     www=ORIGIN 403
+jll.com                            apex=OK 301         www=OK 302
+kaggle.com                         apex=OK 302         www=OK 200
+kayrouzandassociates.com           apex=OK 301         www=OK 200
+khaleejtimes.com                   apex=OK 301         www=OK 200
+kommersant.ru                      apex=OK 301         www=OK 200
+legal500.com                       apex=OK 301         www=OK 200
+lemlist.com                        apex=OK 307         www=OK 200
+linkedin.com                       apex=OK 200         www=OK 200
+make.com                           apex=OK 301         www=OK 301
+matchoffice.com                    apex=OK 301         www=OK 200
+mediaoffice.ae                     apex=OK 200         www=OK 200
+meydanfz.ae                        apex=OK 301         www=OK 200
+microsoft.com                      apex=OK 301         www=OK 200
+moet.gov.ae                        apex=NETFAIL 35     www=OK 200
+mohre.gov.ae                       apex=NETFAIL 35     www=NETFAIL 35
+my.site.com                        apex=NODNS -        www=ORIGIN 502
+n8n.io                             apex=OK 200         www=OK 301
+npmjs.com                          apex=OK 301         www=ORIGIN 403
+npmjs.org                          apex=OK 301         www=OK 301
+pipedrive.com                      apex=OK 301         www=OK 200
+propertyfinder.ae                  apex=OK 301         www=OK 200
+propertyfinder.com                 apex=OK 301         www=OK 200
+pypi.org                           apex=OK 200         www=OK 301
+pythonhosted.org                   apex=OK 200         www=NODNS -
+rakez.com                          apex=OK 301         www=OK 301
+rbc.ru                             apex=OK 307         www=ORIGIN 401
+regus.com                          apex=OK 301         www=OK 200
+resend.com                         apex=OK 200         www=OK 200
+respond.io                         apex=OK 200         www=OK 301
+retool.com                         apex=NETFAIL 35     www=OK 307
+russianemirates.family             apex=OK 200         www=OK 301
+savills.com                        apex=ORIGIN 403     www=ORIGIN 403
+serper.dev                         apex=OK 200         www=ORIGIN 404
+servcorp.ae                        apex=OK 301         www=OK 302
+shams.ae                           apex=OK 301         www=OK 301
+sopro.io                           apex=OK 200         www=OK 301
+sorp.ae                            apex=OK 200         www=OK 301
+sorptaxaccounting.com              apex=OK 200         www=NODNS -
+streamlit.io                       apex=OK 200         www=OK 301
+supabase.co                        apex=OK 307         www=NODNS -
+supabase.com                       apex=OK 200         www=OK 301
+tamimi.com                         apex=OK 301         www=OK 200
+tass.com                           apex=ORIGIN 403     www=OK 301
+tdra.gov.ae                        apex=OK 200         www=NETFAIL 35
+thenationalnews.com                apex=OK 301         www=OK 200
+twilio.com                         apex=OK 301         www=OK 301
+u.ae                               apex=OK 200         www=OK 301
+uaelegislation.gov.ae              apex=ORIGIN 403     www=ORIGIN 403
+uppersetup.com                     apex=OK 308         www=OK 308
+vc.ru                              apex=OK 200         www=OK 301
+vercel.app                         apex=OK 308         www=OK 308
+vercel.com                         apex=OK 200         www=OK 308
+wati.io                            apex=OK 301         www=OK 200
+whatsapp.com                       apex=OK 302         www=OK 200
+whatsappbusiness.com               apex=OK 200         www=OK 301
+wordstream.com                     apex=OK 301         www=ORIGIN 403
+zawya.com                          apex=OK 301         www=OK 301
+zoho.com                           apex=OK 301         www=OK 200
+# --- итог по apex (Р2: числами, а не флагом) ---
+# OK       96
+# POLICY   0
+# ORIGIN   9
+# NETFAIL  7
+# NODNS    2
+# всего проверено 114
