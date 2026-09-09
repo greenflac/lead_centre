@@ -126,8 +126,8 @@ bench author and is marked as such in the file itself.
 
 The bench is checked against itself, because a metric that never moves measures nothing: with
 all labels forced to one class it prints `DEGENERATE` and exits "could not check" (code 2)
-rather than 0; with labels shuffled on six seeds the kappa falls from 0.7436 to between
-−0.2308 and +0.1282. Decision constants are checked by mutation in both directions — 20 of 20
+rather than 0; with labels shuffled on six seeds the kappa falls to between −0.2308 and
++0.1282 (measured against the 0.7436 baseline the bench had at the time). Decision constants are checked by mutation in both directions — 20 of 20
 engine mutations killed (thresholds, matrix cells, target city, registrar code, the axis-C
 ladder). One is honestly not covered: `URGENT_DEFAULT_DAYS` survives mutation on the current
 labels, and that is recorded as debt in `eval/README.md` rather than papered over.
