@@ -153,14 +153,21 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
         bumps += 1
         reasons.append(f"назван бюджет: {facts.budget_hint[:40]}")
 
+    substantive = bumps
+
     # Язык — довесок, а не самостоятельный повод (см. LANGUAGE_NEEDS_ANOTHER_SIGNAL).
     if facts.language in rubric.TARGET_LANGUAGES:
-        if bumps or not rubric.LANGUAGE_NEEDS_ANOTHER_SIGNAL:
-            bumps += 1
+        if substantive or not rubric.LANGUAGE_NEEDS_ANOTHER_SIGNAL:
             reasons.append(f"язык обращения {facts.language} — основная аудитория")
         else:
             reasons.append(f"язык обращения {facts.language}, но других признаков нет")
-    tier = _step(tier, bumps)
+
+    # Горячим делает только набор содержательных признаков: одного мало, иначе HIGH
+    # достаётся половине входящих и перестаёт что-либо значить (см. SIGNALS_FOR_HIGH).
+    if substantive >= rubric.SIGNALS_FOR_HIGH:
+        tier = _step(tier, 1)
+    elif substantive and tier is Tier.LOW:
+        tier = _step(tier, 1)
 
     # Понижающие. Низкая уверенность извлечения не даёт подняться выше среднего:
     # приоритет, выведенный из ненадёжных фактов, дороже пропущенного лида.

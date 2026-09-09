@@ -3,8 +3,8 @@
  "leads": {
   "checked": 70,
   "by_tier": {
-   "HIGH": 30,
-   "MEDIUM": 20,
+   "HIGH": 13,
+   "MEDIUM": 37,
    "LOW": 20,
    "INVALID": 0
   },
