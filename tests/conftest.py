@@ -76,3 +76,42 @@ def renewal_company(days_left: int, **overrides) -> Company:
 @pytest.fixture
 def today() -> date:
     return TODAY
+
+
+# --- ось C: входящие обращения ---------------------------------------------------
+
+
+def make_message(text: str = "Нужен офис и виза для новой компании", **overrides):
+    """Обращение из канала SORP. Текст непустой: пустой — отдельный негативный контроль."""
+    from leadcentre.models import InboundMessage
+
+    base = {
+        "external_id": "MSG-1",
+        "channel": "jivo",
+        "text": text,
+        "received_at": TODAY,
+        "is_synthetic": True,
+    }
+    base.update(overrides)
+    return InboundMessage(**base)
+
+
+def make_facts(**overrides):
+    """Факты по умолчанию: один тип запроса, язык не целевой, уверенность высокая,
+    цитата есть. Каждый модификатор оси C включается в тесте явно."""
+    from leadcentre.models import LeadFacts, RequestType
+
+    base = {
+        "request_types": (RequestType.OFFICE,),
+        "jurisdiction_hint": None,
+        "headcount": None,
+        "timeline_days": None,
+        "budget_hint": None,
+        "language": "en",
+        "is_spam": False,
+        "has_contact": True,
+        "confidence": 0.9,
+        "quotes": ("нужен офис",),
+    }
+    base.update(overrides)
+    return LeadFacts(**base)
