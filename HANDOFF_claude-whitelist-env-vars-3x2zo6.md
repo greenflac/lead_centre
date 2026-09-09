@@ -55,3 +55,25 @@ Append-only журнал сессий (Ц6). Новые записи — в ко
   госисточники `dubaipulse.gov.ae`, `mohre.gov.ae`, `economy.ae`, `moet.gov.ae`,
   `growth.gov.ae` доезжают по сети, но рвут TLS на apex — нужен рабочий поддомен/путь,
   вайтлистом это не чинится.
+
+## Сессия 1, продолжение — 2026-09-09 — ключи
+
+Пользователь добавил ключи. Имена в среде: `CLAUDE_KEY`, `SERPER_KEY`,
+`HUBSPOT_PERSONAL_KEY`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`,
+`SUPABASE_SECRET_KEY`, `SUPABASE_JWKS_URL`. Значения нигде не печатались.
+
+Прогон `docs/ops/check_keys.sh` (живой запрос + негативный контроль на тот же эндпоинт),
+вывод — `docs/ops/keys_check.txt`:
+- `CLAUDE_KEY` 200 / bogus 401 — рабочий;
+- `SERPER_KEY` 200 / bogus 403 — рабочий;
+- `SUPABASE_PUBLISHABLE_KEY` и `SUPABASE_SECRET_KEY` 404 «table not found» / bogus 401 —
+  рабочие (корень `/rest/v1/` пускает только secret, поэтому проверка идёт запросом к
+  несуществующей таблице: 404 = авторизация пройдена);
+- `SUPABASE_JWKS_URL` 200;
+- **`HUBSPOT_PERSONAL_KEY` не работает**: 401 `EXPIRED_AUTHENTICATION`, «expired 20705
+  days ago», expire time 1970-01-01 — то же, что у заведомо неверного токена. В переменной
+  лежит OAuth access token (`CiR…`), а нужен Private App token (`pat-naX-…`) со скоупами
+  `crm.objects.contacts.*` / `crm.objects.companies.*`. `?hapikey=` тоже 401, HubSpot его
+  отключил.
+
+Открыто: заменить HubSpot-токен. Остальное для спринтов 1–3 готово — сеть и три ключа.
