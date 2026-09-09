@@ -138,11 +138,44 @@ def _sentence_around(text: str, start: int, end: int) -> str:
     return cut.rsplit(" ", 1)[0] + "…" if " " in cut else cut
 
 
-def rules_facts(message: InboundMessage) -> LeadFacts:
-    """Факты из текста без модели: заглушка стенда, а не извлечение (confidence=0.0).
+# Слова о лицензии одинаково звучат при первичной регистрации и при продлении: «нужна
+# лицензия» и «нужно продлить лицензию». ИЗМЕРЕНО 2026-09-09: на обращении urg-13
+# («our licence expires in 21 days…») маркеры давали setup, а модель — только renewal,
+# и права модель: компанию не регистрируют, лицензию продлевают. Расхождение опасно тем,
+# что eval считает по маркерам, а карточка показывает ответ модели, — они обязаны
+# означать одно и то же.
+LICENCE_MARKERS = ("лицензи", "licence", "license")
 
-    Живёт в eval, а не в движке, сознательно: это прибор, которым меряют движок, и он
-    обязан быть дешёвым и детерминированным. Качество извлечения меряется режимом llm.
+
+def _drop_setup_inside_renewal(
+    low: str, types: list[RequestType], fired: dict[RequestType, list[str]]
+) -> list[RequestType]:
+    """Убирает регистрацию, если она зажглась только словом о лицензии рядом с продлением.
+
+    Настоящий setup рядом с продлением остаётся: если сработал хоть один маркер
+    регистрации, кроме слова о лицензии («открыть компанию», «фризона», «mainland»),
+    речь и правда о новой компании — так устроено обращение urg-08, где спрашивают
+    и про продление, и про открытие в фризоне.
+    """
+    if RequestType.SETUP not in types or RequestType.RENEWAL not in types:
+        return types
+    setup_markers = fired.get(RequestType.SETUP, ())
+    if any(marker not in LICENCE_MARKERS for marker in setup_markers):
+        return types
+    renewal_markers = fired.get(RequestType.RENEWAL, ())
+    for sentence in re.split(f"[{re.escape(SENTENCE_BOUNDARIES)}]", low):
+        has_licence = any(marker in sentence for marker in setup_markers)
+        has_renewal = any(marker in sentence for marker in renewal_markers)
+        if has_licence and not has_renewal:
+            return types  # где-то о лицензии говорят отдельно от продления — оставляем
+    return [kind for kind in types if kind is not RequestType.SETUP]
+
+
+def rules_facts(message: InboundMessage) -> LeadFacts:
+    """Факты из текста без модели: детерминированная заглушка (confidence по маркерам).
+
+    Этим меряют движок в eval и этим же наполняется демонстрационный набор дашборда,
+    поэтому реализация одна на всех. Настоящее извлечение — engine/extract.py.
     """
     low = message.text.lower()
     scrubbed = extract_mod.scrub_pii(message.text)
@@ -165,13 +198,17 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
         return True
 
     types: list[RequestType] = []
+    fired: dict[RequestType, list[str]] = {}
     for kind, markers in TYPE_MARKERS.items():
         # перебираем все маркеры, а не до первого: цитаты нужны все, что сработали
         matched = False
         for marker in markers:
+            if marker in low:
+                fired.setdefault(kind, []).append(marker)
             matched = hit(marker) or matched
         if matched:
             types.append(kind)
+    types = _drop_setup_inside_renewal(low, types, fired)
     headcount = None
     found = HEADCOUNT_RE.search(low)
     if found:
