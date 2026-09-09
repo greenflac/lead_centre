@@ -25,21 +25,21 @@ ADDR_EMPTY: tuple[str, ...] = ()
 
 def make_company(**overrides) -> Company:
     """Компания по умолчанию: ОАЭ, Дубай, активна, без повода, свой офис."""
-    base = dict(
-        source="test",
-        external_id="TESTLEI0000000000001",
-        name="Test Trading LLC",
-        city="Dubai",
-        country="AE",
-        address_lines=ADDR_OWN,
-        registrar_id="RA999999",
-        license_no="LIC-1",
-        created_on=TODAY - timedelta(days=1000),
-        entity_active=True,
-        registration_status="ISSUED",
-        next_renewal_on=TODAY + timedelta(days=300),
-        is_synthetic=True,
-    )
+    base = {
+        "source": "test",
+        "external_id": "TESTLEI0000000000001",
+        "name": "Test Trading LLC",
+        "city": "Dubai",
+        "country": "AE",
+        "address_lines": ADDR_OWN,
+        "registrar_id": "RA999999",
+        "license_no": "LIC-1",
+        "created_on": TODAY - timedelta(days=1000),
+        "entity_active": True,
+        "registration_status": "ISSUED",
+        "next_renewal_on": TODAY + timedelta(days=300),
+        "is_synthetic": True,
+    }
     base.update(overrides)
     return Company(**base)
 
