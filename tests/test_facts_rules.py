@@ -223,6 +223,71 @@ def test_no_seed_message_gets_setup_only_from_a_licence_word_next_to_renewal():
     )
 
 
+# --- закрытые дыры: словоформы, которые теперь ловятся ---------------------------
+#
+# ИЗМЕРЕНО 2026-09-09 после правки маркеров. Заперты, чтобы откат был заметен.
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("зарегистрировать компанию", {RequestType.SETUP}),
+        ("открытие компании", {RequestType.SETUP}),
+        ("incorporation", {RequestType.SETUP}),
+        ("рабочее место одно", {RequestType.OFFICE}),
+        ("переговорная", {RequestType.OFFICE}),
+        ("ведём бухучёт", {RequestType.ACCOUNTING}),
+        ("ведем бухучет", {RequestType.ACCOUNTING}),   # и без ё
+        ("открыть счёт", {RequestType.BANK}),
+        ("открыть счет", {RequestType.BANK}),          # и без ё
+        ("открытие счёта", {RequestType.BANK}),
+        ("open an account", {RequestType.BANK}),
+        ("current account", {RequestType.BANK}),
+        ("срок действия истёк", {RequestType.RENEWAL}),
+        ("лицензия истекла", {RequestType.RENEWAL}),
+    ],
+)
+def test_closed_marker_gaps_are_covered(text, expected):
+    """Формы, которых маркеры раньше не ловили, теперь дают верный тип."""
+    assert _types(text) == expected
+
+
+# --- шум вокруг закрытых дыр: цена, заплаченная за покрытие ----------------------
+
+
+@pytest.mark.parametrize(
+    ("text", "wrong"),
+    [
+        # «счёт» без банка ловится и там, где речь не о банковском счёте.
+        ("открыть счёт в ресторане", RequestType.BANK),
+        ("open an account on your website", RequestType.BANK),
+        # «переговорн» и «рабочее место» — там, где речь не об аренде.
+        ("переговорная комната в отеле", RequestType.OFFICE),
+        ("рабочее место дома", RequestType.OFFICE),
+        # «зарегистр» ловит любую регистрацию, не только компании.
+        ("зарегистрироваться на вебинар", RequestType.SETUP),
+        ("зарегистрировать домен", RequestType.SETUP),
+    ],
+)
+def test_noise_introduced_by_closing_the_gaps_is_recorded(text, wrong):
+    """Негативный контроль закрытых дыр со стороны шума (И5): ИЗМЕРЕНО 2026-09-09.
+
+    Шесть фраз, которых в канале SORP почти не бывает, теперь получают лишний тип.
+    На наборе из 70 обращений это не изменило ни одного приоритета — распределение
+    осталось 13 HIGH / 41 MEDIUM / 16 LOW. Заниматься этим не стоит: сузить «счёт»
+    до «счёт в банке» значит вернуть исходную дыру, ради которой правка и делалась,
+    а лишний тип в карточке менеджер поправит за секунду — пропущенный запрос дороже.
+    """
+    assert wrong in _types(text)
+
+
+def test_words_around_the_closed_gaps_that_stay_silent():
+    """Не всякое «счёт» зажигает банк — и это тоже измерено, а не предположено."""
+    assert _types("закройте счёт, пожалуйста") == set()
+    assert _types("счёт на оплату пришлите") == set()
+    assert _types("инвойс и счёт-фактура") == set()
+
+
 # --- известные дыры в маркерах: заперты, а не замолчаны --------------------------
 #
 # ИЗМЕРЕНО 2026-09-09 прогоном словоформ по всем TYPE_MARKERS. Тесты фиксируют
@@ -234,27 +299,25 @@ def test_no_seed_message_gets_setup_only_from_a_licence_word_next_to_renewal():
 @pytest.mark.parametrize(
     ("text", "missing", "current"),
     [
-        # SETUP: приставочные и отглагольные формы, английские обороты
-        ("зарегистрировать компанию", RequestType.SETUP, set()),
-        ("открытие компании", RequestType.SETUP, set()),
-        ("открыл бы компанию в оаэ", RequestType.SETUP, set()),
+        # НЕ ЧИНИМ ОСОЗНАННО, причина у каждой строки своя:
+        # основа "set up" поймала бы «set up a meeting» и «settings» — шума больше,
+        # чем пользы, а по-английски о регистрации чаще пишут «company formation».
         ("company set up", RequestType.SETUP, set()),
         ("setting up a company", RequestType.SETUP, set()),
-        ("incorporation", RequestType.SETUP, set()),
-        # OFFICE: единственное число «рабочее место», именительный «переговорная»
-        ("рабочее место одно", RequestType.OFFICE, set()),
-        ("переговорная", RequestType.OFFICE, set()),
-        # ACCOUNTING: разговорное «бухучёт»
-        ("ведём бухучёт", RequestType.ACCOUNTING, set()),
-        # BANK: «счёт» без слова «банк»
-        ("открыть счёт", RequestType.BANK, set()),
-        ("open an account", RequestType.BANK, set()),
-        # RENEWAL: «истёк» через ё и «продлёнка»
-        ("срок действия истёк", RequestType.RENEWAL, set()),
+        # «продлёнка» — это школьная продлёнка, а не продление лицензии.
+        ("продлёнка", RequestType.RENEWAL, set()),
+        # «открыл бы компанию» — сослагательная форма; основа "открыл" зажигалась бы
+        # на «открыл счёт», «открыл дверь», а сам оборот в канале почти не встречается.
+        ("открыл бы компанию в оаэ", RequestType.SETUP, set()),
     ],
 )
 def test_known_marker_gaps_are_recorded(text, missing, current):
-    """Словоформа не ловится маркерами — записано числом и текстом, а не забыто."""
+    """Словоформа не ловится маркерами — и это решение, а не забывчивость.
+
+    Причина по каждой строке — в комментарии рядом с ней. Тест фиксирует ТЕКУЩЕЕ
+    поведение: если кто-то решит дыру закрыть, сборка покраснеет и решение придётся
+    принять заново, а не молча (Ц8/И6).
+    """
     assert _types(text) == current
     assert missing not in _types(text)
 
@@ -262,8 +325,8 @@ def test_known_marker_gaps_are_recorded(text, missing, current):
 @pytest.mark.parametrize(
     ("text", "wrong"),
     [
-        # Короткие основы ловят чужие слова. Чинить не обязательно: на живом трафике
-        # такие фразы редки, а сужение основы («виз» → «виза») потеряет «визами».
+        # Короткие основы ловят чужие слова. Решение владельца от 2026-09-09: оставить,
+        # причина — в докстроке теста.
         ("купите телевизор недорого", RequestType.VISA),
         ("приходил ваш визит-менеджер", RequestType.VISA),
         ("процедура банкротства компании", RequestType.BANK),
@@ -273,5 +336,13 @@ def test_known_marker_gaps_are_recorded(text, missing, current):
     ],
 )
 def test_known_false_positives_are_recorded(text, wrong):
-    """Обратная сторона основ: ложное срабатывание. Тоже заперто, чтобы решать осознанно."""
+    """Ложные срабатывания коротких основ — ОСОЗНАННОЕ решение, а не недосмотр.
+
+    Сужать основу не будем: «виз» → «виза» убирает телевизор ценой «визами» и «визы».
+    Здесь ложное срабатывание дешевле пропуска — лишний тип в карточке менеджер
+    поправит за секунду, а пропущенный запрос про визы стоит лида. То же и с «банк»
+    в «банкротстве», «аудит» в «аудитории», «desk» в «desktop».
+    Тест фиксирует текущее поведение: сужение основы покраснит сборку и решение
+    придётся принять заново (Ц8).
+    """
     assert wrong in _types(text)
