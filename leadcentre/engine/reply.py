@@ -94,13 +94,58 @@ CLOSER_URGENT = {
     "ru": "Вижу, что сроки сжатые: возьмём в работу сегодня — во сколько удобно созвониться?",
     "en": "Your timeline looks tight: we can start today — what time suits a call?",
 }
-CLOSER_NORMAL = {
-    "ru": "Подскажите, сколько человек планируете нанять в первый год?",
-    "en": "Could you tell us how many people you plan to hire in the first year?",
-}
 CLOSER_MEETING = {
     "ru": "Удобно встретиться в нашем офисе в Дубае на этой неделе или созвониться?",
     "en": "Would a meeting at our Dubai office this week work, or a call instead?",
+}
+
+# Замыкающий вопрос спрашивает только то, чего в фактах НЕТ. Спросить про уже сказанное —
+# показать клиенту, что обращение не прочитали; это дороже любой неспрошенной детали.
+# Порядок кандидатов — данные, а не ветвление в тексте: меняется здесь, и мутация порядка
+# обязана менять последнюю строку черновика (Т1).
+CLOSER_QUESTION_ORDER: tuple[str, ...] = (
+    "headcount",
+    "timeline_days",
+    "jurisdiction_hint",
+    "has_contact",
+)
+
+# Чем проверяется «факт известен». Ключ тот же, что в LeadFacts.
+FACT_IS_KNOWN = {
+    "headcount": lambda f: f.headcount is not None,
+    "timeline_days": lambda f: f.timeline_days is not None,
+    "jurisdiction_hint": lambda f: bool(f.jurisdiction_hint),
+    "has_contact": lambda f: f.has_contact,
+}
+
+CLOSER_QUESTION = {
+    "headcount": {
+        "ru": "Подскажите, сколько человек планируете нанять в первый год?",
+        "en": "Could you tell us how many people you plan to hire in the first year?",
+    },
+    "timeline_days": {
+        "ru": "К какому сроку нужно, чтобы всё было готово?",
+        "en": "By when do you need everything up and running?",
+    },
+    "jurisdiction_hint": {
+        "ru": "Смотрите mainland или фризону — или как раз хотите сравнить два варианта?",
+        "en": "Are you leaning towards mainland or a free zone — or would you compare both?",
+    },
+    "has_contact": {
+        "ru": "Оставьте номер WhatsApp — пришлём расчёт туда и не потеряем ваш вопрос.",
+        "en": "Share a WhatsApp number and we will send the numbers there.",
+    },
+}
+
+# Опора на известное для случая, когда спрашивать больше нечего.
+GROUNDING = {
+    "headcount": {"ru": "вас {value} человек", "en": "there are {value} of you"},
+    "timeline_days": {"ru": "срок {value} дн.", "en": "your timeline is {value} days"},
+    "jurisdiction_hint": {"ru": "формат {value}", "en": "you are looking at {value}"},
+}
+GROUNDED_MEETING_TAIL = {
+    "ru": "предлагаю созвон сегодня или встречу в нашем офисе в Дубае.",
+    "en": "let us do a call today or meet at our Dubai office.",
 }
 
 # Уточняющие вопросы, когда фактов мало. Порядок — от самого важного.
@@ -317,12 +362,31 @@ def _needs_human(facts: LeadFacts, tier: Tier) -> bool:
     return facts.timeline_days is not None and facts.timeline_days <= URGENT_TIMELINE_DAYS
 
 
+def _grounded_meeting(facts: LeadFacts, language: str) -> str:
+    """Спрашивать нечего — значит, опираемся на сказанное клиентом, а не переспрашиваем."""
+    parts: list[str] = []
+    for key in CLOSER_QUESTION_ORDER:
+        template = GROUNDING.get(key)
+        if template is None or not FACT_IS_KNOWN[key](facts):
+            continue
+        parts.append(template[language].format(value=getattr(facts, key)))
+        if len(parts) == 2:  # две опоры — предел: строка должна остаться читаемой
+            break
+    if not parts:
+        return CLOSER_MEETING[language]
+    joiner = " и " if language == "ru" else " and "
+    lead = joiner.join(parts)
+    return f"{lead[0].upper()}{lead[1:]} — {GROUNDED_MEETING_TAIL[language]}"
+
+
 def _closer(facts: LeadFacts, tier: Tier, language: str) -> str:
+    """Последняя строка: срочность, затем первый НЕизвестный факт, затем опора на известное."""
     if facts.timeline_days is not None and facts.timeline_days <= URGENT_TIMELINE_DAYS:
         return CLOSER_URGENT[language]
-    if tier is Tier.HIGH:
-        return CLOSER_MEETING[language]
-    return CLOSER_NORMAL[language]
+    for key in CLOSER_QUESTION_ORDER:
+        if not FACT_IS_KNOWN[key](facts):
+            return CLOSER_QUESTION[key][language]
+    return _grounded_meeting(facts, language)
 
 
 def _questions_draft(language: str, needs_human: bool) -> Reply:
