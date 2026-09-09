@@ -40,11 +40,6 @@ from leadcentre.models import InboundMessage, LeadFacts, RequestType, Tier
 # ВЫБРАНО: разметка человека тремя значениями; INVALID — исход движка, а не суждение
 # человека (docs/data/inbound_seed.md, раздел «Правила разметки для владельца»).
 TIERS = ("HIGH", "MEDIUM", "LOW")
-# ВЫБРАНО: «срочно/asap/в этом месяце» без числа — считаем сроком в 14 дней.
-# DEBT(2026-09-09): мутация этой константы в обе стороны (1 и 400) не меняет ни одного
-# числа на текущих 30 размеченных обращениях и 6 контролях — её никто не сторожит (Т1).
-# Нужен размеченный случай, где нечёткая срочность — единственный признак HIGH.
-URGENT_DEFAULT_DAYS = 14
 STABILITY_RUNS = 3         # РАСЧЁТ по docs/BLUEPRINT.md §10: «3 прогона»
 KAPPA_TARGET = 0.6         # РАСЧЁТ по docs/BLUEPRINT.md §10: каппа >= 0.6
 STABILITY_TARGET = 0.9     # РАСЧЁТ по docs/BLUEPRINT.md §10: >= 90%
