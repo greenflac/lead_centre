@@ -6,3 +6,5 @@ node_modules/
 .next/
 out/
 .vercel/
+data/store_offline.json
+data/extract_cache.json

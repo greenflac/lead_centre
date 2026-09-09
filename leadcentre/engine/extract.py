@@ -107,6 +107,8 @@ class Completion:
     model: str
     input_tokens: int
     output_tokens: int
+    cache_read_tokens: int = 0     # из кэша (дёшево); 0 у провайдеров без кэша
+    cache_write_tokens: int = 0    # записано в кэш (дороже обычного входа)
 
 
 @dataclass(frozen=True)
@@ -119,6 +121,8 @@ class Extraction:
     elapsed_s: float
     input_tokens: int
     output_tokens: int
+    cache_read_tokens: int
+    cache_write_tokens: int
     offline: bool
     scrubbed: Scrubbed
     dropped_quotes: int      # цитат, которых в обращении нет: модель их придумала
@@ -246,6 +250,13 @@ class AnthropicProvider:
             "max_tokens": MAX_TOKENS,
             "system": system,
             "messages": [{"role": "user", "content": content}],
+            # Системный промпт и схема одинаковы для каждого лида — кэшируем префикс.
+            # Волатильное (текст обращения, дата) идёт после него, в messages.
+            # ИЗМЕРЕНО 2026-09-09: на Opus 5 префикс кэшируется (3162 токена, второй запрос
+            # $0.0223 → $0.0041); на Haiku 4.5 при промпте ~2.9k токенов кэш молча не
+            # включается — префикс короче порога модели. Параметр оставлен: он безвреден,
+            # а счётчики cache_read/cache_write в Extraction показывают, сработал ли он.
+            "cache_control": {"type": "ephemeral"},
             "output_config": {"format": {"type": "json_schema", "schema": _schema()}},
         }
         # Уровень усилий и мышление — конфигурация, а не константа в коде. `none`/`off`
@@ -296,11 +307,14 @@ class AnthropicProvider:
         text = next((b.text for b in response.content if b.type == "text"), None)
         if text is None:
             raise ExtractionError("anthropic: в ответе нет текстового блока")
+        usage = response.usage
         return Completion(
             text=text,
             model=response.model,
-            input_tokens=response.usage.input_tokens,
-            output_tokens=response.usage.output_tokens,
+            input_tokens=usage.input_tokens,
+            output_tokens=usage.output_tokens,
+            cache_read_tokens=getattr(usage, "cache_read_input_tokens", 0) or 0,
+            cache_write_tokens=getattr(usage, "cache_creation_input_tokens", 0) or 0,
         )
 
 
@@ -548,6 +562,8 @@ def _offline_extraction(message: InboundMessage) -> Extraction:
         elapsed_s=0.0,
         input_tokens=0,
         output_tokens=0,
+        cache_read_tokens=0,
+        cache_write_tokens=0,
         offline=True,
         scrubbed=scrubbed,
         dropped_quotes=0,
@@ -586,6 +602,8 @@ def extract_detailed(message: InboundMessage, provider: Provider | None = None) 
         elapsed_s=elapsed,
         input_tokens=completion.input_tokens,
         output_tokens=completion.output_tokens,
+        cache_read_tokens=completion.cache_read_tokens,
+        cache_write_tokens=completion.cache_write_tokens,
         offline=False,
         scrubbed=scrubbed,
         dropped_quotes=dropped,

@@ -37,11 +37,12 @@ function classifyError(error: unknown): ApiError {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(`${BASE}${path}`, {
-      ...init,
-      headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-      cache: "no-store",
-    });
+    // Content-Type is set only when there is a body: sending it on a plain GET turns
+    // every cross-origin read into a CORS preflight, and a backend without an OPTIONS
+    // handler then fails with a bare "Failed to fetch" (observed against a stub API).
+    const headers: Record<string, string> = { ...((init?.headers as Record<string, string>) ?? {}) };
+    if (init?.body !== undefined) headers["Content-Type"] = "application/json";
+    response = await fetch(`${BASE}${path}`, { ...init, headers, cache: "no-store" });
   } catch (error) {
     throw classifyError(error);
   }
