@@ -137,15 +137,30 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
     if not facts.request_types:
         reasons.append("из текста не извлечён ни один тип запроса")
 
+    bumps = 0
     if facts.timeline_days is not None and facts.timeline_days <= rubric.URGENT_TIMELINE_DAYS:
-        tier = _step(tier, 1)
+        bumps += 1
         reasons.append(f"срок {facts.timeline_days} дн. — не больше {rubric.URGENT_TIMELINE_DAYS}")
     if len(facts.request_types) >= rubric.PACKAGE_MIN_REQUEST_TYPES:
-        tier = _step(tier, 1)
+        bumps += 1
         reasons.append(f"запрошено услуг: {len(facts.request_types)} — нужен пакет")
+    if facts.headcount is not None and facts.headcount >= rubric.TEAM_MIN_HEADCOUNT:
+        bumps += 1
+        reasons.append(f"команда {facts.headcount} чел. — флекси не закроет визовую квоту")
+    # Бюджетом считается только сумма. Модель охотно кладёт в это поле сам вопрос
+    # «сколько стоит» — из вопроса о цене горячий лид не следует, скорее наоборот.
+    if facts.budget_hint and any(ch.isdigit() for ch in facts.budget_hint):
+        bumps += 1
+        reasons.append(f"назван бюджет: {facts.budget_hint[:40]}")
+
+    # Язык — довесок, а не самостоятельный повод (см. LANGUAGE_NEEDS_ANOTHER_SIGNAL).
     if facts.language in rubric.TARGET_LANGUAGES:
-        tier = _step(tier, 1)
-        reasons.append(f"язык обращения {facts.language} — основная аудитория")
+        if bumps or not rubric.LANGUAGE_NEEDS_ANOTHER_SIGNAL:
+            bumps += 1
+            reasons.append(f"язык обращения {facts.language} — основная аудитория")
+        else:
+            reasons.append(f"язык обращения {facts.language}, но других признаков нет")
+    tier = _step(tier, bumps)
 
     # Понижающие. Низкая уверенность извлечения не даёт подняться выше среднего:
     # приоритет, выведенный из ненадёжных фактов, дороже пропущенного лида.

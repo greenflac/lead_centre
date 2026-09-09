@@ -7,9 +7,24 @@ export function TierChip({ tier }: { tier: Tier }) {
   return <span className={`chip tier-${tier}`} title={tier === "INVALID" ? "An invariant was violated — the engine refuses to give this a priority" : undefined}>{label}</span>;
 }
 
-export function SyntheticTag({ what = "synthetic data" }: { what?: string }) {
+/** Honest provenance label. Invented data and real public records are never shown alike. */
+export function SyntheticTag({
+  what = "synthetic data",
+  title = "Invented demo data. Not a real SORP request or customer record.",
+}: {
+  what?: string;
+  title?: string;
+}) {
   return (
-    <span className="chip chip-synthetic" title="Demo data. Not a real SORP request or customer record.">
+    <span className="chip chip-synthetic" title={title}>
+      {what}
+    </span>
+  );
+}
+
+export function RealDataTag({ what, title }: { what: string; title: string }) {
+  return (
+    <span className="chip chip-plain" style={{ fontSize: 10 }} title={title}>
       {what}
     </span>
   );
