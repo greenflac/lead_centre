@@ -1,4 +1,28 @@
 {
+  "024d736f3afe2fae01edf23f7e6d3af01e6231ac6563bcb281c924ef1ef37083": {
+    "elapsed_s": 3.665,
+    "external_id": "visa-06",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.7,
+      "has_contact": true,
+      "headcount": null,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "ru",
+      "quotes": [
+        "виза заканчивается через две недели"
+      ],
+      "request_types": [
+        "visa"
+      ],
+      "timeline_days": 14
+    },
+    "input_tokens": 2978,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 84,
+    "provider": "anthropic"
+  },
   "098adae4244a6d1007967d15583d85003ea15cae68adbe42883daa6ec1b3b0b8": {
     "elapsed_s": 2.428,
     "external_id": "edge-03",
@@ -53,6 +77,28 @@
     "input_tokens": 2967,
     "model": "claude-haiku-4-5-20251001",
     "output_tokens": 103,
+    "provider": "anthropic"
+  },
+  "1295c1bfa6f2b9488f67d427b04222a71affb723fc84b72c8b7152dd8797d5da": {
+    "elapsed_s": 2.932,
+    "external_id": "prc-07",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.25,
+      "has_contact": false,
+      "headcount": null,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "ru",
+      "quotes": [],
+      "request_types": [
+        "other"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2941,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 61,
     "provider": "anthropic"
   },
   "238efd6879ca155e3b995ef06127768f351784ffa02a3e90c2f3c6d121f32f31": {
@@ -134,6 +180,32 @@
     "output_tokens": 120,
     "provider": "anthropic"
   },
+  "2e98f82a497666b881d2213f289905d874362afcc398214228aa5d6f73b61043": {
+    "elapsed_s": 4.579,
+    "external_id": "visa-05",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.95,
+      "has_contact": true,
+      "headcount": 3,
+      "is_spam": false,
+      "jurisdiction_hint": "SPC Free Zone",
+      "language": "ru",
+      "quotes": [
+        "3 рабочие визы для сотрудников",
+        "компания уже есть в SPC Free Zone",
+        "Сотрудники приедут в октябре"
+      ],
+      "request_types": [
+        "visa"
+      ],
+      "timeline_days": 68
+    },
+    "input_tokens": 2983,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 120,
+    "provider": "anthropic"
+  },
   "2eb8326c23532b908e71f7aa128adf92fc9ef48f4f00d43ddb784b71b7656f63": {
     "elapsed_s": 3.398,
     "external_id": "gen-01",
@@ -152,6 +224,74 @@
       "timeline_days": null
     },
     "input_tokens": 2953,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 71,
+    "provider": "anthropic"
+  },
+  "387c861b8e6fb4fd74001e5fe51dfa67476bba2615da7c1274c49026b97d929a": {
+    "elapsed_s": 3.44,
+    "external_id": "spam-05",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.95,
+      "has_contact": false,
+      "headcount": null,
+      "is_spam": true,
+      "jurisdiction_hint": null,
+      "language": "ru",
+      "quotes": [],
+      "request_types": [
+        "other"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2970,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 71,
+    "provider": "anthropic"
+  },
+  "3c7bef46e7d4f3531c989458982c26c6041bb5d5d1bef8974db99905d01d218f": {
+    "elapsed_s": 3.321,
+    "external_id": "prc-01",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.3,
+      "has_contact": false,
+      "headcount": null,
+      "is_spam": false,
+      "jurisdiction_hint": "freezone",
+      "language": "ru",
+      "quotes": [
+        "скок стоит фриз зона?"
+      ],
+      "request_types": [
+        "setup"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2934,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 73,
+    "provider": "anthropic"
+  },
+  "4eadd728b55ef7e7de4ea344d38623e279f8733d8b1e0228b42f8a947829d330": {
+    "elapsed_s": 3.151,
+    "external_id": "spam-06",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.95,
+      "has_contact": true,
+      "headcount": null,
+      "is_spam": true,
+      "jurisdiction_hint": null,
+      "language": "en",
+      "quotes": [],
+      "request_types": [
+        "other"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2962,
     "model": "claude-haiku-4-5-20251001",
     "output_tokens": 71,
     "provider": "anthropic"
@@ -181,6 +321,52 @@
     "output_tokens": 88,
     "provider": "anthropic"
   },
+  "640f73c4142c489e02954267ebea7634c2ea93ba645615b3d49edf163ce80502": {
+    "elapsed_s": 2.939,
+    "external_id": "spam-01",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.95,
+      "has_contact": true,
+      "headcount": null,
+      "is_spam": true,
+      "jurisdiction_hint": null,
+      "language": "en",
+      "quotes": [],
+      "request_types": [
+        "other"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2966,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 61,
+    "provider": "anthropic"
+  },
+  "6481fe5f24737724d35c857463965571eef90fa06e6578b9d56de27ba385fbc7": {
+    "elapsed_s": 3.486,
+    "external_id": "visa-01",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.85,
+      "has_contact": false,
+      "headcount": 2,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "ru",
+      "quotes": [
+        "резидентская виза на себя и жену"
+      ],
+      "request_types": [
+        "visa"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2959,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 85,
+    "provider": "anthropic"
+  },
   "6841e964d08ea5a58e152cecf9de7721b11bc7d5b0137aee5e07b5e1220472f9": {
     "elapsed_s": 3.559,
     "external_id": "acct-07",
@@ -203,6 +389,54 @@
     "input_tokens": 2945,
     "model": "claude-haiku-4-5-20251001",
     "output_tokens": 89,
+    "provider": "anthropic"
+  },
+  "754761f6a2743b7b89bd7656e728499800767b26db1d234edc6bd3786eca0218": {
+    "elapsed_s": 3.339,
+    "external_id": "gen-20",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.3,
+      "has_contact": false,
+      "headcount": null,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "ru",
+      "quotes": [],
+      "request_types": [
+        "other"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2966,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 71,
+    "provider": "anthropic"
+  },
+  "7f9acc201f37657c678264f04fe7facf103d2f270d46c653bc67ddb9d4fad7ba": {
+    "elapsed_s": 3.844,
+    "external_id": "urg-15",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.85,
+      "has_contact": false,
+      "headcount": 25,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "ru",
+      "quotes": [
+        "помещение под колл-центр на 25 мест",
+        "нужно срочно",
+        "в этом месяце"
+      ],
+      "request_types": [
+        "office"
+      ],
+      "timeline_days": 30
+    },
+    "input_tokens": 2977,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 105,
     "provider": "anthropic"
   },
   "88b3bd214c367c369f69fce5f7d2d7e502060888146d074e122ed1835a4052b4": {
@@ -254,6 +488,107 @@
     "output_tokens": 85,
     "provider": "anthropic"
   },
+  "a3c91e91a27f1bfd57b2d59ec8d23148987b780b9ed2163183fc148b9f596492": {
+    "elapsed_s": 1.46,
+    "external_id": "spam-03",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.95,
+      "has_contact": true,
+      "headcount": null,
+      "is_spam": true,
+      "jurisdiction_hint": null,
+      "language": "ru",
+      "quotes": [],
+      "request_types": [
+        "other"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2999,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 71,
+    "provider": "anthropic"
+  },
+  "b2156ec62a787072570d624abae9e10391e6bef82466792f8a53e4555c59617e": {
+    "elapsed_s": 1.793,
+    "external_id": "urg-07",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.75,
+      "has_contact": false,
+      "headcount": 7,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "ru",
+      "quotes": [
+        "нас семеро",
+        "нужен офис и визы",
+        "счёт в банке",
+        "к ноябрю всё закрыть"
+      ],
+      "request_types": [
+        "office",
+        "visa",
+        "bank"
+      ],
+      "timeline_days": 70
+    },
+    "input_tokens": 3010,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 117,
+    "provider": "anthropic"
+  },
+  "b67341462f5de58607bd24428082fc642f1319e4a116310d8077fd5b3e418a76": {
+    "elapsed_s": 3.788,
+    "external_id": "urg-05",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.85,
+      "has_contact": true,
+      "headcount": 20,
+      "is_spam": false,
+      "jurisdiction_hint": "Barsha Heights",
+      "language": "ru",
+      "quotes": [
+        "Компания 20 человек",
+        "офис 200-250 кв.м в Barsha Heights",
+        "договор на 2 года"
+      ],
+      "request_types": [
+        "office"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 3005,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 98,
+    "provider": "anthropic"
+  },
+  "bb318041b506e459a0161677b0d51a57e671792afd7ed111358687ff7f1dcf28": {
+    "elapsed_s": 5.802,
+    "external_id": "prc-10",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.6,
+      "has_contact": false,
+      "headcount": null,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "mixed",
+      "quotes": [
+        "how much за визу"
+      ],
+      "request_types": [
+        "visa"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2929,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 77,
+    "provider": "anthropic"
+  },
   "bb5f0ff351c89c9db751a0aa0af86ee4b638ff9dbef0d98be14998c10f8b9d9f": {
     "elapsed_s": 3.706,
     "external_id": "gen-19",
@@ -276,6 +611,28 @@
     "input_tokens": 2982,
     "model": "claude-haiku-4-5-20251001",
     "output_tokens": 97,
+    "provider": "anthropic"
+  },
+  "d64628d3610725b6822ffa44e0ce3e0ade10eb818af88bc60350b3bed39003da": {
+    "elapsed_s": 3.082,
+    "external_id": "prc-02",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.1,
+      "has_contact": false,
+      "headcount": null,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "ru",
+      "quotes": [],
+      "request_types": [
+        "other"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2927,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 61,
     "provider": "anthropic"
   },
   "e4bc1a12c80df24dcf6b260a9f0f38775dcc19107fdf6d8823476248fcef1be4": {
@@ -301,6 +658,79 @@
     "input_tokens": 2981,
     "model": "claude-haiku-4-5-20251001",
     "output_tokens": 104,
+    "provider": "anthropic"
+  },
+  "e6fe80c460bf08ec132642d9e7441f3f5afc11fa8c1b780c48abfaa29daeab95": {
+    "elapsed_s": 4.467,
+    "external_id": "urg-12",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.85,
+      "has_contact": true,
+      "headcount": 12,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "ru",
+      "quotes": [
+        "3 юрлица, офис на всех один, 12 сотрудников",
+        "лицензии, офис, визы, бухгалтерия на год"
+      ],
+      "request_types": [
+        "setup",
+        "office",
+        "visa",
+        "accounting"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 3018,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 126,
+    "provider": "anthropic"
+  },
+  "e9bc55da20b48057e4e669d5b5ab724b78dd7f1c03132308753228709a1ec842": {
+    "elapsed_s": 3.053,
+    "external_id": "spam-02",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.95,
+      "has_contact": false,
+      "headcount": null,
+      "is_spam": true,
+      "jurisdiction_hint": null,
+      "language": "ru",
+      "quotes": [],
+      "request_types": [],
+      "timeline_days": null
+    },
+    "input_tokens": 2982,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 69,
+    "provider": "anthropic"
+  },
+  "f3e92aaf12c7ff975090c16bdcc8d16590a1919b807dd558871825f2f2b79cf5": {
+    "elapsed_s": 3.852,
+    "external_id": "visa-03",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.7,
+      "has_contact": false,
+      "headcount": null,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "en",
+      "quotes": [
+        "can i get a golden visa if i buy property for 2m aed?",
+        "what about my kids, are they included"
+      ],
+      "request_types": [
+        "visa"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2949,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 99,
     "provider": "anthropic"
   },
   "f5e3c4636452e881e2e933c8b5e8b47bdc73adf4ecf1d1b85262d9840e092c7b": {

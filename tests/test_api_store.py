@@ -202,15 +202,17 @@ def test_post_lead_returns_card_and_stores_it(client, memory_store):
     assert len(memory_store.list_cards()) == 1
 
 
-def test_provider_budget_error_is_503_not_500(client, monkeypatch):
+def test_provider_budget_error_is_402_not_500(client, monkeypatch):
     """Кончились деньги у провайдера — понятный ответ, а не сбой сервера."""
     def boom(_message):
         raise ProviderBudgetError("кредитный баланс слишком мал")
 
     monkeypatch.setattr(api, "extract_detailed", boom)
     response = client.post("/leads", json={"text": TEXT_RU, "channel": "form"})
-    assert response.status_code == 503
+    # 402 — тот же код, который дашборд читает как «провайдер без бюджета» (web/lib/api.ts).
+    assert response.status_code == 402
     assert response.json()["code"] == "provider_budget"
+    assert response.json()["outcome"] == "unavailable"
 
 
 def test_store_unavailable_still_returns_card(client, monkeypatch):
