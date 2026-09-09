@@ -288,3 +288,62 @@ def test_offline_extraction_names_the_stub_not_a_real_model(monkeypatch):
     assert extraction.offline is True
     assert extraction.facts.confidence == 0.0
     assert extraction.route_reason == "OFFLINE: модель не вызывалась"
+
+
+def test_cache_write_counter_comes_from_usage(_online):
+    """Первый запрос префикс записывает: записано > 0, прочитано 0 — числа из usage, не флаг."""
+    provider = _FakeProvider(_FakeResponse("claude-opus-5", cache_read=0, cache_write=3162))
+    extraction = extract_detailed(make_message("нужен офис"), provider=provider)
+    assert extraction.cache_write_tokens == 3162
+    assert extraction.cache_read_tokens == 0
+    assert "кэш: прочитано 0, записано 3162" in extraction.served_by()
+
+
+class _FakeMessages:
+    def __init__(self, response: _FakeResponse, bodies: list[dict]) -> None:
+        self.response = response
+        self.bodies = bodies
+
+    def create(self, **body):
+        self.bodies.append(body)
+        return self.response
+
+
+class _FakeClient:
+    def __init__(self, response: _FakeResponse, bodies: list[dict]) -> None:
+        self.messages = _FakeMessages(response, bodies)
+
+
+def test_real_pipeline_routes_long_message_to_opus_and_records_the_reason(_online, monkeypatch):
+    """Сквозь настоящий AnthropicProvider: клиент подменён, сети нет, маршрут виден в теле."""
+    bodies: list[dict] = []
+    response = _FakeResponse("claude-opus-5", cache_read=3000, cache_write=0)
+    monkeypatch.setattr(
+        AnthropicProvider, "_client", lambda self: _FakeClient(response, bodies)
+    )
+    monkeypatch.setenv("CLAUDE_KEY", "тест-ключа-не-требуется")
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+
+    extraction = extract_detailed(make_message("а" * 700))
+
+    assert bodies[0]["model"] == "claude-opus-5"
+    assert extraction.route_reason == "длинное обращение: 700 символов > 600"
+    assert extraction.model == "claude-opus-5"
+    assert extraction.cache_read_tokens == 3000
+
+
+def test_real_pipeline_routes_short_message_to_haiku(_online, monkeypatch):
+    bodies: list[dict] = []
+    response = _FakeResponse("claude-haiku-4-5-20251001")
+    monkeypatch.setattr(
+        AnthropicProvider, "_client", lambda self: _FakeClient(response, bodies)
+    )
+    monkeypatch.setenv("CLAUDE_KEY", "тест-ключа-не-требуется")
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+
+    extraction = extract_detailed(make_message("а" * 600))
+
+    assert bodies[0]["model"] == "claude-haiku-4-5-20251001"
+    assert "effort" not in bodies[0]["output_config"]  # Haiku 4.5 отвечает 400 на effort
+    assert extraction.route_reason == "короткое обращение: 600 символов <= 600"
+    assert extraction.model == "claude-haiku-4-5-20251001"
