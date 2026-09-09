@@ -43,6 +43,8 @@ MAX_TOKENS = 4096                        # ВЫБРАНО: ответ — оди
 EFFORT = "low"                           # ВЫБРАНО: извлечение из абзаца текста — простая задача
 TIMEOUT_S = 60.0                         # ВЫБРАНО: чат-канал, дольше ждать смысла нет
 MAX_RETRIES = 2                          # ВЫБРАНО: столько же, сколько по умолчанию у SDK
+HEADCOUNT_MIN = 1                        # ВЫБРАНО: «ноль человек» — не факт, а мусор в ответе
+TIMELINE_MIN = 0                         # ВЫБРАНО: срок в прошлом модель придумала
 MIN_PHONE_DIGITS = 9                     # ВЫБРАНО: короче — это не телефон, а «8 человек» или дата
 # ВЫБРАНО: доля второго алфавита, ниже которой это не «mixed», а имя собственное
 # латиницей внутри русской фразы (TECOM, IFZA).
@@ -156,13 +158,16 @@ def _schema() -> dict:
                 "items": {"type": "string", "enum": [t.value for t in RequestType]},
             },
             "jurisdiction_hint": {"type": ["string", "null"]},
-            "headcount": {"type": ["integer", "null"], "minimum": 1},
-            "timeline_days": {"type": ["integer", "null"], "minimum": 0},
+            # ИЗМЕРЕНО 2026-09-09: `minimum`/`maximum` structured outputs не принимает —
+            # 400 «For 'integer' type, property 'minimum' is not supported». Границы держит
+            # parse_facts после разбора (см. HEADCOUNT_MIN / TIMELINE_MIN), а не схема.
+            "headcount": {"type": ["integer", "null"]},
+            "timeline_days": {"type": ["integer", "null"]},
             "budget_hint": {"type": ["string", "null"]},
             "language": {"type": "string", "enum": ["ru", "en", "ar", "mixed"]},
             "is_spam": {"type": "boolean"},
             "has_contact": {"type": "boolean"},
-            "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+            "confidence": {"type": "number"},
             "quotes": {"type": "array", "items": {"type": "string"}},
         },
         "required": [
@@ -431,8 +436,10 @@ def parse_facts(text: str, scrubbed: Scrubbed) -> tuple[LeadFacts, int]:
     if language not in ("ru", "en", "ar", "mixed"):
         raise ExtractionError(f"неизвестный language: {language!r}")
 
-    headcount = _optional_int(raw.get("headcount"), "headcount")
-    timeline_days = _optional_int(raw.get("timeline_days"), "timeline_days")
+    # Границы, которых нет в схеме (API их не принимает), проверяем здесь — чтобы
+    # ограничение не потерялось вместе с ключом схемы.
+    headcount = _optional_int(raw.get("headcount"), "headcount", HEADCOUNT_MIN)
+    timeline_days = _optional_int(raw.get("timeline_days"), "timeline_days", TIMELINE_MIN)
 
     quotes = [q for q in (raw.get("quotes") or []) if q and q in scrubbed.text]
     dropped = len(raw.get("quotes") or []) - len(quotes)
@@ -460,11 +467,13 @@ def parse_facts(text: str, scrubbed: Scrubbed) -> tuple[LeadFacts, int]:
     return facts, dropped
 
 
-def _optional_int(value: object, field: str) -> int | None:
+def _optional_int(value: object, field: str, minimum: int) -> int | None:
     if value is None:
         return None
     if isinstance(value, bool) or not isinstance(value, int):
         raise ExtractionError(f"{field} не целое число: {value!r}")
+    if value < minimum:
+        raise ExtractionError(f"{field}={value} меньше допустимого {minimum}")
     return value
 
 
@@ -534,6 +543,12 @@ def extract_detailed(message: InboundMessage, provider: Provider | None = None) 
     if is_offline():
         return _offline_extraction(message)
 
+    if not any(c.isalnum() for c in message.text):
+        # Извлекать не из чего. В модель не идём: её ответ на пустоту был бы выдумкой.
+        raise ExtractionError(
+            f"обращение {message.external_id!r} пустое (ни букв, ни цифр) — "
+            "извлекать нечего, запрос к модели не отправлялся"
+        )
     provider = provider or get_provider()
     body, scrubbed = build_request_body(message, provider)
     started = time.monotonic()
