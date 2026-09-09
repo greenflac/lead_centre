@@ -65,7 +65,7 @@ MIN_PHONE_DIGITS = 9                     # ВЫБРАНО: короче — эт
 MIXED_SHARE = 0.2
 
 # v3: timeline_days считается от даты обращения. Прежние версии лежат рядом для сравнения.
-PROMPT_VERSION = "extract_v3"
+PROMPT_VERSION = "extract_v4"
 PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / f"{PROMPT_VERSION}.md"
 
 PHONE_MASK = "[phone]"
