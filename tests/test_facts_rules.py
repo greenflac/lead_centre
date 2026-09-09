@@ -153,16 +153,30 @@ def test_unrelated_messages_are_unchanged(external_id, expected):
     assert set(rules_facts(_seed_message(external_id)).request_types) == expected
 
 
-def test_renewal_marker_gap_is_recorded_not_hidden():
-    """ИЗМЕРЕНО 2026-09-09, отдельный дефект (не этого правила): форма «продлеваем»
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        # Словоформы, ради которых маркеры продления переписаны основами.
+        ("продлеваем лицензию, что нужно?", {RequestType.RENEWAL}),
+        ("продлеваете ли вы визы?", {RequestType.VISA, RequestType.RENEWAL}),
+        ("надо продлевать?", {RequestType.RENEWAL}),
+        ("продление лицензии", {RequestType.RENEWAL}),
+        ("продлить лицензию, что нужно?", {RequestType.RENEWAL}),
+        ("we are renewing our licence next month", {RequestType.RENEWAL}),
+        ("licence renewals", {RequestType.RENEWAL}),
+        ("licence expiring soon", {RequestType.RENEWAL}),
+        ("лицензия истекла в июле", {RequestType.RENEWAL}),
+        # Негативный контроль основ: регистрация от них не зажигается.
+        ("хотим открыть компанию во фризоне", {RequestType.SETUP}),
+    ],
+)
+def test_renewal_word_forms_are_covered_by_stems(text, expected):
+    """Маркеры продления — основы, а не целые слова: «продлева», «продли», «renew».
 
-    в маркерах продления не покрыта — есть «продлен», «продлить», «продлевать», но не
-    «продлева». Поэтому «продлеваем лицензию» даёт [setup] вместо [renewal]: продление
-    не зажглось, и снимать регистрацию нечему. Тест запирает текущее поведение, чтобы
-    исправление маркеров было заметно, а не прошло молча (И6).
+    Дыра на «продлеваем» была заперта отдельным тестом с пометкой ИЗМЕРЕНО и закрыта;
+    здесь заперты уже покрытые словоформы, чтобы возврат к целым словам был заметен.
     """
-    assert _types("продлеваем лицензию, что нужно?") == {RequestType.SETUP}
-    assert _types("продлить лицензию, что нужно?") == {RequestType.RENEWAL}
+    assert _types(text) == expected
 
 
 def test_setup_without_renewal_is_untouched():
@@ -207,3 +221,57 @@ def test_no_seed_message_gets_setup_only_from_a_licence_word_next_to_renewal():
     assert violations == [], (
         f"регистрация держится только на слове о лицензии: {violations}"
     )
+
+
+# --- известные дыры в маркерах: заперты, а не замолчаны --------------------------
+#
+# ИЗМЕРЕНО 2026-09-09 прогоном словоформ по всем TYPE_MARKERS. Тесты фиксируют
+# ТЕКУЩЕЕ поведение, а не желаемое: пока владелец `facts_rules.py` не решил, что
+# чинить, дыра должна быть видна в тестах, а её закрытие — краснить сборку (И6, Ц8).
+# Это тот же приём, что сработал с «продлеваем»: заперто → починено → тест покраснел.
+
+
+@pytest.mark.parametrize(
+    ("text", "missing", "current"),
+    [
+        # SETUP: приставочные и отглагольные формы, английские обороты
+        ("зарегистрировать компанию", RequestType.SETUP, set()),
+        ("открытие компании", RequestType.SETUP, set()),
+        ("открыл бы компанию в оаэ", RequestType.SETUP, set()),
+        ("company set up", RequestType.SETUP, set()),
+        ("setting up a company", RequestType.SETUP, set()),
+        ("incorporation", RequestType.SETUP, set()),
+        # OFFICE: единственное число «рабочее место», именительный «переговорная»
+        ("рабочее место одно", RequestType.OFFICE, set()),
+        ("переговорная", RequestType.OFFICE, set()),
+        # ACCOUNTING: разговорное «бухучёт»
+        ("ведём бухучёт", RequestType.ACCOUNTING, set()),
+        # BANK: «счёт» без слова «банк»
+        ("открыть счёт", RequestType.BANK, set()),
+        ("open an account", RequestType.BANK, set()),
+        # RENEWAL: «истёк» через ё и «продлёнка»
+        ("срок действия истёк", RequestType.RENEWAL, set()),
+    ],
+)
+def test_known_marker_gaps_are_recorded(text, missing, current):
+    """Словоформа не ловится маркерами — записано числом и текстом, а не забыто."""
+    assert _types(text) == current
+    assert missing not in _types(text)
+
+
+@pytest.mark.parametrize(
+    ("text", "wrong"),
+    [
+        # Короткие основы ловят чужие слова. Чинить не обязательно: на живом трафике
+        # такие фразы редки, а сужение основы («виз» → «виза») потеряет «визами».
+        ("купите телевизор недорого", RequestType.VISA),
+        ("приходил ваш визит-менеджер", RequestType.VISA),
+        ("процедура банкротства компании", RequestType.BANK),
+        ("аудитория подписчиков", RequestType.ACCOUNTING),
+        ("my desk job", RequestType.OFFICE),
+        ("desktop приложение", RequestType.OFFICE),
+    ],
+)
+def test_known_false_positives_are_recorded(text, wrong):
+    """Обратная сторона основ: ложное срабатывание. Тоже заперто, чтобы решать осознанно."""
+    assert wrong in _types(text)
