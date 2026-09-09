@@ -90,6 +90,15 @@ def _english_name(entity: dict) -> str:
     for other in entity.get("otherNames") or []:
         if other.get("language") == "en" and other.get("name"):
             return other["name"]
+    # ИЗМЕРЕНО 2026-09-09: в выборках GLEIF (120 записей) арабское название у 51 компании,
+    # английский вариант в otherNames — у 43. Оставшиеся 8 не «без латиницы»: их ASCII-имя
+    # лежит в transliteratedOtherNames, куда адаптер раньше не смотрел, и менеджер видел
+    # арабскую строку. Написание из реестра точнее машинной транслитерации: сверка по этим
+    # восьми дала совпадение 3 из 8 — марочные имена (Sogno, Froma, OXrage) по звучанию
+    # не восстанавливаются. Поэтому источник имеет приоритет над моделью всегда.
+    for other in entity.get("transliteratedOtherNames") or []:
+        if other.get("name"):
+            return other["name"]
     return legal
 
 
