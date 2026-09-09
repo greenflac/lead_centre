@@ -1,0 +1,3103 @@
+[
+ {
+  "id": "acct-08",
+  "channel": "telegram",
+  "text": "нужен счёт в банке + платёжный шлюз для интернет-магазина. вы с этим помогаете или только регистрация?",
+  "language": "ru",
+  "category": "accounting & banking",
+  "received_at": "2026-09-09T10:00:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "вы с этим помогаете или только регистрация?"
+   },
+   {
+    "kind": "quote",
+    "value": "нужен счёт в банке + платёжный шлюз для интернет-магазина."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup",
+    "bank"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nПо счёту: сопровождаем открытие в местных банках, решение принимает банк, мы готовим комплект и защищаем заявку.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "urg-01",
+  "channel": "jivo",
+  "text": "переезжаем командой 8 человек, нужен офис в TECOM в этом месяце, плюс визы на всех. что по срокам?",
+  "language": "ru",
+  "category": "urgent corporate",
+  "received_at": "2026-09-09T08:00:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "срок 20 дн. — не больше 30",
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "переезжаем командой 8 человек, нужен офис в TECOM в этом месяце, плюс визы на всех."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office",
+    "visa"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": 8,
+   "timeline_days": 20,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.82
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: рабочая виза под ключ, на человека — AED 3 500–7 000 за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nСмотрите mainland или фризону — или как раз хотите сравнить два варианта?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "visa_employment"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "visa-03",
+  "channel": "jivo",
+  "text": "can i get a golden visa if i buy property for 2m aed? and what about my kids, are they included",
+  "language": "en",
+  "category": "visa",
+  "received_at": "2026-09-08T18:19:00Z",
+  "is_synthetic": true,
+  "tier": "MEDIUM",
+  "reasons": [],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "can i get a golden visa if i buy property for 2m aed?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "visa"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": "aed",
+   "language": "en",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.73
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Hello,\nOn visas: we handle employment visas end to end — medical, Emirates ID, stamping; the quota depends on your office space.\nMarket range: employment visa, all-in, per person — AED 3 500–7 000 per visa.\nThis is a market range; the final figure depends on your activity and visa count — we will price it exactly after a short call.\nCould you tell us how many people you plan to hire in the first year?",
+   "language": "en",
+   "outcome": "draft",
+   "needs_human": false,
+   "used_prices": [
+    "visa_employment"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-20",
+  "channel": "telegram",
+  "text": "а ежегодное продление сколько стоит и что туда входит? хочу понять расходы на 3 года вперёд, а не только вход",
+  "language": "ru",
+  "category": "general setup question",
+  "received_at": "2026-09-07T15:38:00Z",
+  "is_synthetic": true,
+  "tier": "MEDIUM",
+  "reasons": [
+   "из текста не извлечён ни один тип запроса",
+   "язык обращения ru — основная аудитория",
+   "уверенность извлечения 0.35 — ниже порога"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.35
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте! Чтобы ответить по делу и без лишних цифр, уточните пару вещей.\nЧто именно нужно в первую очередь — регистрация компании, офис, визы или бухгалтерия?\nПланируете mainland или фризону и сколько виз потребуется?\nК какому сроку нужно решение?\nОтветьте одной строкой — подготовим расчёт и вышлем в течение дня.",
+   "language": "ru",
+   "outcome": "questions",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-07",
+  "channel": "whatsapp",
+  "text": "скажите а сколько занимает регистрация по времени? и нужно ли физически быть в стране",
+  "language": "ru",
+  "category": "general setup question",
+  "received_at": "2026-09-06T12:57:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "скажите а сколько занимает регистрация по времени?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: регистрация компании во фризоне (пакет) — AED 12 500–27 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "setup_freezone_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "edge-02",
+  "channel": "telegram",
+  "text": "🏢💰❓🙏",
+  "language": "en",
+  "category": "edge case",
+  "received_at": "2026-09-05T11:16:00Z",
+  "is_synthetic": true,
+  "tier": "LOW",
+  "reasons": [
+   "из текста не извлечён ни один тип запроса",
+   "уверенность извлечения 0.20 — ниже порога"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "en",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.2
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Hello, to answer precisely and without guessing numbers, a couple of questions.\nWhat do you need first — company setup, an office, visas or accounting?\nAre you looking at mainland or a free zone, and how many visas do you need?\nBy when do you need this done?\nOne line back is enough — we will prepare the numbers and send them the same day.",
+   "language": "en",
+   "outcome": "questions",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "urg-09",
+  "channel": "telegram",
+  "text": "переносим команду 15 человек, ищем офис под ключ с интернетом и мебелью в ТЕКОМе. плюс визы. когда можем приехать посмотреть помещение? на этой неделе есть окно?",
+  "language": "ru",
+  "category": "urgent corporate",
+  "received_at": "2026-09-05T09:16:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "срок 5 дн. — не больше 30",
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "переносим команду 15 человек, ищем офис под ключ с интернетом и мебелью в ТЕКОМе."
+   },
+   {
+    "kind": "quote",
+    "value": "плюс визы."
+   },
+   {
+    "kind": "quote",
+    "value": "на этой неделе есть окно?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office",
+    "visa"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": 15,
+   "timeline_days": 5,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.82
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: рабочая виза под ключ, на человека — AED 3 500–7 000 за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nВижу, что сроки сжатые: возьмём в работу сегодня — во сколько удобно созвониться?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "visa_employment"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "acct-03",
+  "channel": "telegram",
+  "text": "we need corporate tax registration and VAT filing. our FY ends in Dec. do you do bookkeeping too or only filings?",
+  "language": "en",
+  "category": "accounting & banking",
+  "received_at": "2026-09-04T08:35:00Z",
+  "is_synthetic": true,
+  "tier": "MEDIUM",
+  "reasons": [],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "we need corporate tax registration and VAT filing."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "accounting"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "en",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Hello,\nOn accounting: we cover bookkeeping, VAT and corporate tax; the scope depends on your monthly transaction volume.\nMarket range: accounting services — AED 1 500–6 000 per month.\nThis is a market range; the final figure depends on your activity and visa count — we will price it exactly after a short call.\nCould you tell us how many people you plan to hire in the first year?",
+   "language": "en",
+   "outcome": "draft",
+   "needs_human": false,
+   "used_prices": [
+    "accounting_month"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "prc-08",
+  "channel": "telegram",
+  "text": "price list please",
+  "language": "en",
+  "category": "price-only",
+  "received_at": "2026-09-03T16:54:00Z",
+  "is_synthetic": true,
+  "tier": "LOW",
+  "reasons": [
+   "из текста не извлечён ни один тип запроса",
+   "уверенность извлечения 0.35 — ниже порога"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "en",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.35
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Hello, to answer precisely and without guessing numbers, a couple of questions.\nWhat do you need first — company setup, an office, visas or accounting?\nAre you looking at mainland or a free zone, and how many visas do you need?\nBy when do you need this done?\nOne line back is enough — we will prepare the numbers and send them the same day.",
+   "language": "en",
+   "outcome": "questions",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-15",
+  "channel": "jivo",
+  "text": "Do you provide company formation for a UK ltd owner? Any restrictions on 100% foreign ownership these days?",
+  "language": "en",
+  "category": "general setup question",
+  "received_at": "2026-09-02T13:13:00Z",
+  "is_synthetic": true,
+  "tier": "LOW",
+  "reasons": [
+   "из текста не извлечён ни один тип запроса",
+   "уверенность извлечения 0.35 — ниже порога"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "en",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.35
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Hello, to answer precisely and without guessing numbers, a couple of questions.\nWhat do you need first — company setup, an office, visas or accounting?\nAre you looking at mainland or a free zone, and how many visas do you need?\nBy when do you need this done?\nOne line back is enough — we will prepare the numbers and send them the same day.",
+   "language": "en",
+   "outcome": "questions",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-02",
+  "channel": "whatsapp",
+  "text": "хочу открыть компанию в дубае, торговля автозапчастями. с чего вообще начать?",
+  "language": "ru",
+  "category": "general setup question",
+  "received_at": "2026-09-01T10:32:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "хочу открыть компанию в дубае, торговля автозапчастями."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: регистрация компании во фризоне (пакет) — AED 12 500–27 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "setup_freezone_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "urg-04",
+  "channel": "telegram",
+  "text": "срочно. открываем филиал, 5 человек, лицензия нужна до конца месяца иначе слетает контракт с заказчиком. фризона любая, лишь бы быстро",
+  "language": "ru",
+  "category": "urgent corporate",
+  "received_at": "2026-08-31T18:51:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "срок 5 дн. — не больше 30",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "открываем филиал, 5 человек, лицензия нужна до конца месяца иначе слетает контракт с заказчиком."
+   },
+   {
+    "kind": "quote",
+    "value": "срочно."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup"
+   ],
+   "jurisdiction_hint": "freezone",
+   "headcount": 5,
+   "timeline_days": 5,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.91
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: регистрация компании во фризоне (пакет) — AED 12 500–27 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nВижу, что сроки сжатые: возьмём в работу сегодня — во сколько удобно созвониться?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "setup_freezone_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "spam-03",
+  "channel": "form",
+  "text": "Добрый день! Меня зовут Дмитрий, ищу работу менеджером по продажам в Дубае, опыт 6 лет в B2B.\nРезюме вышлю по запросу. Телефон +971-54-000-0126, почта dmitry.candidate@example.com",
+  "language": "ru",
+  "category": "spam / off-topic",
+  "received_at": "2026-08-31T09:51:00Z",
+  "is_synthetic": true,
+  "tier": "LOW",
+  "reasons": [
+   "обращение помечено как спам или не по теме"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": true,
+   "has_contact": true,
+   "confidence": 0.8
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "",
+   "language": "ru",
+   "outcome": "spam_skipped",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "visa-06",
+  "channel": "whatsapp",
+  "text": "алё, э-э... по визе вопрос, у меня виза заканчивается через две недели, а я в стране, что делать, штраф будет? перезвоните +971-56-000-0182",
+  "language": "ru",
+  "category": "visa",
+  "received_at": "2026-08-30T17:10:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "по визе вопрос, у меня виза заканчивается через две недели, а я в стране, что делать, штраф будет?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "visa"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": true,
+   "confidence": 0.73
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо визам: оформляем рабочие визы под ключ — медкомиссия, Emirates ID, штамп; квота считается от площади офиса.\nОриентир по рынку: рабочая виза под ключ, на человека — AED 3 500–7 000 за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "visa_employment"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "prc-03",
+  "channel": "telegram",
+  "text": "сколько стоит открыть компанию",
+  "language": "ru",
+  "category": "price-only",
+  "received_at": "2026-08-29T14:29:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "сколько стоит открыть компанию"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: регистрация компании во фризоне (пакет) — AED 12 500–27 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "setup_freezone_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-10",
+  "channel": "jivo",
+  "text": "здравствуйте, а вы помогаете с лицензией на образовательные услуги? онлайн курсы, учеников в оаэ нет",
+  "language": "ru",
+  "category": "general setup question",
+  "received_at": "2026-08-28T11:48:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "здравствуйте, а вы помогаете с лицензией на образовательные услуги?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: регистрация компании во фризоне (пакет) — AED 12 500–27 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "setup_freezone_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "urg-12",
+  "channel": "form",
+  "text": "Здравствуйте. Регистрируем холдинг: 3 юрлица, офис на всех один, 12 сотрудников.\nНужен просчёт пакета целиком - лицензии, офис, визы, бухгалтерия на год.\nСвязь: +971-52-000-0143, звонить после 14:00",
+  "language": "ru",
+  "category": "urgent corporate",
+  "received_at": "2026-08-27T08:07:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 5 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "Регистрируем холдинг: 3 юрлица, офис на всех один, 12 сотрудников."
+   },
+   {
+    "kind": "quote",
+    "value": "Нужен просчёт пакета целиком - лицензии, офис, визы, бухгалтерия на год."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office",
+    "setup",
+    "visa",
+    "accounting",
+    "bank"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": 12,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": true,
+   "confidence": 0.82
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nК какому сроку нужно, чтобы всё было готово?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "setup_mainland_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "acct-06",
+  "channel": "whatsapp",
+  "text": "хотим перейти от текущего бухгалтера к вам, есть косяки в отчётности за прошлый год. посмотрите сначала?",
+  "language": "ru",
+  "category": "accounting & banking",
+  "received_at": "2026-08-26T18:26:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "хотим перейти от текущего бухгалтера к вам, есть косяки в отчётности за прошлый год."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "accounting"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо бухгалтерии: ведём учёт, VAT и корпоративный налог, объём работ зависит от числа операций в месяц.\nОриентир по рынку: бухгалтерское сопровождение — AED 1 500–6 000 в месяц.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "accounting_month"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "visa-01",
+  "channel": "whatsapp",
+  "text": "нужна резидентская виза на себя и жену, компанию открывать не хочу. такой вариант есть?",
+  "language": "ru",
+  "category": "visa",
+  "received_at": "2026-08-25T15:45:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "нужна резидентская виза на себя и жену, компанию открывать не хочу."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup",
+    "visa"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: рабочая виза под ключ, на человека — AED 3 500–7 000 за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "visa_employment"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-18",
+  "channel": "form",
+  "text": "Интересует регистрация в mainland - с местным партнёром или без. Что сейчас по закону? И можно ли потом перевести компанию из фризоны в mainland.",
+  "language": "ru",
+  "category": "general setup question",
+  "received_at": "2026-08-24T12:04:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "Интересует регистрация в mainland - с местным партнёром или без."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup"
+   ],
+   "jurisdiction_hint": "mainland",
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.73
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: регистрация компании во фризоне (пакет) — AED 12 500–27 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "setup_freezone_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-05",
+  "channel": "form",
+  "text": "Планирую релокацию бизнеса (IT-услуги, разработка ПО) в ОАЭ. Интересует, какая юрисдикция подойдёт и какие сроки регистрации.",
+  "language": "ru",
+  "category": "general setup question",
+  "received_at": "2026-08-23T09:23:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "Интересует, какая юрисдикция подойдёт и какие сроки регистрации."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: регистрация компании во фризоне (пакет) — AED 12 500–27 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "setup_freezone_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "urg-07",
+  "channel": "whatsapp",
+  "text": "так это... э-э добрый день. мы это, компания, нас семеро, переезжаем из Алматы, нужен офис и визы, ну и счёт в банке ещё. хотелось бы к ноябрю всё закрыть. позвоните пожалуйста",
+  "language": "ru",
+  "category": "urgent corporate",
+  "received_at": "2026-08-22T17:42:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 4 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "мы это, компания, нас семеро, переезжаем из Алматы, нужен офис и визы, ну и счёт в банке ещё."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office",
+    "setup",
+    "visa",
+    "bank"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "setup_mainland_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "spam-06",
+  "channel": "telegram",
+  "text": "Dear Sir, I am a certified accountant from Lahore with 9 years experience, looking for job opportunity in your esteemed company. CV attached. WhatsApp +971-58-000-0164",
+  "language": "en",
+  "category": "spam / off-topic",
+  "received_at": "2026-08-22T08:42:00Z",
+  "is_synthetic": true,
+  "tier": "LOW",
+  "reasons": [
+   "обращение помечено как спам или не по теме"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "Dear Sir, I am a certified accountant from Lahore with 9 years experience, looking for job opportunity in your esteemed company."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "bank"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "en",
+   "is_spam": true,
+   "has_contact": true,
+   "confidence": 0.8
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "",
+   "language": "en",
+   "outcome": "spam_skipped",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "acct-01",
+  "channel": "jivo",
+  "text": "нужен бухгалтер на аутсорс, компания в IFZA, оборот небольшой. сколько в месяц выйдет",
+  "language": "ru",
+  "category": "accounting & banking",
+  "received_at": "2026-08-21T16:01:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "нужен бухгалтер на аутсорс, компания в IFZA, оборот небольшой."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup",
+    "accounting"
+   ],
+   "jurisdiction_hint": "freezone",
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.73
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: бухгалтерское сопровождение — AED 1 500–6 000 в месяц.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "accounting_month"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "prc-06",
+  "channel": "form",
+  "text": "Стоимость?",
+  "language": "ru",
+  "category": "price-only",
+  "received_at": "2026-08-20T13:20:00Z",
+  "is_synthetic": true,
+  "tier": "MEDIUM",
+  "reasons": [
+   "из текста не извлечён ни один тип запроса",
+   "язык обращения ru — основная аудитория",
+   "уверенность извлечения 0.20 — ниже порога"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.2
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте! Чтобы ответить по делу и без лишних цифр, уточните пару вещей.\nЧто именно нужно в первую очередь — регистрация компании, офис, визы или бухгалтерия?\nПланируете mainland или фризону и сколько виз потребуется?\nК какому сроку нужно решение?\nОтветьте одной строкой — подготовим расчёт и вышлем в течение дня.",
+   "language": "ru",
+   "outcome": "questions",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-13",
+  "channel": "jivo",
+  "text": "хочу open company in dubai for crypto trading, это вообще легально сейчас? какая зона нужна",
+  "language": "mixed",
+  "category": "general setup question",
+  "received_at": "2026-08-19T10:39:00Z",
+  "is_synthetic": true,
+  "tier": "LOW",
+  "reasons": [
+   "из текста не извлечён ни один тип запроса",
+   "уверенность извлечения 0.35 — ниже порога"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "mixed",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.35
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте! Чтобы ответить по делу и без лишних цифр, уточните пару вещей.\nЧто именно нужно в первую очередь — регистрация компании, офис, визы или бухгалтерия?\nПланируете mainland или фризону и сколько виз потребуется?\nК какому сроку нужно решение?\nОтветьте одной строкой — подготовим расчёт и вышлем в течение дня.",
+   "language": "ru",
+   "outcome": "questions",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "urg-15",
+  "channel": "jivo",
+  "text": "ищем помещение под колл-центр на 25 мест, нужно срочно, готовы подписать в этом месяце если цена устроит. шумоизоляция важна",
+  "language": "ru",
+  "category": "urgent corporate",
+  "received_at": "2026-08-18T18:58:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "срок 5 дн. — не больше 30",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "ищем помещение под колл-центр на 25 мест, нужно срочно, готовы подписать в этом месяце если цена устроит."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": 25,
+   "timeline_days": 5,
+   "budget_hint": "готовы подписать",
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.91
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: флекси-деск — AED 6 000–15 000 в год.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nВижу, что сроки сжатые: возьмём в работу сегодня — во сколько удобно созвониться?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "flexi_desk_year"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "spam-01",
+  "channel": "whatsapp",
+  "text": "Hello! We are a leading SEO agency from Noida. We can rank your website #1 on Google in 3 months, guaranteed. Reply YES for pricing. Contact: growth@example-seo-agency.com",
+  "language": "en",
+  "category": "spam / off-topic",
+  "received_at": "2026-08-17T17:17:00Z",
+  "is_synthetic": true,
+  "tier": "LOW",
+  "reasons": [
+   "обращение помечено как спам или не по теме"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "en",
+   "is_spam": true,
+   "has_contact": true,
+   "confidence": 0.8
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "",
+   "language": "en",
+   "outcome": "spam_skipped",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "urg-02",
+  "channel": "whatsapp",
+  "text": "добрый! нам нужно 12 рабочих мест с 1 октября, барша хайтс рассматриваем. бюджет есть, готовы подписать договор на год. можно созвон завтра? +971-50-000-0117",
+  "language": "ru",
+  "category": "urgent corporate",
+  "received_at": "2026-08-17T15:17:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "срок 1 дн. — не больше 30",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "нам нужно 12 рабочих мест с 1 октября, барша хайтс рассматриваем."
+   },
+   {
+    "kind": "quote",
+    "value": "можно созвон завтра?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": 12,
+   "timeline_days": 1,
+   "budget_hint": "бюджет",
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": true,
+   "confidence": 0.93
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: флекси-деск — AED 6 000–15 000 в год.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nВижу, что сроки сжатые: возьмём в работу сегодня — во сколько удобно созвониться?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "flexi_desk_year"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "visa-04",
+  "channel": "telegram",
+  "text": "продлеваю визу сотруднику, он уже в стране. что нужно и сколько дней займёт",
+  "language": "ru",
+  "category": "visa",
+  "received_at": "2026-08-16T14:36:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "продлеваю визу сотруднику, он уже в стране."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "visa"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо визам: оформляем рабочие визы под ключ — медкомиссия, Emirates ID, штамп; квота считается от площади офиса.\nОриентир по рынку: рабочая виза под ключ, на человека — AED 3 500–7 000 за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "visa_employment"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "prc-01",
+  "channel": "jivo",
+  "text": "скок стоит фриз зона?",
+  "language": "ru",
+  "category": "price-only",
+  "received_at": "2026-08-15T11:55:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "скок стоит фриз зона?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup"
+   ],
+   "jurisdiction_hint": "freezone",
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.73
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: регистрация компании во фризоне (пакет) — AED 12 500–27 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "setup_freezone_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-08",
+  "channel": "whatsapp",
+  "text": "difference between IFZA and DMCC? which one is cheaper for a small marketing agency",
+  "language": "en",
+  "category": "general setup question",
+  "received_at": "2026-08-14T08:14:00Z",
+  "is_synthetic": true,
+  "tier": "LOW",
+  "reasons": [
+   "из текста не извлечён ни один тип запроса",
+   "уверенность извлечения 0.35 — ниже порога"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": "freezone",
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "en",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.35
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Hello, to answer precisely and without guessing numbers, a couple of questions.\nWhat do you need first — company setup, an office, visas or accounting?\nAre you looking at mainland or a free zone, and how many visas do you need?\nBy when do you need this done?\nOne line back is enough — we will prepare the numbers and send them the same day.",
+   "language": "en",
+   "outcome": "questions",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "edge-03",
+  "channel": "jivo",
+  "text": "здравствуйте, извините заранее за длинное сообщение, но хочу сразу всё описать, чтобы не переписываться неделю.\nмы группа из трёх партнёров, сейчас компания зарегистрирована в Грузии, но банки там душат, поэтому смотрим ОАЭ. основной бизнес - оптовая торговля электроникой, второй - услуги по разработке ПО на аутсорс, и ещё думаем про маленькое агентство по подбору персонала, но это позже.\nвопросы такие: 1) можно ли все три вида деятельности на одну лицензию или нужно три 2) mainland или freezone, если основные клиенты в саудовской аравии и европе 3) нужен ли реальный офис или хватит flexi desk, мы физически будем в дубае примерно 6 месяцев в году 4) визы: нужно 3 партнёрские + 2 сотрудника, потом ещё 4 5) банк - какой реально открывает счёт нерезидентам, у нас уже был отказ 6) бухгалтерия и corporate tax, нужен ли аудит при обороте около 4 млн AED 7) сколько всё это стоит целиком за первый год и за второй.\nwe can also speak english if it is easier for you. سنكون في دبي في نهاية أكتوبر.\nбюджет на старт есть, ориентируемся на 120-150 тысяч дирхам, но если нужно больше - обсудим, лишь бы без сюрпризов, а то нам уже называли одну цену, а потом оказалось совсем другая.\nконтакты: Сергей, +971-55-000-0138, почта sergey.partner@example-holding.com, в телеграме тоже есть. когда удобно созвониться? мы в дубае с 20 числа.",
+  "language": "mixed",
+  "category": "edge case",
+  "received_at": "2026-08-13T18:33:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 5 — нужен пакет"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "вопросы такие: 1) можно ли все три вида деятельности на одну лицензию или нужно три 2) mainland или freezone, если основные клиенты в саудовской аравии и европе 3) нужен ли реальны"
+   },
+   {
+    "kind": "quote",
+    "value": "мы группа из трёх партнёров, сейчас компания зарегистрирована в Грузии, но банки там душат, поэтому смотрим ОАЭ."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office",
+    "setup",
+    "visa",
+    "accounting",
+    "bank"
+   ],
+   "jurisdiction_hint": "mainland",
+   "headcount": 2,
+   "timeline_days": null,
+   "budget_hint": "бюджет",
+   "language": "mixed",
+   "is_spam": false,
+   "has_contact": true,
+   "confidence": 0.93
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nК какому сроку нужно, чтобы всё было готово?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "setup_mainland_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "urg-10",
+  "channel": "jivo",
+  "text": "нужен офис 4 кабинета + переговорка, заезд 1 ноября. компания уже зарегистрирована в DMCC, хотим переехать к вам в барша. что нужно для смены адреса в лицензии?",
+  "language": "ru",
+  "category": "urgent corporate",
+  "received_at": "2026-08-13T16:33:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "нужен офис 4 кабинета + переговорка, заезд 1 ноября."
+   },
+   {
+    "kind": "quote",
+    "value": "что нужно для смены адреса в лицензии?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office",
+    "setup"
+   ],
+   "jurisdiction_hint": "freezone",
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.73
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "setup_mainland_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "acct-04",
+  "channel": "form",
+  "text": "Нужен аудит за 2025 год и подача корпоративного налога. Компания в DMCC, около 40 транзакций в месяц, документы в порядке.",
+  "language": "ru",
+  "category": "accounting & banking",
+  "received_at": "2026-08-12T15:52:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "Компания в DMCC, около 40 транзакций в месяц, документы в порядке."
+   },
+   {
+    "kind": "quote",
+    "value": "Нужен аудит за 2025 год и подача корпоративного налога."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup",
+    "accounting"
+   ],
+   "jurisdiction_hint": "freezone",
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.73
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: бухгалтерское сопровождение — AED 1 500–6 000 в месяц.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "accounting_month"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "prc-09",
+  "channel": "jivo",
+  "text": "почём офис у вас",
+  "language": "ru",
+  "category": "price-only",
+  "received_at": "2026-08-11T12:11:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "почём офис у вас"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: флекси-деск — AED 6 000–15 000 в год.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "flexi_desk_year"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-16",
+  "channel": "jivo",
+  "text": "скажите, а лицензию \"general trading\" можно сразу получить или сначала нужна обычная торговая?",
+  "language": "ru",
+  "category": "general setup question",
+  "received_at": "2026-08-10T09:30:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "скажите, а лицензию \"general trading\" можно сразу получить или сначала нужна обычная торговая?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: регистрация компании во фризоне (пакет) — AED 12 500–27 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "setup_freezone_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-03",
+  "channel": "jivo",
+  "text": "what documents do i need to register an LLC as a non resident? passport only or something else",
+  "language": "en",
+  "category": "general setup question",
+  "received_at": "2026-08-09T17:49:00Z",
+  "is_synthetic": true,
+  "tier": "LOW",
+  "reasons": [
+   "из текста не извлечён ни один тип запроса",
+   "уверенность извлечения 0.35 — ниже порога"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "en",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.35
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Hello, to answer precisely and without guessing numbers, a couple of questions.\nWhat do you need first — company setup, an office, visas or accounting?\nAre you looking at mainland or a free zone, and how many visas do you need?\nBy when do you need this done?\nOne line back is enough — we will prepare the numbers and send them the same day.",
+   "language": "en",
+   "outcome": "questions",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "spam-04",
+  "channel": "jivo",
+  "text": "Buy verified UAE business database, 120000 contacts with emails and phones, only $199. Telegram @example_db_seller",
+  "language": "en",
+  "category": "spam / off-topic",
+  "received_at": "2026-08-08T16:08:00Z",
+  "is_synthetic": true,
+  "tier": "LOW",
+  "reasons": [
+   "обращение помечено как спам или не по теме"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "en",
+   "is_spam": true,
+   "has_contact": false,
+   "confidence": 0.8
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "",
+   "language": "en",
+   "outcome": "spam_skipped",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "urg-05",
+  "channel": "form",
+  "text": "Компания 20 человек, ищем офис 200-250 кв.м в Barsha Heights, договор на 2 года.\nПросьба прислать доступные варианты, планировки и цены до пятницы.\nКонтактное лицо - Ирина, почта ops@example-trading.ae",
+  "language": "ru",
+  "category": "urgent corporate",
+  "received_at": "2026-08-08T14:08:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "Компания 20 человек, ищем офис 200-250 кв.м в Barsha Heights, договор на 2 года."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office",
+    "setup"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": 20,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": true,
+   "confidence": 0.82
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nК какому сроку нужно, чтобы всё было готово?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "setup_mainland_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "visa-07",
+  "channel": "jivo",
+  "text": "мне нужен medical + emirates id для family visa, вы это делаете? или только для компаний",
+  "language": "mixed",
+  "category": "visa",
+  "received_at": "2026-08-07T13:27:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 2 — нужен пакет"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "или только для компаний"
+   },
+   {
+    "kind": "quote",
+    "value": "мне нужен medical + emirates id для family visa, вы это делаете?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup",
+    "visa"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "mixed",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: рабочая виза под ключ, на человека — AED 3 500–7 000 за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "visa_employment"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "prc-04",
+  "channel": "jivo",
+  "text": "how much",
+  "language": "en",
+  "category": "price-only",
+  "received_at": "2026-08-06T10:46:00Z",
+  "is_synthetic": true,
+  "tier": "LOW",
+  "reasons": [
+   "из текста не извлечён ни один тип запроса",
+   "уверенность извлечения 0.20 — ниже порога"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "en",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.2
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Hello, to answer precisely and without guessing numbers, a couple of questions.\nWhat do you need first — company setup, an office, visas or accounting?\nAre you looking at mainland or a free zone, and how many visas do you need?\nBy when do you need this done?\nOne line back is enough — we will prepare the numbers and send them the same day.",
+   "language": "en",
+   "outcome": "questions",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-11",
+  "channel": "form",
+  "text": "Хочу открыть небольшую компанию для консалтинга, 1 учредитель, без сотрудников. Что входит в ваш пакет и что оплачивается отдельно?",
+  "language": "ru",
+  "category": "general setup question",
+  "received_at": "2026-08-05T18:05:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "Хочу открыть небольшую компанию для консалтинга, 1 учредитель, без сотрудников."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: регистрация компании во фризоне (пакет) — AED 12 500–27 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "setup_freezone_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "urg-13",
+  "channel": "telegram",
+  "text": "our licence expires in 21 days and we must move to a bigger unit at the same time. 14 staff. urgent, who can call me today",
+  "language": "en",
+  "category": "urgent corporate",
+  "received_at": "2026-08-04T15:24:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "срок 21 дн. — не больше 30"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "our licence expires in 21 days and we must move to a bigger unit at the same time."
+   },
+   {
+    "kind": "quote",
+    "value": "14 staff."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": 14,
+   "timeline_days": 21,
+   "budget_hint": null,
+   "language": "en",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.82
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Hello,\nOn the setup: we compare both routes — mainland and free zone; the choice depends on your activity and how many visas you need.\nMarket range: mainland company setup package (licence and government fees) — AED 15 000–35 000 one-off.\nMarket range: free zone company setup package — AED 12 500–27 000 one-off.\nThis is a market range; the final figure depends on your activity and visa count — we will price it exactly after a short call.\nAre you leaning towards mainland or a free zone — or would you compare both?",
+   "language": "en",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "setup_freezone_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "acct-07",
+  "channel": "jivo",
+  "text": "which bank opens accounts fastest for a freezone company with a non resident director? we tried 2 already",
+  "language": "en",
+  "category": "accounting & banking",
+  "received_at": "2026-08-03T14:43:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 2 — нужен пакет"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "which bank opens accounts fastest for a freezone company with a non resident director?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup",
+    "bank"
+   ],
+   "jurisdiction_hint": "freezone",
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "en",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.73
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Hello,\nOn the setup: we compare both routes — mainland and free zone; the choice depends on your activity and how many visas you need.\nOn banking: we support account opening with local banks — the bank decides, we prepare and defend the application.\nMarket range: mainland company setup package (licence and government fees) — AED 15 000–35 000 one-off.\nThis is a market range; the final figure depends on your activity and visa count — we will price it exactly after a short call.\nCould you tell us how many people you plan to hire in the first year?",
+   "language": "en",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "visa-02",
+  "channel": "jivo",
+  "text": "виза инвестора и виза партнёра это одно и то же? и срок действия какой",
+  "language": "ru",
+  "category": "visa",
+  "received_at": "2026-08-02T11:02:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "виза инвестора и виза партнёра это одно и то же?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "visa"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо визам: оформляем рабочие визы под ключ — медкомиссия, Emirates ID, штамп; квота считается от площади офиса.\nОриентир по рынку: рабочая виза под ключ, на человека — AED 3 500–7 000 за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "visa_employment"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-19",
+  "channel": "whatsapp",
+  "text": "السلام عليكم، أريد تأسيس شركة في دبي لتجارة المواد الغذائية. ما هي الخطوات والمدة المطلوبة؟",
+  "language": "ar",
+  "category": "general setup question",
+  "received_at": "2026-08-01T08:21:00Z",
+  "is_synthetic": true,
+  "tier": "LOW",
+  "reasons": [
+   "из текста не извлечён ни один тип запроса",
+   "уверенность извлечения 0.35 — ниже порога"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ar",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.35
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Hello, to answer precisely and without guessing numbers, a couple of questions.\nWhat do you need first — company setup, an office, visas or accounting?\nAre you looking at mainland or a free zone, and how many visas do you need?\nBy when do you need this done?\nOne line back is enough — we will prepare the numbers and send them the same day.",
+   "language": "en",
+   "outcome": "questions",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-06",
+  "channel": "jivo",
+  "text": "а если у меня уже есть компания в казахстане, можно филиал открыть или проще новую?",
+  "language": "ru",
+  "category": "general setup question",
+  "received_at": "2026-07-31T16:40:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "а если у меня уже есть компания в казахстане, можно филиал открыть или проще новую?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: регистрация компании во фризоне (пакет) — AED 12 500–27 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "setup_freezone_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "edge-01",
+  "channel": "form",
+  "text": "",
+  "language": "en",
+  "category": "edge case",
+  "received_at": "2026-07-30T15:59:00Z",
+  "is_synthetic": true,
+  "tier": "LOW",
+  "reasons": [
+   "из текста не извлечён ни один тип запроса",
+   "уверенность извлечения 0.00 — ниже порога"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "en",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.0
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Hello, to answer precisely and without guessing numbers, a couple of questions.\nWhat do you need first — company setup, an office, visas or accounting?\nAre you looking at mainland or a free zone, and how many visas do you need?\nBy when do you need this done?\nOne line back is enough — we will prepare the numbers and send them the same day.",
+   "language": "en",
+   "outcome": "questions",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "urg-08",
+  "channel": "jivo",
+  "text": "Need 8 flexi desks + trade licence renewal before 30 Sep. What is the fastest freezone for a fintech consultancy? Budget is approved, we just need speed.",
+  "language": "en",
+  "category": "urgent corporate",
+  "received_at": "2026-07-30T13:59:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 2 — нужен пакет"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "Need 8 flexi desks + trade licence renewal before 30 Sep."
+   },
+   {
+    "kind": "quote",
+    "value": "What is the fastest freezone for a fintech consultancy?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office",
+    "setup"
+   ],
+   "jurisdiction_hint": "freezone",
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": "budget",
+   "language": "en",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.82
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Hello,\nOn the office: we run our own business centre in Dubai, with small private offices and flexi-desks that cover the visa quota.\nMarket range: small private office in a business centre — AED 35 000–60 000 per year.\nMarket range: mainland company setup package (licence and government fees) — AED 15 000–35 000 one-off.\nThis is a market range; the final figure depends on your activity and visa count — we will price it exactly after a short call.\nCould you tell us how many people you plan to hire in the first year?",
+   "language": "en",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "setup_mainland_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "acct-02",
+  "channel": "whatsapp",
+  "text": "отказали в открытии счёта в банке, уже второй раз. поможете открыть хоть где-нибудь?",
+  "language": "ru",
+  "category": "accounting & banking",
+  "received_at": "2026-07-29T12:18:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "отказали в открытии счёта в банке, уже второй раз."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup",
+    "bank"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nПо счёту: сопровождаем открытие в местных банках, решение принимает банк, мы готовим комплект и защищаем заявку.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "prc-07",
+  "channel": "whatsapp",
+  "text": "скажите стоимость под ключ, всё вместе",
+  "language": "ru",
+  "category": "price-only",
+  "received_at": "2026-07-28T09:37:00Z",
+  "is_synthetic": true,
+  "tier": "MEDIUM",
+  "reasons": [
+   "из текста не извлечён ни один тип запроса",
+   "язык обращения ru — основная аудитория",
+   "уверенность извлечения 0.35 — ниже порога"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.35
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте! Чтобы ответить по делу и без лишних цифр, уточните пару вещей.\nЧто именно нужно в первую очередь — регистрация компании, офис, визы или бухгалтерия?\nПланируете mainland или фризону и сколько виз потребуется?\nК какому сроку нужно решение?\nОтветьте одной строкой — подготовим расчёт и вышлем в течение дня.",
+   "language": "ru",
+   "outcome": "questions",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-14",
+  "channel": "telegram",
+  "text": "мы фотостудия, хотим переехать. нужна лицензия и помещение. с чего начать разговор?",
+  "language": "ru",
+  "category": "general setup question",
+  "received_at": "2026-07-27T17:56:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "нужна лицензия и помещение."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office",
+    "setup"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "setup_mainland_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-01",
+  "channel": "jivo",
+  "text": "подскажите чем мейнленд отличается от фризоны? что лучше для консалтинга",
+  "language": "ru",
+  "category": "general setup question",
+  "received_at": "2026-07-26T14:15:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "подскажите чем мейнленд отличается от фризоны?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup"
+   ],
+   "jurisdiction_hint": "freezone",
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.73
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: регистрация компании во фризоне (пакет) — AED 12 500–27 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "setup_freezone_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "spam-02",
+  "channel": "telegram",
+  "text": "Здравствуйте! Предлагаю участие в арбитраже криптовалюты, доход 30% в месяц, депозит от 500$. Пишите в личку @example_crypto_bot",
+  "language": "ru",
+  "category": "spam / off-topic",
+  "received_at": "2026-07-25T13:34:00Z",
+  "is_synthetic": true,
+  "tier": "LOW",
+  "reasons": [
+   "обращение помечено как спам или не по теме"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": true,
+   "has_contact": false,
+   "confidence": 0.8
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "",
+   "language": "ru",
+   "outcome": "spam_skipped",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "urg-03",
+  "channel": "whatsapp",
+  "text": "we are relocating our dev team (6 ppl) from Yerevan to Dubai in Nov. need office + 6 employment visas + corporate bank acc. can you handle all of it in one package or do we go to 3 vendors?",
+  "language": "en",
+  "category": "urgent corporate",
+  "received_at": "2026-07-25T11:34:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 3 — нужен пакет"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "need office + 6 employment visas + corporate bank acc."
+   },
+   {
+    "kind": "quote",
+    "value": "we are relocating our dev team (6 ppl) from Yerevan to Dubai in Nov."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office",
+    "visa",
+    "bank"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": 6,
+   "timeline_days": 60,
+   "budget_hint": null,
+   "language": "en",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.82
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Hello,\nOn the office: we run our own business centre in Dubai, with small private offices and flexi-desks that cover the visa quota.\nMarket range: small private office in a business centre — AED 35 000–60 000 per year.\nMarket range: employment visa, all-in, per person — AED 3 500–7 000 per visa.\nThis is a market range; the final figure depends on your activity and visa count — we will price it exactly after a short call.\nAre you leaning towards mainland or a free zone — or would you compare both?",
+   "language": "en",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "visa_employment"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "visa-05",
+  "channel": "form",
+  "text": "Нужно оформить 3 рабочие визы для сотрудников, компания уже есть в SPC Free Zone.\nСотрудники приедут в октябре. Почта для ответа: hr@example-team.ae",
+  "language": "ru",
+  "category": "visa",
+  "received_at": "2026-07-24T10:53:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "срок 30 дн. — не больше 30",
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "Нужно оформить 3 рабочие визы для сотрудников, компания уже есть в SPC Free Zone."
+   },
+   {
+    "kind": "quote",
+    "value": "Сотрудники приедут в октябре."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup",
+    "visa"
+   ],
+   "jurisdiction_hint": "freezone",
+   "headcount": null,
+   "timeline_days": 30,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": true,
+   "confidence": 0.91
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: рабочая виза под ключ, на человека — AED 3 500–7 000 за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "visa_employment"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "prc-02",
+  "channel": "whatsapp",
+  "text": "цена?",
+  "language": "ru",
+  "category": "price-only",
+  "received_at": "2026-07-23T18:12:00Z",
+  "is_synthetic": true,
+  "tier": "MEDIUM",
+  "reasons": [
+   "из текста не извлечён ни один тип запроса",
+   "язык обращения ru — основная аудитория",
+   "уверенность извлечения 0.20 — ниже порога"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.2
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте! Чтобы ответить по делу и без лишних цифр, уточните пару вещей.\nЧто именно нужно в первую очередь — регистрация компании, офис, визы или бухгалтерия?\nПланируете mainland или фризону и сколько виз потребуется?\nК какому сроку нужно решение?\nОтветьте одной строкой — подготовим расчёт и вышлем в течение дня.",
+   "language": "ru",
+   "outcome": "questions",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-09",
+  "channel": "telegram",
+  "text": "интересует регистрация компании для маркетплейса. налоги какие будут? 9% это на всё или есть порог",
+  "language": "ru",
+  "category": "general setup question",
+  "received_at": "2026-07-22T15:31:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "интересует регистрация компании для маркетплейса."
+   },
+   {
+    "kind": "quote",
+    "value": "налоги какие будут?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup",
+    "accounting"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: бухгалтерское сопровождение — AED 1 500–6 000 в месяц.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "accounting_month"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "urg-11",
+  "channel": "whatsapp",
+  "text": "hi, мы стартап, 9 people, нужен office + visas + accounting. бюджет до 180k AED в год на офис. срочно, инвестор просит адрес до конца октября",
+  "language": "mixed",
+  "category": "urgent corporate",
+  "received_at": "2026-07-21T12:50:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "срок 5 дн. — не больше 30",
+   "запрошено услуг: 4 — нужен пакет"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "бюджет до 180k AED в год на офис."
+   },
+   {
+    "kind": "quote",
+    "value": "hi, мы стартап, 9 people, нужен office + visas + accounting."
+   },
+   {
+    "kind": "quote",
+    "value": "срочно, инвестор просит адрес до конца октября"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office",
+    "visa",
+    "accounting",
+    "bank"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": 9,
+   "timeline_days": 5,
+   "budget_hint": "бюджет",
+   "language": "mixed",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.91
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: рабочая виза под ключ, на человека — AED 3 500–7 000 за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nВижу, что сроки сжатые: возьмём в работу сегодня — во сколько удобно созвониться?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "visa_employment"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "acct-05",
+  "channel": "jivo",
+  "text": "мы просрочили регистрацию по корпоративному налогу, штраф уже пришёл. что можно сделать?",
+  "language": "ru",
+  "category": "accounting & banking",
+  "received_at": "2026-07-20T11:09:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "мы просрочили регистрацию по корпоративному налогу, штраф уже пришёл."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup",
+    "accounting"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: бухгалтерское сопровождение — AED 1 500–6 000 в месяц.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "accounting_month"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "prc-10",
+  "channel": "whatsapp",
+  "text": "how much за визу",
+  "language": "mixed",
+  "category": "price-only",
+  "received_at": "2026-07-19T08:28:00Z",
+  "is_synthetic": true,
+  "tier": "MEDIUM",
+  "reasons": [],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "how much за визу"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "visa"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "mixed",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо визам: оформляем рабочие визы под ключ — медкомиссия, Emirates ID, штамп; квота считается от площади офиса.\nОриентир по рынку: рабочая виза под ключ, на человека — AED 3 500–7 000 за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": false,
+   "used_prices": [
+    "visa_employment"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-17",
+  "channel": "whatsapp",
+  "text": "мне нужно понять реально ли вести бизнес из россии через дубайскую компанию, платежи проходят или банки режут",
+  "language": "ru",
+  "category": "general setup question",
+  "received_at": "2026-07-18T16:47:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "мне нужно понять реально ли вести бизнес из россии через дубайскую компанию, платежи проходят или банки режут"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup",
+    "bank"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nПо счёту: сопровождаем открытие в местных банках, решение принимает банк, мы готовим комплект и защищаем заявку.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-04",
+  "channel": "telegram",
+  "text": "можно ли открыть компанию удалённо, без приезда в оаэ?",
+  "language": "ru",
+  "category": "general setup question",
+  "received_at": "2026-07-17T13:06:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "можно ли открыть компанию удалённо, без приезда в оаэ?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: регистрация компании во фризоне (пакет) — AED 12 500–27 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "setup_freezone_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "spam-05",
+  "channel": "whatsapp",
+  "text": "Сдаю квартиру в Марине, 1BR с видом, 95 тысяч в год, собственник, без комиссии. Интересует?",
+  "language": "ru",
+  "category": "spam / off-topic",
+  "received_at": "2026-07-16T12:25:00Z",
+  "is_synthetic": true,
+  "tier": "LOW",
+  "reasons": [
+   "обращение помечено как спам или не по теме"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": true,
+   "has_contact": false,
+   "confidence": 0.8
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "",
+   "language": "ru",
+   "outcome": "spam_skipped",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "urg-06",
+  "channel": "jivo",
+  "text": "нам нужен office space asap, 10 seats, + 10 residence visa. срок - 3 недели. это реально вообще или можно даже не начинать?",
+  "language": "mixed",
+  "category": "urgent corporate",
+  "received_at": "2026-07-16T10:25:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "срок 5 дн. — не больше 30",
+   "запрошено услуг: 2 — нужен пакет"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "нам нужен office space asap, 10 seats, + 10 residence visa."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office",
+    "visa"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": 5,
+   "budget_hint": null,
+   "language": "mixed",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.73
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: рабочая виза под ключ, на человека — AED 3 500–7 000 за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nВижу, что сроки сжатые: возьмём в работу сегодня — во сколько удобно созвониться?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "visa_employment"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "visa-08",
+  "channel": "telegram",
+  "text": "сколько виз можно на одну лицензию во фризоне? нам надо 6, говорят зависит от офиса",
+  "language": "ru",
+  "category": "visa",
+  "received_at": "2026-07-15T09:44:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 3 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "нам надо 6, говорят зависит от офиса"
+   },
+   {
+    "kind": "quote",
+    "value": "сколько виз можно на одну лицензию во фризоне?"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office",
+    "setup",
+    "visa"
+   ],
+   "jurisdiction_hint": "freezone",
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.73
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "setup_mainland_package"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "prc-05",
+  "channel": "jivo",
+  "text": "прайс скиньте пжлст",
+  "language": "ru",
+  "category": "price-only",
+  "received_at": "2026-07-14T17:03:00Z",
+  "is_synthetic": true,
+  "tier": "MEDIUM",
+  "reasons": [
+   "из текста не извлечён ни один тип запроса",
+   "язык обращения ru — основная аудитория",
+   "уверенность извлечения 0.35 — ниже порога"
+  ],
+  "evidence": [],
+  "violations": [],
+  "facts": {
+   "request_types": [],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.35
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте! Чтобы ответить по делу и без лишних цифр, уточните пару вещей.\nЧто именно нужно в первую очередь — регистрация компании, офис, визы или бухгалтерия?\nПланируете mainland или фризону и сколько виз потребуется?\nК какому сроку нужно решение?\nОтветьте одной строкой — подготовим расчёт и вышлем в течение дня.",
+   "language": "ru",
+   "outcome": "questions",
+   "needs_human": false,
+   "used_prices": []
+  },
+  "status": "new"
+ },
+ {
+  "id": "gen-12",
+  "channel": "whatsapp",
+  "text": "а можно ли на туристической визе зарегистрировать компанию или надо сначала резидентство",
+  "language": "ru",
+  "category": "general setup question",
+  "received_at": "2026-07-13T14:22:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "а можно ли на туристической визе зарегистрировать компанию или надо сначала резидентство"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "setup",
+    "visa"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": null,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.64
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: рабочая виза под ключ, на человека — AED 3 500–7 000 за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "setup_mainland_package",
+    "visa_employment"
+   ]
+  },
+  "status": "new"
+ },
+ {
+  "id": "urg-14",
+  "channel": "whatsapp",
+  "text": "команда 8 человек, едем в декабре, нужен офис в вашем бизнес центре и 8 виз. уже общались с фризоной, но там офис не дают, только флекси-десk. вы даёте нормальный офис с окнами?",
+  "language": "ru",
+  "category": "urgent corporate",
+  "received_at": "2026-07-12T11:41:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "запрошено услуг: 3 — нужен пакет",
+   "язык обращения ru — основная аудитория"
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "команда 8 человек, едем в декабре, нужен офис в вашем бизнес центре и 8 виз."
+   },
+   {
+    "kind": "quote",
+    "value": "уже общались с фризоной, но там офис не дают, только флекси-десk."
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office",
+    "setup",
+    "visa"
+   ],
+   "jurisdiction_hint": "freezone",
+   "headcount": 8,
+   "timeline_days": null,
+   "budget_hint": null,
+   "language": "ru",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 0.82
+  },
+  "facts_source": "offline_heuristic",
+  "reply": {
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nК какому сроку нужно, чтобы всё было готово?",
+   "language": "ru",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "setup_mainland_package"
+   ]
+  },
+  "status": "new"
+ }
+]

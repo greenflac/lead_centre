@@ -1,0 +1,2609 @@
+[
+ {
+  "id": "984500D91E8NC3EF6836",
+  "name": "4DWorldWide L.L.C-FZ",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "Meydan Grandstand, 6th Floor, Meydan Road"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "2280000000253501901",
+  "created_on": "2025-07-28",
+  "next_renewal_on": "2026-09-04",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "HIGH",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 5 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500D91E8NC3EF6836"
+   },
+   {
+    "kind": "license_no",
+    "value": "2280000000253501901"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-04"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-07-28"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500VA6A1AU2D10692",
+  "name": "ALCASAR GENERAL TRADING FZE",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "S10123O014 ,Jebel Ali Freezone"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "2260000000069744168",
+  "created_on": "2023-11-16",
+  "next_renewal_on": "2026-09-03",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "HIGH",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 6 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500VA6A1AU2D10692"
+   },
+   {
+    "kind": "license_no",
+    "value": "2260000000069744168"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-03"
+   },
+   {
+    "kind": "created_on",
+    "value": "2023-11-16"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "2549005R4976W04KIF79",
+  "name": "DARANTA FZCO",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "Building A1",
+   "Dubai Digital Park",
+   "Silicon Oasis"
+  ],
+  "registrar_id": "RA000786",
+  "license_no": "DSO-FZCO-5841",
+  "created_on": "2021-04-06",
+  "next_renewal_on": "2026-09-05",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "HIGH",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 4 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "2549005R4976W04KIF79"
+   },
+   {
+    "kind": "license_no",
+    "value": "DSO-FZCO-5841"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-05"
+   },
+   {
+    "kind": "created_on",
+    "value": "2021-04-06"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "213800K66IY8WACXCK31",
+  "name": "HOXTON FINANCIAL CONSULTANTS L.L.C",
+  "city": "DUBAI",
+  "country": "AE",
+  "address_lines": [
+   "مكتب رقم 3005 ملك راشد محمد عبدالله المزروعى",
+   "الثنية 1- بر دبي"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "2010000000000783022",
+  "created_on": "2017-05-21",
+  "next_renewal_on": "2026-08-27",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "HIGH",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 13 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "213800K66IY8WACXCK31"
+   },
+   {
+    "kind": "license_no",
+    "value": "2010000000000783022"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-27"
+   },
+   {
+    "kind": "created_on",
+    "value": "2017-05-21"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "9845001F7EQD71C2B544",
+  "name": "INTERSECT MARKETING MANAGEMENT L.L.C",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "ملك شماء راشد عبدالعزيز المخاوي- بردب - عود ميثاء - MF- مكتب رقم 44"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "2010000000001131476",
+  "created_on": "2022-12-28",
+  "next_renewal_on": "2026-09-05",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "HIGH",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 4 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "9845001F7EQD71C2B544"
+   },
+   {
+    "kind": "license_no",
+    "value": "2010000000001131476"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-05"
+   },
+   {
+    "kind": "created_on",
+    "value": "2022-12-28"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "98450099F5P1FBE9D726",
+  "name": "Kaizen Capital L.L.C-FZ",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "Meydan Grandstand, 6th floor",
+   "Meydan Road",
+   "Nad Al Sheba"
+  ],
+  "registrar_id": "RA001049",
+  "license_no": "2421741.01",
+  "created_on": "2024-08-17",
+  "next_renewal_on": "2026-08-29",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "HIGH",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 11 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "98450099F5P1FBE9D726"
+   },
+   {
+    "kind": "license_no",
+    "value": "2421741.01"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-29"
+   },
+   {
+    "kind": "created_on",
+    "value": "2024-08-17"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "9845007FD5V09FCCD443",
+  "name": "LANA IT SERVICES - FZCO",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "DSO-IFZA, IFZA Business Park , DDP Premises Number 58195-001, Silicon Oasis"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "2190000000000058195",
+  "created_on": "2025-02-11",
+  "next_renewal_on": "2026-08-29",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "HIGH",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 11 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "9845007FD5V09FCCD443"
+   },
+   {
+    "kind": "license_no",
+    "value": "2190000000000058195"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-29"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-02-11"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500AKD139552D9I39",
+  "name": "Le Corbusier Investment FZE",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "227, Sheikh Zayed Road"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "22200000000000L2300",
+  "created_on": "2022-08-09",
+  "next_renewal_on": "2026-08-22",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "HIGH",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 18 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500AKD139552D9I39"
+   },
+   {
+    "kind": "license_no",
+    "value": "22200000000000L2300"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-22"
+   },
+   {
+    "kind": "created_on",
+    "value": "2022-08-09"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "549300FLXGJWP3NAQU40",
+  "name": "NEST WISE PETROLEUM L.L.C",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "Burj Khalifa"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "2010000000000902198",
+  "created_on": "2020-09-08",
+  "next_renewal_on": "2026-08-26",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "HIGH",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 14 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "549300FLXGJWP3NAQU40"
+   },
+   {
+    "kind": "license_no",
+    "value": "2010000000000902198"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-26"
+   },
+   {
+    "kind": "created_on",
+    "value": "2020-09-08"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500AAE52DCA5D0173",
+  "name": "PRISTINE CREATIONS JEWELLERY L.L.C",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "Al Sufouh 1"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "2010000000001304536",
+  "created_on": "2024-03-05",
+  "next_renewal_on": "2026-08-29",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "HIGH",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 11 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500AAE52DCA5D0173"
+   },
+   {
+    "kind": "license_no",
+    "value": "2010000000001304536"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-29"
+   },
+   {
+    "kind": "created_on",
+    "value": "2024-03-05"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "98450080590B3F4C0E20",
+  "name": "QFT L.L.C-FZ",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "Business Center 1, M Floor, The Meydan Hotel",
+   "Meydan Road",
+   "Nad Al Sheba"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "2270000000242082801",
+  "created_on": "2024-07-19",
+  "next_renewal_on": "2026-08-28",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "HIGH",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 12 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "98450080590B3F4C0E20"
+   },
+   {
+    "kind": "license_no",
+    "value": "2270000000242082801"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-28"
+   },
+   {
+    "kind": "created_on",
+    "value": "2024-07-19"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "254900C3Y0UWZWK17G32",
+  "name": "White Sky Enterprises - FZCO",
+  "city": "DUBAI",
+  "country": "AE",
+  "address_lines": [
+   "IFZA BUSINESS PARK, DDP",
+   "PO BOX 342001"
+  ],
+  "registrar_id": "RA001030",
+  "license_no": "54491",
+  "created_on": "2025-01-20",
+  "next_renewal_on": "2026-09-05",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "HIGH",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 4 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "254900C3Y0UWZWK17G32"
+   },
+   {
+    "kind": "license_no",
+    "value": "54491"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-05"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-01-20"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "9845005RS45YEC9BEB28",
+  "name": "AL DAHRA HOLDING LIMITED",
+  "city": "Al Reem Island",
+  "country": "AE",
+  "address_lines": [
+   "12-1701 مكتب, الطابق17, برج طموح",
+   "طموح",
+   "Office. 12-1701, Level 17, Tamouh Tower",
+   "Tamouh"
+  ],
+  "registrar_id": "RA000569",
+  "license_no": "29585",
+  "created_on": "2005-06-21",
+  "next_renewal_on": "2026-09-03",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 6 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "9845005RS45YEC9BEB28"
+   },
+   {
+    "kind": "license_no",
+    "value": "29585"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-03"
+   },
+   {
+    "kind": "created_on",
+    "value": "2005-06-21"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "558600XFOPHGTWEKYP07",
+  "name": "ALMAGD INTERNATIONAL DMCC",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "Unit 1003 SABA 1"
+  ],
+  "registrar_id": "RA000715",
+  "license_no": "192057",
+  "created_on": "2022-01-06",
+  "next_renewal_on": "2026-09-07",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 2 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "558600XFOPHGTWEKYP07"
+   },
+   {
+    "kind": "license_no",
+    "value": "192057"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-07"
+   },
+   {
+    "kind": "created_on",
+    "value": "2022-01-06"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "254900EH6E1KZJBO3246",
+  "name": "ALPHA DHABI HOLDING PJSC",
+  "city": "Abu Dhabi",
+  "country": "AE",
+  "address_lines": [
+   "Office 1003, Level 10",
+   "TwoFour54, Building 6",
+   "108, Al Muntazah Street"
+  ],
+  "registrar_id": "RA000568",
+  "license_no": "CN-1535961",
+  "created_on": "2013-06-05",
+  "next_renewal_on": "2026-09-04",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 5 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "254900EH6E1KZJBO3246"
+   },
+   {
+    "kind": "license_no",
+    "value": "CN-1535961"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-04"
+   },
+   {
+    "kind": "created_on",
+    "value": "2013-06-05"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "2549008J2Z4NN1J4LO24",
+  "name": "ALPHA DHABI REAL ESTATE HOLDING L.L.C.",
+  "city": "Abu Dhabi",
+  "country": "AE",
+  "address_lines": [
+   "The Landmark Tower, 65th Floor",
+   "Corniche Road",
+   "Al Markaziyah West"
+  ],
+  "registrar_id": "RA000568",
+  "license_no": "CN-4906392",
+  "created_on": "2023-06-01",
+  "next_renewal_on": "2026-09-05",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 4 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "2549008J2Z4NN1J4LO24"
+   },
+   {
+    "kind": "license_no",
+    "value": "CN-4906392"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-05"
+   },
+   {
+    "kind": "created_on",
+    "value": "2023-06-01"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "254900AVEP40HT2KXD53",
+  "name": "APM INTL DMCC",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "601 سبا 1",
+   "أرض رقم: جي ال تي- بي اتش1-إي 3 أي",
+   "ابراج بحيرات جميرا",
+   "Unit No: 601 SABA 1",
+   "Plot No: JLT-PH1-E3A",
+   "Jumeirah Lakes Towers"
+  ],
+  "registrar_id": "RA000715",
+  "license_no": "DMCC2538",
+  "created_on": "2011-02-14",
+  "next_renewal_on": "2026-08-24",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 16 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "254900AVEP40HT2KXD53"
+   },
+   {
+    "kind": "license_no",
+    "value": "DMCC2538"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-24"
+   },
+   {
+    "kind": "created_on",
+    "value": "2011-02-14"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "549300YML8Z8EW6FKO20",
+  "name": "ASPIRE INTERNATIONAL GENERAL TRADING L.L.C",
+  "city": "دبي",
+  "country": "AE",
+  "address_lines": [
+   "مكتب رقم 401 ملك احمد محمد",
+   "امين محمد صديق الكاظم",
+   "بردبي",
+   "منخول"
+  ],
+  "registrar_id": "RA000573",
+  "license_no": "619522",
+  "created_on": "2008-11-23",
+  "next_renewal_on": "2026-09-03",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 6 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "549300YML8Z8EW6FKO20"
+   },
+   {
+    "kind": "license_no",
+    "value": "619522"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-03"
+   },
+   {
+    "kind": "created_on",
+    "value": "2008-11-23"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "9845009BA8ED6D6D8B74",
+  "name": "Aspire Holdings FZE LLC",
+  "city": "Ajman",
+  "country": "AE",
+  "address_lines": [
+   "CWS-1V-622006 26th Floor, Amber Gem Tower"
+  ],
+  "registrar_id": "RA888888",
+  "license_no": "262832286888",
+  "created_on": "2025-06-09",
+  "next_renewal_on": "2026-08-26",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 14 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "9845009BA8ED6D6D8B74"
+   },
+   {
+    "kind": "license_no",
+    "value": "262832286888"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-26"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-06-09"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500F5DCEFAE178A81",
+  "name": "BASEM INTERNATIONAL MIDDLE EAST (L.L.C)",
+  "city": "دبي",
+  "country": "AE",
+  "address_lines": [
+   "مكتب رقمO208 - ملك عبدالله محمد عبدالله الموسى السبيعى",
+   "بردبي",
+   "الرفاعة"
+  ],
+  "registrar_id": "RA000573",
+  "license_no": "243784",
+  "created_on": "1996-10-12",
+  "next_renewal_on": "2026-09-04",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 5 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500F5DCEFAE178A81"
+   },
+   {
+    "kind": "license_no",
+    "value": "243784"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-04"
+   },
+   {
+    "kind": "created_on",
+    "value": "1996-10-12"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "529900MHS1KEGQZD7A14",
+  "name": "BEIDECK INTERNATIONAL PETROLEUM TRADING L.L.C",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "103-29, SAI Business Center Al Makhawi Building, PO Box-80744"
+  ],
+  "registrar_id": "RA000573",
+  "license_no": "1056518",
+  "created_on": "2022-04-20",
+  "next_renewal_on": "2026-08-26",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A2_business_centre",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 14 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "529900MHS1KEGQZD7A14"
+   },
+   {
+    "kind": "license_no",
+    "value": "1056518"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-26"
+   },
+   {
+    "kind": "created_on",
+    "value": "2022-04-20"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "213800DAZHZQ2TWUX482",
+  "name": "BHFT",
+  "city": "ABU DHABI",
+  "country": "AE",
+  "address_lines": [
+   "3117BC, FLOOR 31, TAMOUH TOWER, TAMOUH, AL REEM ISLAND"
+  ],
+  "registrar_id": "RA000569",
+  "license_no": "26451",
+  "created_on": "2025-05-01",
+  "next_renewal_on": "2026-09-01",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 8 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "213800DAZHZQ2TWUX482"
+   },
+   {
+    "kind": "license_no",
+    "value": "26451"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-01"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-05-01"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "9845003UC3QBD0576417",
+  "name": "CARRE DART FOR FURNITURE - L.L.C - O.P.C",
+  "city": "Abu Dhabi",
+  "country": "AE",
+  "address_lines": [
+   "الحصن, غرب 0,5: مبنى سلطان بن خليفه بن زايد",
+   "Al Hisn, West 0.5",
+   "Sultan bin Khalifa bin Zayed Building"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "1020000000CN1185876",
+  "created_on": "2010-06-29",
+  "next_renewal_on": "2026-09-08",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 1 дн.",
+   "город вне целевых (Abu Dhabi) — ступень понижена"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "9845003UC3QBD0576417"
+   },
+   {
+    "kind": "license_no",
+    "value": "1020000000CN1185876"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-08"
+   },
+   {
+    "kind": "created_on",
+    "value": "2010-06-29"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "254900SAB46MEGNF9K97",
+  "name": "Crown and Castle Investment Foundation",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "C/o JTC Corporate Services (DIFC)",
+   "Unit OT 01-36 , Level 1",
+   "Central Park Offices",
+   "Dubai International Financial Centre"
+  ],
+  "registrar_id": "RA000660",
+  "license_no": "8690",
+  "created_on": "2024-06-27",
+  "next_renewal_on": "2026-09-01",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 8 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "254900SAB46MEGNF9K97"
+   },
+   {
+    "kind": "license_no",
+    "value": "8690"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-01"
+   },
+   {
+    "kind": "created_on",
+    "value": "2024-06-27"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500CPE9B0AC040677",
+  "name": "DINAR EXCHANGE",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "محل رقم 6 ملك عيسى سلطان بالشالات",
+   "Oud Al Muteena 3",
+   "Deira"
+  ],
+  "registrar_id": "RA000573",
+  "license_no": "591784",
+  "created_on": "2007-02-21",
+  "next_renewal_on": "2026-08-30",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 10 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500CPE9B0AC040677"
+   },
+   {
+    "kind": "license_no",
+    "value": "591784"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-30"
+   },
+   {
+    "kind": "created_on",
+    "value": "2007-02-21"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500N37UD8B6DF1M18",
+  "name": "Deftysys FZE LLC",
+  "city": "Ajman",
+  "country": "AE",
+  "address_lines": [
+   "CWS-1V- 117848",
+   "الطابق السادس والعشرون، برج امبرجم",
+   "CWS-1V- 117848",
+   "26th Floor,, Amber Gem Tower"
+  ],
+  "registrar_id": "RA888888",
+  "license_no": "26278649888",
+  "created_on": "2025-01-07",
+  "next_renewal_on": "2026-09-08",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 1 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500N37UD8B6DF1M18"
+   },
+   {
+    "kind": "license_no",
+    "value": "26278649888"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-08"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-01-07"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "549300OIRJVKU0HO6U38",
+  "name": "EPS AFRICA FZE",
+  "city": "RAS AL-KHAIMAH",
+  "country": "AE",
+  "address_lines": [
+   "T110F-8F Amenity Centre - RAKEZ Business Zones"
+  ],
+  "registrar_id": "RA000579",
+  "license_no": "RAKIA51FZ306147278",
+  "created_on": "2019-12-31",
+  "next_renewal_on": "2026-08-28",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 12 дн.",
+   "город вне целевых (RAS AL-KHAIMAH) — ступень понижена"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "549300OIRJVKU0HO6U38"
+   },
+   {
+    "kind": "license_no",
+    "value": "RAKIA51FZ306147278"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-28"
+   },
+   {
+    "kind": "created_on",
+    "value": "2019-12-31"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "529900KJ1MX0ILC1X830",
+  "name": "Epro Middle East FZCO",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "Plot No: S31208 JebelAli Free Zone"
+  ],
+  "registrar_id": "RA999999",
+  "license_no": null,
+  "created_on": "2003-05-28",
+  "next_renewal_on": "2026-09-07",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 2 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "529900KJ1MX0ILC1X830"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-07"
+   },
+   {
+    "kind": "created_on",
+    "value": "2003-05-28"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500D6YA70FAELA432",
+  "name": "FALKOREX LTD",
+  "city": "Abu Dhabi",
+  "country": "AE",
+  "address_lines": [
+   "مكتب 2712, D24, الطابق 27, برج أداكس بورت للمكاتب, طموح",
+   "جزيرة الريم,",
+   "Office 2712, D24, Floor 27, Addax Port Office Tower, Tamouh,",
+   "Al Reem Island"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "1120000000000026395",
+  "created_on": "2025-03-04",
+  "next_renewal_on": "2026-08-29",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 11 дн.",
+   "город вне целевых (Abu Dhabi) — ступень понижена"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500D6YA70FAELA432"
+   },
+   {
+    "kind": "license_no",
+    "value": "1120000000000026395"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-29"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-03-04"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500E9B3B64993CE11",
+  "name": "FORESIGHT FUTURES LTD",
+  "city": "Abu Dhabi",
+  "country": "AE",
+  "address_lines": [
+   "مكتب D81, الطابق 11, برج السراب, مربعة سوق ابوظبي العالمي,",
+   "جزيرة الماريا",
+   "Desk D81, 11 Floor, Al Sarb Tower, Adgm Square",
+   "Al Maryah Island"
+  ],
+  "registrar_id": "RA000569",
+  "license_no": "000008390",
+  "created_on": "2022-09-23",
+  "next_renewal_on": "2026-08-27",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 13 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500E9B3B64993CE11"
+   },
+   {
+    "kind": "license_no",
+    "value": "000008390"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-27"
+   },
+   {
+    "kind": "created_on",
+    "value": "2022-09-23"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "98450060E3F9B68FE636",
+  "name": "FT Professional Shipping Service (F.Z.C) LLC",
+  "city": "منطقة عجمان الحرة",
+  "country": "AE",
+  "address_lines": [
+   "Office -B1 -1F-00163",
+   "منطقة عجمان الحرة -مبنىB1"
+  ],
+  "registrar_id": "RA000570",
+  "license_no": "13459",
+  "created_on": "2015-02-02",
+  "next_renewal_on": "2026-08-22",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 18 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "98450060E3F9B68FE636"
+   },
+   {
+    "kind": "license_no",
+    "value": "13459"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-22"
+   },
+   {
+    "kind": "created_on",
+    "value": "2015-02-02"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "558600DNRPTFWNRXVP87",
+  "name": "GCC Board Directors Institute NPIO",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "Dubai International Financial Centre"
+  ],
+  "registrar_id": "RA000660",
+  "license_no": "OL1650",
+  "created_on": "2014-08-12",
+  "next_renewal_on": "2026-08-25",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 15 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "558600DNRPTFWNRXVP87"
+   },
+   {
+    "kind": "license_no",
+    "value": "OL1650"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-25"
+   },
+   {
+    "kind": "created_on",
+    "value": "2014-08-12"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500B4C5F005A39847",
+  "name": "Imaga L.L.C-FZ",
+  "city": "Nad Al Sheba",
+  "country": "AE",
+  "address_lines": [
+   "Business Center 1, M Floor, The Meydan Hotel"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "2270000000242198201",
+  "created_on": "2024-08-27",
+  "next_renewal_on": "2026-08-26",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 14 дн.",
+   "город вне целевых (Nad Al Sheba) — ступень понижена"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500B4C5F005A39847"
+   },
+   {
+    "kind": "license_no",
+    "value": "2270000000242198201"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-26"
+   },
+   {
+    "kind": "created_on",
+    "value": "2024-08-27"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500BF27568F894E50",
+  "name": "KAILASH OVERSEAS TRADING FZCO",
+  "city": "دبي",
+  "country": "AE",
+  "address_lines": [
+   "6 شرق ب، 6EB 150، الطابق الأول، شارع القدس وشارع دمشق",
+   "المنطقة الحرة بمطار دبي"
+  ],
+  "registrar_id": "RA000574",
+  "license_no": "05811",
+  "created_on": "2023-08-11",
+  "next_renewal_on": "2026-08-25",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 15 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500BF27568F894E50"
+   },
+   {
+    "kind": "license_no",
+    "value": "05811"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-25"
+   },
+   {
+    "kind": "created_on",
+    "value": "2023-08-11"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "98450051C62B455AF660",
+  "name": "Kultura FZE LLC",
+  "city": "Sharjah",
+  "country": "AE",
+  "address_lines": [
+   "مركز الأعمال، مدينة الشارقة للنشر-المنطقة الحرة",
+   "Business Centre, Sharjah Publishing City Free Zone"
+  ],
+  "registrar_id": "RA888888",
+  "license_no": "4422745",
+  "created_on": "2025-07-17",
+  "next_renewal_on": "2026-08-28",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 12 дн.",
+   "город вне целевых (Sharjah) — ступень понижена"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "98450051C62B455AF660"
+   },
+   {
+    "kind": "license_no",
+    "value": "4422745"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-28"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-07-17"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "254900H0TCECGSDJBB65",
+  "name": "LMM ELECTRONICS (FZE)",
+  "city": "SHARJAH",
+  "country": "AE",
+  "address_lines": [
+   "SAIF EXECUTIVE OFFICE P8-06-13",
+   "P.O.BOX 40341"
+  ],
+  "registrar_id": "RA000582",
+  "license_no": "23665",
+  "created_on": "2023-03-15",
+  "next_renewal_on": "2026-08-22",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 18 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "254900H0TCECGSDJBB65"
+   },
+   {
+    "kind": "license_no",
+    "value": "23665"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-22"
+   },
+   {
+    "kind": "created_on",
+    "value": "2023-03-15"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500Z157E5811EC569",
+  "name": "LYODS PETROLEUM FZE",
+  "city": "Sharjah",
+  "country": "AE",
+  "address_lines": [
+   "P1-ELOB Office No. E-43F-02"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "7110000000000023372",
+  "created_on": "2022-09-20",
+  "next_renewal_on": "2026-08-24",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 16 дн.",
+   "город вне целевых (Sharjah) — ступень понижена"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500Z157E5811EC569"
+   },
+   {
+    "kind": "license_no",
+    "value": "7110000000000023372"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-24"
+   },
+   {
+    "kind": "created_on",
+    "value": "2022-09-20"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "254900IQ6DFIENI37C82",
+  "name": "MATTOO TRADING (L.L.C)",
+  "city": "DUBAI",
+  "country": "AE",
+  "address_lines": [
+   "OFFICE G03",
+   "MOHD AHMED ABDULWAHID WAJDI BUILDING",
+   "AL SUQ AL KABEER",
+   "PO BOX: 113546"
+  ],
+  "registrar_id": "RA000573",
+  "license_no": "539183",
+  "created_on": "2002-11-02",
+  "next_renewal_on": "2026-09-02",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 7 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "254900IQ6DFIENI37C82"
+   },
+   {
+    "kind": "license_no",
+    "value": "539183"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-02"
+   },
+   {
+    "kind": "created_on",
+    "value": "2002-11-02"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "254900QVQG3AZ6J9MG03",
+  "name": "MEERAN HOLDINGS LTD",
+  "city": "Abu Dhabi",
+  "country": "AE",
+  "address_lines": [
+   "3701, 3712",
+   "Floor 37",
+   "Addax Port Office Tower",
+   "Tamouh"
+  ],
+  "registrar_id": "RA000569",
+  "license_no": "28969",
+  "created_on": "2025-08-04",
+  "next_renewal_on": "2026-08-28",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 12 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "254900QVQG3AZ6J9MG03"
+   },
+   {
+    "kind": "license_no",
+    "value": "28969"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-28"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-08-04"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500F4061P413C0N91",
+  "name": "MRC MARKETING SERVICES - FZCO",
+  "city": "Dubai Silicon Oasis",
+  "country": "AE",
+  "address_lines": [
+   "DSO-IFZA, IFZA Properties"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "63242",
+  "created_on": "2025-05-20",
+  "next_renewal_on": "2026-08-29",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 11 дн.",
+   "город вне целевых (Dubai Silicon Oasis) — ступень понижена"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500F4061P413C0N91"
+   },
+   {
+    "kind": "license_no",
+    "value": "63242"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-29"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-05-20"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "894500OW9VO6ZXCFAQ25",
+  "name": "Mas Tendencia FZE",
+  "city": "Ras al Khaimah",
+  "country": "AE",
+  "address_lines": [
+   "Flexi Desk, RAKEZ Business Zone-FZ"
+  ],
+  "registrar_id": "RA000578",
+  "license_no": "47000022",
+  "created_on": "2017-08-07",
+  "next_renewal_on": "2026-08-22",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 18 дн.",
+   "город вне целевых (Ras al Khaimah) — ступень понижена"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "894500OW9VO6ZXCFAQ25"
+   },
+   {
+    "kind": "license_no",
+    "value": "47000022"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-22"
+   },
+   {
+    "kind": "created_on",
+    "value": "2017-08-07"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500ELBEAD2F5B8325",
+  "name": "NEST WISE TRADING DMCC",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "Unit No: 705-A",
+   "Mazaya Business Avenue AA1",
+   "Plot No: JLTE-PH2-AA1",
+   "Jumeirah Lakes Towers"
+  ],
+  "registrar_id": "RA000715",
+  "license_no": "DMCC-855824",
+  "created_on": "2022-08-18",
+  "next_renewal_on": "2026-08-22",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 18 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500ELBEAD2F5B8325"
+   },
+   {
+    "kind": "license_no",
+    "value": "DMCC-855824"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-22"
+   },
+   {
+    "kind": "created_on",
+    "value": "2022-08-18"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "213800MZ26M5G2T1NB81",
+  "name": "NEW APPOLO DMCC",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "Unit No: 3705-A",
+   "JBC1",
+   "Plot No: JLT-PH1-G2A",
+   "Jumeirah Lakes Towers"
+  ],
+  "registrar_id": "RA000715",
+  "license_no": "DMCC179212",
+  "created_on": "2019-09-22",
+  "next_renewal_on": "2026-09-07",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 2 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "213800MZ26M5G2T1NB81"
+   },
+   {
+    "kind": "license_no",
+    "value": "DMCC179212"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-07"
+   },
+   {
+    "kind": "created_on",
+    "value": "2019-09-22"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500487F800V5CF479",
+  "name": "Norm Commercial Investment - Sole Proprietorship LLC",
+  "city": "أبو ظبي",
+  "country": "AE",
+  "address_lines": [
+   "48 منت ريستركتد ليمتد شرق",
+   "جزيرة ابوظبي",
+   "48 جزيرة ابوظبي, شرق",
+   "48, مبنى, ار جي بروكيور"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "1020000000CN2951885",
+  "created_on": "2020-05-01",
+  "next_renewal_on": "2026-09-04",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 5 дн.",
+   "город вне целевых (أبو ظبي) — ступень понижена"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500487F800V5CF479"
+   },
+   {
+    "kind": "license_no",
+    "value": "1020000000CN2951885"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-04"
+   },
+   {
+    "kind": "created_on",
+    "value": "2020-05-01"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500YC06014B10D842",
+  "name": "S.G. International FZ-LLC",
+  "city": "Ras Al Khaimah/ رأس الخيمة",
+  "country": "AE",
+  "address_lines": [
+   "FOMB0024, مركز كومباس لألعمال",
+   "شارع الشهداء",
+   "منطقة الحمرا الصناعية - منطقة حرة"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "4120000000005005688",
+  "created_on": "2010-12-01",
+  "next_renewal_on": "2026-08-29",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 11 дн.",
+   "город вне целевых (Ras Al Khaimah/ رأس الخيمة) — ступень понижена"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500YC06014B10D842"
+   },
+   {
+    "kind": "license_no",
+    "value": "4120000000005005688"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-29"
+   },
+   {
+    "kind": "created_on",
+    "value": "2010-12-01"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500FA1F94E6FODF89",
+  "name": "SQUARE GOLD TRADING L.L.C",
+  "city": "دبي",
+  "country": "AE",
+  "address_lines": [
+   "ملك الشيخ محمد بن خليفة بن سعيد ال مكتوم - الراس 098F مكتب رقم"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "2010000000000820073",
+  "created_on": "2018-11-27",
+  "next_renewal_on": "2026-08-23",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 17 дн.",
+   "город вне целевых (دبي) — ступень понижена"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500FA1F94E6FODF89"
+   },
+   {
+    "kind": "license_no",
+    "value": "2010000000000820073"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-23"
+   },
+   {
+    "kind": "created_on",
+    "value": "2018-11-27"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "254900R5A0X1IU2SIG74",
+  "name": "SUBLIME COMMERCIAL INVESTMENT - SOLE PROPRIETORSHIP L.L.C.",
+  "city": "Abu Dhabi",
+  "country": "AE",
+  "address_lines": [
+   "Building of Sultan bin Khalifa bin Zayed",
+   "West Al Hosn"
+  ],
+  "registrar_id": "RA000568",
+  "license_no": "CN-3814402",
+  "created_on": "2020-11-10",
+  "next_renewal_on": "2026-09-04",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 5 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "254900R5A0X1IU2SIG74"
+   },
+   {
+    "kind": "license_no",
+    "value": "CN-3814402"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-04"
+   },
+   {
+    "kind": "created_on",
+    "value": "2020-11-10"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "254900ZGQ20S8C13VO12",
+  "name": "SUBLIME TWO - SOLE PROPRIETORSHIP L.L.C.",
+  "city": "Abu Dhabi",
+  "country": "AE",
+  "address_lines": [
+   "Al-Hosn, West, Building 50",
+   "Sultan bin Khalifa bin Zayed Building"
+  ],
+  "registrar_id": "RA000568",
+  "license_no": "CN-4166724",
+  "created_on": "2021-09-21",
+  "next_renewal_on": "2026-09-05",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 4 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "254900ZGQ20S8C13VO12"
+   },
+   {
+    "kind": "license_no",
+    "value": "CN-4166724"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-05"
+   },
+   {
+    "kind": "created_on",
+    "value": "2021-09-21"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500A6DH9E5FM2E385",
+  "name": "Sky Gold Trading - F.Z.C",
+  "city": "Ajman",
+  "country": "AE",
+  "address_lines": [
+   "Office - C1 - 1F - SF4453",
+   "Ajman Free Zone C1 Building",
+   "Ajman Free Zone"
+  ],
+  "registrar_id": "RA000570",
+  "license_no": "40682",
+  "created_on": "2025-04-30",
+  "next_renewal_on": "2026-08-26",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 14 дн.",
+   "город вне целевых (Ajman) — ступень понижена"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500A6DH9E5FM2E385"
+   },
+   {
+    "kind": "license_no",
+    "value": "40682"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-26"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-04-30"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "2549004GZYI3S6XPXW96",
+  "name": "VAAM REAL ESTATE L.L.C",
+  "city": "Dubai",
+  "country": "AE",
+  "address_lines": [
+   "Bur Dubai",
+   "Dubai Investments Park 1"
+  ],
+  "registrar_id": "RA000573",
+  "license_no": "1332931",
+  "created_on": "2024-03-19",
+  "next_renewal_on": "2026-08-27",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 13 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "2549004GZYI3S6XPXW96"
+   },
+   {
+    "kind": "license_no",
+    "value": "1332931"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-27"
+   },
+   {
+    "kind": "created_on",
+    "value": "2024-03-19"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "98450090AB4F891ED429",
+  "name": "WAFRA GULF F X CURRENCIES BROKERS L.L.C",
+  "city": "Sharjah",
+  "country": "AE",
+  "address_lines": [
+   "مكتب رقم 4F-B-02-ملك عبدالقادر امير غاوي-الخليج التجاري"
+  ],
+  "registrar_id": "RA000715",
+  "license_no": "1481111",
+  "created_on": "2025-05-01",
+  "next_renewal_on": "2026-08-26",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 14 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "98450090AB4F891ED429"
+   },
+   {
+    "kind": "license_no",
+    "value": "1481111"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-26"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-05-01"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500460CB2FAA89D74",
+  "name": "ZEROBACT L.L.C-FZ",
+  "city": "Nad Al Sheba",
+  "country": "AE",
+  "address_lines": [
+   "usiness Center 1, M Floor, The Meydan Hotel"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "2280000000253520101",
+  "created_on": "2025-08-01",
+  "next_renewal_on": "2026-08-29",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 11 дн.",
+   "город вне целевых (Nad Al Sheba) — ступень понижена"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500460CB2FAA89D74"
+   },
+   {
+    "kind": "license_no",
+    "value": "2280000000253520101"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-29"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-08-01"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "529900HRIJT88PLP3E66",
+  "name": "ZUCCHERO INVESTMENT LIMITED",
+  "city": "Jumeirah Lakes Towers, Dubai",
+  "country": "AE",
+  "address_lines": [
+   "c/o MERCURY HAMLIN & ASSOCIATES DMCC, Office No. 904 JBC4, Cluster N, P.O. Box 336618"
+  ],
+  "registrar_id": "RA000578",
+  "license_no": "ICC20190622",
+  "created_on": "2019-08-18",
+  "next_renewal_on": "2026-09-04",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 5 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "529900HRIJT88PLP3E66"
+   },
+   {
+    "kind": "license_no",
+    "value": "ICC20190622"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-04"
+   },
+   {
+    "kind": "created_on",
+    "value": "2019-08-18"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "2549002446EXVQTQCI63",
+  "name": "انغما للاستثمار التجاري - شركة الشخص الواحد ذ م م",
+  "city": "Abu Dhabi",
+  "country": "AE",
+  "address_lines": [
+   "The Landmark Tower",
+   "65th Floor",
+   "Corniche Road",
+   "Al Markaziyah West"
+  ],
+  "registrar_id": "RA000568",
+  "license_no": "CN-4458557",
+  "created_on": "2022-05-05",
+  "next_renewal_on": "2026-09-05",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 4 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "2549002446EXVQTQCI63"
+   },
+   {
+    "kind": "license_no",
+    "value": "CN-4458557"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-05"
+   },
+   {
+    "kind": "created_on",
+    "value": "2022-05-05"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "213800LRM489Y9CNTP46",
+  "name": "ايمريتس اوفرسيز جنرال تريدنج - م.م.ح",
+  "city": "DUBAI",
+  "country": "AE",
+  "address_lines": [
+   "OFFICE - C1 - 812 - 005",
+   "PO BOX 72441"
+  ],
+  "registrar_id": "RA000570",
+  "license_no": "2495",
+  "created_on": "2006-02-06",
+  "next_renewal_on": "2026-09-01",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 8 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "213800LRM489Y9CNTP46"
+   },
+   {
+    "kind": "license_no",
+    "value": "2495"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-01"
+   },
+   {
+    "kind": "created_on",
+    "value": "2006-02-06"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "2549002AK9WSSOGB2B03",
+  "name": "دعاء بيبي - م.م.ح",
+  "city": "Ajman",
+  "country": "AE",
+  "address_lines": [
+   "Ajman Free Zone C1 Building",
+   "Ajman Free Zone"
+  ],
+  "registrar_id": "RA000570",
+  "license_no": "43283",
+  "created_on": "2025-07-28",
+  "next_renewal_on": "2026-08-29",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 11 дн.",
+   "город вне целевых (Ajman) — ступень понижена"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "2549002AK9WSSOGB2B03"
+   },
+   {
+    "kind": "license_no",
+    "value": "43283"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-29"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-07-28"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "2549006E8GZDLVZ6SM90",
+  "name": "سوجنو تو - شركة الشخص الواحد ذم م",
+  "city": "Abu Dhabi",
+  "country": "AE",
+  "address_lines": [
+   "The Landmark Tower, 65th Floor",
+   "Corniche Road",
+   "Al Markaziyah West"
+  ],
+  "registrar_id": "RA000568",
+  "license_no": "CN-4166900",
+  "created_on": "2021-09-21",
+  "next_renewal_on": "2026-09-04",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 5 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "2549006E8GZDLVZ6SM90"
+   },
+   {
+    "kind": "license_no",
+    "value": "CN-4166900"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-04"
+   },
+   {
+    "kind": "created_on",
+    "value": "2021-09-21"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "254900W894HQYU0DF657",
+  "name": "سوجنو ثري - شركة الشخص الواحد ذ م م",
+  "city": "Abu Dhabi",
+  "country": "AE",
+  "address_lines": [
+   "The Landmark Tower, 65th Floor",
+   "Corniche Road",
+   "Al Markaziyah West"
+  ],
+  "registrar_id": "RA000568",
+  "license_no": "CN-4166645",
+  "created_on": "2021-09-21",
+  "next_renewal_on": "2026-09-04",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 5 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "254900W894HQYU0DF657"
+   },
+   {
+    "kind": "license_no",
+    "value": "CN-4166645"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-04"
+   },
+   {
+    "kind": "created_on",
+    "value": "2021-09-21"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "213800JDIRAZCNKMJP13",
+  "name": "غاووتام للتجارة العامة (ش.ذ.م.م)",
+  "city": "DUBAI",
+  "country": "AE",
+  "address_lines": [
+   "MAHAL(6+7) 112-138 - DEIRA - AL RAS, DEIRA"
+  ],
+  "registrar_id": "RA000573",
+  "license_no": "572403",
+  "created_on": "2005-08-15",
+  "next_renewal_on": "2026-09-06",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 3 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "213800JDIRAZCNKMJP13"
+   },
+   {
+    "kind": "license_no",
+    "value": "572403"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-06"
+   },
+   {
+    "kind": "created_on",
+    "value": "2005-08-15"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "254900HUZQWJ9OEBUU78",
+  "name": "فروما للتجارة العامة (ش.ذ.م.م)",
+  "city": "DUBAI",
+  "country": "AE",
+  "address_lines": [
+   "Dubai Investments Park 1",
+   "مكتب رقم 815 ملك جوسى بيدرو الو دى نورونها - الخليج التجاري"
+  ],
+  "registrar_id": "RA000573",
+  "license_no": "562942",
+  "created_on": "2004-11-20",
+  "next_renewal_on": "2026-09-04",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 5 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "254900HUZQWJ9OEBUU78"
+   },
+   {
+    "kind": "license_no",
+    "value": "562942"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-04"
+   },
+   {
+    "kind": "created_on",
+    "value": "2004-11-20"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ }
+]
