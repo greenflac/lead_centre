@@ -43,6 +43,10 @@ TYPE_MARKERS: dict[RequestType, tuple[str, ...]] = {
         "бухгалт", "accounting", "bookkeeping", "аудит", "audit", "налог", " tax", "vat",
         "отчётност", "отчетност",
     ),
+    RequestType.RENEWAL: (
+        "продлен", "продлить", "продлевать", "renewal", "renew", "истекает", "заканчивается",
+        "expires", "expiry", "ежегодн", "annual fee",
+    ),
     RequestType.BANK: (
         "банк", "bank", "счёт в банке", "счет в банке", "платёжный шлюз", "payment gateway",
     ),
@@ -114,6 +118,26 @@ def _timeline_days(text: str, received_at: date) -> int | None:
     return None
 
 
+# Границы предложения в свободном тексте чата: перевод строки считается концом наравне
+# с точкой — в чате пишут строками, а не абзацами.
+SENTENCE_BOUNDARIES = ".!?\n;"
+MAX_QUOTE_CHARS = 160
+
+
+def _sentence_around(text: str, start: int, end: int) -> str:
+    """Предложение, внутри которого лежит найденный кусок."""
+    left = max((text.rfind(ch, 0, start) for ch in SENTENCE_BOUNDARIES), default=-1)
+    right_candidates = [pos for pos in (text.find(ch, end) for ch in SENTENCE_BOUNDARIES) if pos >= 0]
+    right = min(right_candidates) if right_candidates else len(text)
+    fragment = text[left + 1: right].strip()
+    if len(fragment) <= MAX_QUOTE_CHARS:
+        return fragment
+    # Подрезаем по границе слова вокруг самого совпадения, чтобы цитата осталась читаемой.
+    head = max(left + 1, start - MAX_QUOTE_CHARS // 2)
+    cut = text[head: head + MAX_QUOTE_CHARS].strip()
+    return cut.rsplit(" ", 1)[0] + "…" if " " in cut else cut
+
+
 def rules_facts(message: InboundMessage) -> LeadFacts:
     """Факты из текста без модели: заглушка стенда, а не извлечение (confidence=0.0).
 
@@ -125,12 +149,18 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
     quotes: list[str] = []
 
     def hit(marker: str) -> bool:
-        """Нашли маркер — кладём в цитаты ровно тот кусок текста, который его вызвал (Е2)."""
+        """Нашли маркер — кладём в цитаты предложение, в котором он найден (Е2).
+
+        Раньше в цитату шёл сам маркер, и менеджер видел в карточке доказательства вида
+        «виз», «офис» — обрубки основы слова, которыми ничего не докажешь. Доказательством
+        может быть только то, что человек действительно написал, поэтому берётся
+        предложение целиком; длинное подрезается по границе слова.
+        """
         index = low.find(marker)
         if index < 0:
             return False
-        fragment = message.text[index: index + len(marker)]
-        if fragment not in quotes:
+        fragment = _sentence_around(message.text, index, index + len(marker))
+        if fragment and fragment not in quotes:
             quotes.append(fragment)
         return True
 

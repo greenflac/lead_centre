@@ -196,60 +196,200 @@ def _record(legal_name: str, other_names=(), transliterated=()) -> dict:
     }
 
 
-EN_NAME = {"name": "English Legal Name LLC", "language": "en"}
-ASCII_NAME = {"name": "Askii Registry Name FZE", "language": "ar"}
 ARABIC = "شركة اختبار ذ.م.م"
 
+# По одному кандидату на каждую ступень. Текст различает ступени: какой из них попал
+# в карточку, видно по имени, а не по номеру.
+ALTERNATIVE = {
+    "name": "Alternative Legal Name LLC",
+    "language": "en",
+    "type": "ALTERNATIVE_LANGUAGE_LEGAL_NAME",
+}
+PREFERRED_ASCII = {
+    "name": "Preferred Ascii FZCO",
+    "type": "PREFERRED_ASCII_TRANSLITERATED_LEGAL_NAME",
+}
+TRADING = {
+    "name": "Trading Name Traders",
+    "language": "en",
+    "type": "TRADING_OR_OPERATING_NAME",
+}
+PREVIOUS = {
+    "name": "Previous Legal Name DMCC",
+    "language": "en",
+    "type": "PREVIOUS_LEGAL_NAME",
+}
+AUTO_ASCII = {
+    "name": "awtw askyy mashynnyy musor",
+    "type": "AUTO_ASCII_TRANSLITERATED_LEGAL_NAME",
+}
+ALL_OTHER_NAMES = [PREVIOUS, TRADING, ALTERNATIVE]      # порядок в записи произвольный
+ALL_TRANSLITERATED = [AUTO_ASCII, PREFERRED_ASCII]      # и здесь тоже
 
-def test_priority_chain_latin_legal_name_wins_over_everything():
-    company = to_company(_record("Latin Legal Name FZE", [EN_NAME], [ASCII_NAME]))
+
+def test_step_1_latin_legal_name_wins_over_everything():
+    company = to_company(
+        _record("Latin Legal Name FZE", ALL_OTHER_NAMES, ALL_TRANSLITERATED)
+    )
     assert company.name == "Latin Legal Name FZE"
 
 
-def test_priority_chain_english_other_name_wins_over_transliterated():
-    company = to_company(_record(ARABIC, [EN_NAME], [ASCII_NAME]))
-    assert company.name == "English Legal Name LLC"
+@pytest.mark.parametrize(
+    ("other_names", "transliterated", "expected"),
+    [
+        # Ступень 2: официальное имя на другом языке бьёт всё остальное.
+        (ALL_OTHER_NAMES, ALL_TRANSLITERATED, "Alternative Legal Name LLC"),
+        # Ступень 3: ASCII-написание реестра — выше торгового и прежнего имени.
+        ([PREVIOUS, TRADING], ALL_TRANSLITERATED, "Preferred Ascii FZCO"),
+        # Ступень 4: торговое имя — выше прежнего.
+        ([PREVIOUS, TRADING], [AUTO_ASCII], "Trading Name Traders"),
+        # Ступень 5: прежнее имя — выше машинной транслитерации: оно читается.
+        ([PREVIOUS], [AUTO_ASCII], "Previous Legal Name DMCC"),
+        # Ступень 6: машинный ASCII — хуже всех написаний, но лучше арабской строки.
+        ([], [AUTO_ASCII], "awtw askyy mashynnyy musor"),
+        # Ступень 7: брать нечего — остаётся арабское имя, выдумывать адаптер не станет.
+        ([], [], ARABIC),
+    ],
+)
+def test_name_priority_chain_step_by_step(other_names, transliterated, expected):
+    """Каждая ступень и её место: убираем верхние кандидатуры по одной."""
+    assert to_company(_record(ARABIC, other_names, transliterated)).name == expected
 
 
-def test_priority_chain_transliterated_used_when_no_english_variant():
-    company = to_company(_record(ARABIC, [], [ASCII_NAME]))
-    assert company.name == "Askii Registry Name FZE"
+def test_preferred_ascii_beats_previous_legal_name():
+    """Точка правки: прежнее имя не должно обгонять актуальное ASCII реестра."""
+    company = to_company(_record(ARABIC, [PREVIOUS], [PREFERRED_ASCII]))
+    assert company.name == "Preferred Ascii FZCO"
 
 
-def test_priority_chain_arabic_stays_when_the_source_has_nothing_else():
-    """Негативный контроль цепочки: выдумывать написание адаптер не начинает."""
-    company = to_company(_record(ARABIC, [], []))
-    assert company.name == ARABIC
+def test_previous_legal_name_beats_auto_ascii():
+    """Вторая точка правки: машинный ASCII ниже прежнего имени — он не читается."""
+    company = to_company(_record(ARABIC, [PREVIOUS], [AUTO_ASCII]))
+    assert company.name == "Previous Legal Name DMCC"
 
 
-def test_priority_chain_ignores_non_english_other_names():
-    """Русский или французский вариант — не латиница реестра, ступень его не берёт."""
-    other = [{"name": "Тестовая компания", "language": "ru"}]
-    company = to_company(_record(ARABIC, other, [ASCII_NAME]))
-    assert company.name == "Askii Registry Name FZE"
+def test_untyped_other_name_is_not_used():
+    """Негативный контроль: вариант без типа — не кандидат ни на одной ступени."""
+    untyped = {"name": "Untyped Name LLC", "language": "en"}
+    assert to_company(_record(ARABIC, [untyped], [])).name == ARABIC
+    assert to_company(_record(ARABIC, [untyped], [AUTO_ASCII])).name == AUTO_ASCII["name"]
 
 
-def test_latin_legal_name_is_not_replaced_by_another_form_from_other_names():
-    """Правило 2 (негативный контроль подмены): у этой записи legalName латиницей,
+def test_non_english_other_name_is_not_used():
+    """Русский вариант с правильным типом — всё равно не латиница реестра."""
+    russian = dict(ALTERNATIVE, name="Альтернативное имя", language="ru")
+    assert to_company(_record(ARABIC, [russian], [PREFERRED_ASCII])).name == (
+        "Preferred Ascii FZCO"
+    )
+    assert to_company(_record(ARABIC, [russian], [])).name == ARABIC
 
-    а в otherNames лежит ДРУГАЯ форма того же лица. Менеджер должен видеть название
-    из реестра, иначе он не найдёт компанию. ИЗМЕРЕНО: LEI 9845005RS45YEC9BEB28.
+
+# --- живые записи под ступени цепочки --------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("lei", "mode", "expected_name", "step_field", "step_type"),
+    [
+        (
+            "9845003UC3QBD0576417",
+            "lapsed",
+            "CARRE DART FOR FURNITURE - L.L.C - O.P.C",
+            "otherNames",
+            "ALTERNATIVE_LANGUAGE_LEGAL_NAME",
+        ),
+        (
+            "213800MZ26M5G2T1NB81",
+            "lapsed",
+            "NEW APOLLO FZCO",
+            "transliteratedOtherNames",
+            "PREFERRED_ASCII_TRANSLITERATED_LEGAL_NAME",
+        ),
+        (
+            "549300YML8Z8EW6FKO20",
+            "lapsed",
+            "ASPIRE INTERNATIONAL GENERAL TRADING L.L.C",
+            "otherNames",
+            "TRADING_OR_OPERATING_NAME",
+        ),
+        (
+            "2549005ZMETNR15CNY09",
+            "fresh",
+            "OXrage Consulting - F.Z.E",
+            "transliteratedOtherNames",
+            "PREFERRED_ASCII_TRANSLITERATED_LEGAL_NAME",
+        ),
+    ],
+)
+def test_live_records_land_on_the_expected_step(lei, mode, expected_name, step_field, step_type):
+    """Живые записи: сперва предпосылки из кэша, потом требование к карточке."""
+    records = json.loads((DATA_DIR / f"gleif_ae_{mode}_sample.json").read_text())
+    record = next(r for r in records if r["attributes"]["lei"] == lei)
+    entity = record["attributes"]["entity"]
+    assert _is_arabic(entity["legalName"]["name"])  # иначе сработала бы ступень 1
+    assert expected_name in [
+        o["name"] for o in entity.get(step_field) or [] if o.get("type") == step_type
+    ]
+
+    assert to_company(record).name == expected_name
+    company = next(
+        c
+        for c in GleifAdapter(mode=mode, offline=True).fetch(60).companies
+        if c.external_id == lei
+    )
+    assert company.name == expected_name
+
+
+def test_previous_legal_name_is_never_reached_on_this_cache():
+    """Отрицательный результат числом (И6): ступень 5 на выборках не срабатывает ни разу.
+
+    У единственной записи с PREVIOUS_LEGAL_NAME без PREFERRED_ASCII
+    (529900MHS1KEGQZD7A14) есть ещё и ALTERNATIVE_LANGUAGE_LEGAL_NAME с тем же текстом,
+    и карточка берёт его на ступени 2. Поэтому ступень 5 закрыта синтетикой, а не живым
+    LEI: живого случая в кэше нет, и написать «проверено на живых данных» было бы неправдой.
     """
     records = json.loads((DATA_DIR / "gleif_ae_lapsed_sample.json").read_text())
-    record = next(r for r in records if r["attributes"]["lei"] == "9845005RS45YEC9BEB28")
-    entity = record["attributes"]["entity"]
-    # предпосылка теста, а не его вывод: в источнике действительно есть en-вариант, и он другой
-    assert entity["legalName"]["name"] == "AL DAHRA HOLDING LIMITED"
-    english_variants = [
-        o["name"] for o in entity.get("otherNames") or [] if o.get("language") == "en"
-    ]
-    assert english_variants == ["AL DAHRA HOLDING SOLE PROPRIETORSHIP LLC"]
+    record = next(r for r in records if r["attributes"]["lei"] == "529900MHS1KEGQZD7A14")
+    types = {o["type"] for o in record["attributes"]["entity"]["otherNames"]}
+    assert types == {"PREVIOUS_LEGAL_NAME", "ALTERNATIVE_LANGUAGE_LEGAL_NAME"}
+    assert to_company(record).name == "BEIDECK INTERNATIONAL PETROLEUM TRADING L.L.C"
+    # машинная транслитерация в карточку не попала
+    assert "bydyk" not in to_company(record).name
 
-    assert to_company(record).name == "AL DAHRA HOLDING LIMITED"
 
-    companies = GleifAdapter(mode="lapsed", offline=True).fetch(60).companies
-    company = next(c for c in companies if c.external_id == "9845005RS45YEC9BEB28")
-    assert company.name == "AL DAHRA HOLDING LIMITED"
+def test_which_step_serves_each_arabic_record():
+    """Разбивка по ступеням числами (Е3): 37 + 10 + 4 из 51, ступени 5-7 пусты."""
+    records = json.loads((DATA_DIR / "gleif_ae_lapsed_sample.json").read_text())
+    records += json.loads((DATA_DIR / "gleif_ae_fresh_sample.json").read_text())
+    steps = {
+        "alternative": ("otherNames", "ALTERNATIVE_LANGUAGE_LEGAL_NAME"),
+        "preferred_ascii": ("transliteratedOtherNames",
+                            "PREFERRED_ASCII_TRANSLITERATED_LEGAL_NAME"),
+        "trading": ("otherNames", "TRADING_OR_OPERATING_NAME"),
+        "previous": ("otherNames", "PREVIOUS_LEGAL_NAME"),
+        "auto_ascii": ("transliteratedOtherNames", "AUTO_ASCII_TRANSLITERATED_LEGAL_NAME"),
+    }
+    counts = dict.fromkeys(steps, 0)
+    counts["арабское"] = 0
+    for record in records:
+        entity = record["attributes"]["entity"]
+        if not _is_arabic((entity.get("legalName") or {}).get("name", "")):
+            continue
+        name = to_company(record).name
+        for step, (field, kind) in steps.items():
+            names = [o["name"] for o in entity.get(field) or [] if o.get("type") == kind]
+            if name in names:
+                counts[step] += 1
+                break
+        else:
+            counts["арабское"] += 1
+    assert counts == {
+        "alternative": 37,
+        "preferred_ascii": 10,
+        "trading": 4,
+        "previous": 0,
+        "auto_ascii": 0,
+        "арабское": 0,
+    }
 
 
 def test_country_falls_back_to_legal_address():
@@ -259,7 +399,13 @@ def test_country_falls_back_to_legal_address():
             "lei": "X" * 20,
             "entity": {
                 "legalName": {"name": "شركة اختبار", "language": "ar"},
-                "otherNames": [{"name": "Test Co", "language": "en"}],
+                "otherNames": [
+                    {
+                        "name": "Test Co",
+                        "language": "en",
+                        "type": "ALTERNATIVE_LANGUAGE_LEGAL_NAME",
+                    }
+                ],
                 "legalAddress": {"addressLines": ["سطر"], "city": "دبي", "country": "AE"},
                 "otherAddresses": [
                     {
