@@ -34,7 +34,7 @@ sys.path.insert(0, str(REPO))
 from leadcentre.engine import reply as reply_mod
 from leadcentre.engine.facts_rules import rules_facts
 from leadcentre.engine.score import score, score_inbound
-from leadcentre.models import InboundMessage, LeadFacts, RequestType, Tier
+from leadcentre.models import InboundMessage, RequestType, Tier
 from leadcentre.sources.gleif import GleifAdapter
 
 SEED_CSV = REPO / "data" / "inbound_seed.csv"
@@ -124,94 +124,6 @@ def _quote_for(text: str, marker: str) -> str | None:
         if marker in sentence.lower():
             return sentence[:180]
     return text.strip()[:180]
-
-
-def extract_facts_offline(external_id: str, text: str, language: str) -> LeadFacts:
-    """УСТАРЕЛО: оставлено только для истории, вызывать нельзя.
-
-    Своя копия эвристики расходилась с копией измерительного стенда на одном и том же
-    наборе (13/37/20 против 12/41/17), поэтому обе заменены общим
-    leadcentre.engine.facts_rules.rules_facts. См. facts_for_message ниже.
-    """
-    """Заменитель LLM-извлечения для mock-данных. Не движок — см. докстринг модуля."""
-    low = text.lower()
-    quotes: list[str] = []
-
-    if not text.strip():
-        return LeadFacts(language=language, confidence=CONF_EMPTY)
-
-    request_types: list[RequestType] = []
-    for request, markers in REQUEST_MARKERS.items():
-        hit = next((m for m in markers if m in low), None)
-        if hit:
-            request_types.append(request)
-            quote = _quote_for(text, hit)
-            if quote and quote not in quotes:
-                quotes.append(quote)
-
-    jurisdiction = None
-    for name, markers in JURISDICTION_MARKERS:
-        if any(m in low for m in markers):
-            jurisdiction = name
-            break
-
-    headcount = None
-    for regex in (HEADCOUNT_RE, HEADCOUNT_RE_TEAM):
-        found = regex.search(text)
-        if found:
-            value = int(found.group(1))
-            if 1 <= value <= 500:
-                headcount = value
-                quote = _quote_for(text, found.group(0).lower())
-                if quote and quote not in quotes:
-                    quotes.append(quote)
-                break
-
-    timeline = None
-    for regex, factor in ((TIMELINE_RE_DAYS, 1), (TIMELINE_RE_WEEKS, 7)):
-        found = regex.search(text)
-        if found:
-            timeline = int(found.group(1)) * factor
-            break
-    if timeline is None:
-        found = TIMELINE_RE_EXPIRES.search(text)
-        if found:
-            timeline = int(found.group(2))
-    if timeline is None:
-        for phrase, days in TIMELINE_PHRASES:
-            if phrase in low:
-                timeline = days
-                quote = _quote_for(text, phrase)
-                if quote and quote not in quotes:
-                    quotes.append(quote)
-                break
-
-    budget = next((m for m in BUDGET_MARKERS if m in low), None)
-    is_spam = external_id.startswith("spam-")
-    has_contact = bool(PHONE_RE.search(text) or EMAIL_RE.search(text))
-
-    facts_found = sum(
-        [bool(request_types), jurisdiction is not None, headcount is not None,
-         timeline is not None, budget is not None, has_contact]
-    )
-    confidence = min(CONF_MAX, CONF_BASE + CONF_PER_FACT * facts_found) if request_types else 0.35
-    if is_spam:
-        confidence = 0.8
-    if len(text.strip()) < 12 and not request_types:
-        confidence = 0.2
-
-    return LeadFacts(
-        request_types=tuple(request_types),
-        jurisdiction_hint=jurisdiction,
-        headcount=headcount,
-        timeline_days=timeline,
-        budget_hint=budget,
-        language=language,
-        is_spam=is_spam,
-        has_contact=has_contact,
-        confidence=round(confidence, 2),
-        quotes=tuple(quotes[:3]),
-    )
 
 
 CATEGORY_BY_PREFIX = {

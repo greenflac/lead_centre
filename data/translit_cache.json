@@ -1,0 +1,50 @@
+{
+  "0c8be0043736ae531115d1b4f022ef77": {
+    "arabic": "ايمريتس اوفرسيز جنرال تريدنج - م.م.ح",
+    "model": "claude-haiku-4-5-20251001",
+    "prompt": "translit_v1",
+    "text": "EMIRATES OVERSEAS GENERAL TRADING - F.Z.E"
+  },
+  "12aa803e66ba7994bcb7d6cd8bb1aa99": {
+    "arabic": "دعاء بيبي - م.م.ح",
+    "model": "claude-haiku-4-5-20251001",
+    "prompt": "translit_v1",
+    "text": "DUA BABY - F.Z.E"
+  },
+  "1a32aa52eea55bc090b26df31acfd662": {
+    "arabic": "غاووتام للتجارة العامة (ش.ذ.م.م)",
+    "model": "claude-haiku-4-5-20251001",
+    "prompt": "translit_v1",
+    "text": "GAUTAM GENERAL TRADING (L.L.C)"
+  },
+  "66d86f5257d4a2ec5a8f43f4356af75d": {
+    "arabic": "سوجنو ثري - شركة الشخص الواحد ذ م م",
+    "model": "claude-haiku-4-5-20251001",
+    "prompt": "translit_v1",
+    "text": "SUJNO THREE - SOLE PROPRIETORSHIP L.L.C."
+  },
+  "ce8d4f1e3273b734d09d9c29f64596c0": {
+    "arabic": "انغما للاستثمار التجاري - شركة الشخص الواحد ذ م م",
+    "model": "claude-haiku-4-5-20251001",
+    "prompt": "translit_v1",
+    "text": "ENIGMA COMMERCIAL INVESTMENT - SOLE PROPRIETORSHIP L.L.C."
+  },
+  "dfd78bee4a63bcdde3a6937fa182c05c": {
+    "arabic": "سوجنو تو - شركة الشخص الواحد ذم م",
+    "model": "claude-haiku-4-5-20251001",
+    "prompt": "translit_v1",
+    "text": "SOGNO TO - SOLE PROPRIETORSHIP L.L.C."
+  },
+  "e4e73bc4ca8c18842f36c2aac86aca68": {
+    "arabic": "فروما للتجارة العامة (ش.ذ.م.م)",
+    "model": "claude-haiku-4-5-20251001",
+    "prompt": "translit_v1",
+    "text": "FRUMA GENERAL TRADING (L.L.C)"
+  },
+  "eacf1d035cc7afa9df351d3507ecc1a2": {
+    "arabic": "أوإكس ريج كونسلتينج - م.م.ح",
+    "model": "claude-haiku-4-5-20251001",
+    "prompt": "translit_v1",
+    "text": "OAUX REG CONSULTING - F.Z.E"
+  }
+}
