@@ -176,3 +176,42 @@ Append-only журнал сессий (Ц6). Новые записи — в ко
 `GET /v1/models` тем же ключом → 200, с неверным ключом → 401, то есть ключ рабочий.
 Пока баланс не пополнен: извлечение фактов, eval и разметка стоят; скоринг GLEIF,
 черновики, линтер и тесты работают без модели.
+
+## Сессия 2, продолжение — 2026-09-09 — extract.py стал провайдер-независимым
+
+### Что сделано
+- Внутренний интерфейс `Provider` (протокол: `model()` / `build_body()` / `complete()`)
+  и две реализации: `AnthropicProvider` (SDK, structured outputs) и
+  `OpenAICompatibleProvider` (Pollinations, `https://text.pollinations.ai/openai`,
+  urllib, `Authorization: Bearer $POLLINATIONS_API_KEY`). Выбор — `LLM_PROVIDER`
+  (`anthropic` | `pollinations`, по умолчанию anthropic), модель — `LLM_MODEL`,
+  по умолчанию `claude-opus-5` / `openai` (алиас GPT-OSS 20B).
+  Неизвестный `LLM_PROVIDER` — ошибка, а не тихий откат на дефолт.
+- В конвейере (одинаково для всех провайдеров, провайдер это не переопределяет):
+  `scrub_pii` до сборки тела, общая валидация `parse_facts`, `has_contact` из скраба.
+  У Pollinations structured outputs нет — схема из того же `_schema()` кладётся в
+  системный промпт, ответ валидируется тем же `parse_facts` (Е1, не копия).
+- Новый тип исхода `ProviderBudgetError(ExtractionError)` — «провайдер недоступен по
+  лимитам»: 400 `credit balance` у Anthropic и 402 `KEY_BUDGET_EXHAUSTED` у Pollinations,
+  с текстом, что делать. В общую сетевую ошибку не сваливается.
+- ИЗМЕРЕНО: без своего `User-Agent` Cloudflare перед Pollinations отдаёт
+  403 «error code: 1010» на дефолтный `python-urllib/*`. Заголовок добавлен.
+
+### Что измерено (И3)
+- ПД на теле запроса каждого провайдера + выбор провайдера + разбор ответа формата
+  OpenAI + 7 видов невалидного ответа: **проверено 42, нарушений 0**.
+- Схема = поля LeadFacts, OFFLINE, мутация `MIN_PHONE_DIGITS` в обе стороны:
+  **проверено 16, нарушений 0**.
+- `ruff check --select E,F,W,I,E501` по extract.py — чисто.
+
+### НЕ ПРОВЕРЕНО — живой генерации по-прежнему не было
+- Anthropic: 400 `credit balance is too low` (req_011CeseBhSGhx9rXMvumVUaH).
+- Pollinations с ключом: **402 KEY_BUDGET_EXHAUSTED**, «this request costs ~0.0002 pollen,
+  but this key has 0.0000», лимит поднимается на enter.pollinations.ai/keys.
+- ВАЖНО, чтобы следующая сессия не обманулась: `POST /openai` с повторяющимся промптом
+  («say hi») отдаёт **200 из кэша** — один и тот же `id` `pllns_d74d6556…` на всех
+  прогонах, с ключом и анонимно. На НОВОМ промпте (nonce в тексте) и анонимно, и с
+  ключом — 502/402. То есть 200 на кэше не означает работающую генерацию.
+- Качество извлечения (`quotes`, `timeline_days`, `is_spam`) не измерено ни на одном
+  обращении ни у одного провайдера. Нужен бюджет: Anthropic Plans & Billing либо
+  лимит ключа Pollinations.
