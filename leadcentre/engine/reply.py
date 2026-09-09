@@ -641,7 +641,7 @@ def _arabic_draft(
     body = _clean_model_lines(raw, "ar")
     # Линтер импортируется внутри функции: lint.py импортирует reply.py на уровне модуля,
     # и ставить проверку сюда — единственный способ не выпустить непроверенный текст наружу.
-    from leadcentre.engine import lint as lint_module  # noqa: PLC0415
+    from leadcentre.engine import lint as lint_module
 
     candidate = Reply(
         body=body,
