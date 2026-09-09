@@ -81,10 +81,14 @@ PRICE_KEY_BY_REQUEST: dict[RequestType, tuple[str, ...]] = {
     RequestType.SETUP: ("setup_mainland_package", "setup_freezone_package"),
     RequestType.VISA: ("visa_employment",),
     RequestType.ACCOUNTING: ("accounting_month",),
+    RequestType.RENEWAL: ("renewal_year",),
     RequestType.BANK: (),
     RequestType.OTHER: (),
 }
 
+# Типы запроса, для которых у нас есть шаблон. Список выводится из самих шаблонов, а не
+# дублируется руками (Е1): забыть обновить второй список — ровно тот дефект, что уронил
+# генерацию, когда в движок добавили RequestType.RENEWAL.
 # Ответ по существу — первая строка письма, до всяких цен.
 SUBSTANCE: dict[RequestType, dict[str, str]] = {
     RequestType.OFFICE: {
@@ -107,6 +111,14 @@ SUBSTANCE: dict[RequestType, dict[str, str]] = {
               "объём работ зависит от числа операций в месяц.",
         "en": "On accounting: we cover bookkeeping, VAT and corporate tax; "
               "the scope depends on your monthly transaction volume.",    },
+    RequestType.RENEWAL: {
+        # Без «за N дней»: линтер справедливо читает такую формулировку как обещание срока
+        # госпроцедуры, а рекомендацию «подавайте заранее» можно сказать и без числа.
+        "ru": "По продлению: собираем пакетом лицензию, Ejari и визовую квоту — "
+              "документы лучше подавать заранее, просрочка добавляет штрафы.",
+        "en": "On renewals: we bundle the licence, Ejari and the visa quota — "
+              "filing early avoids the late-renewal penalties.",
+    },
     RequestType.BANK: {
         "ru": "По счёту: сопровождаем открытие в местных банках, "
               "решение принимает банк, мы готовим комплект и защищаем заявку.",
@@ -413,6 +425,11 @@ def price_line(item: PriceItem, language: str) -> str:
     return f"Market range: {item.label('en')} — {amount} {item.unit('en')}."
 
 
+def unsupported_request_types(facts: LeadFacts) -> tuple[RequestType, ...]:
+    """Типы, для которых шаблона нет. Пустой кортеж — все типы покрыты."""
+    return tuple(request for request in facts.request_types if request not in SUBSTANCE)
+
+
 def _pick_price_keys(facts: LeadFacts, prices: dict[str, PriceItem]) -> tuple[str, ...]:
     """Не больше двух диапазонов: письмо в 6 строк третий не вмещает."""
     keys: list[str] = []
@@ -694,13 +711,25 @@ def draft(
     if not facts.request_types or facts.confidence < MIN_CONFIDENCE_FOR_PRICE:
         return _questions_draft(language, needs_human)
 
+    skipped = unsupported_request_types(facts)
+    if skipped and len(skipped) == len(facts.request_types):
+        # Все типы обращения — незнакомые: отвечать не о чем, карточку берёт человек (Р1).
+        names = ", ".join(request.value for request in skipped)
+        return _no_draft(language, f"нет шаблонов для типов запроса: {names}. Нужен человек.")
+
     keys = _pick_price_keys(facts, prices)
     if not keys:
         # Тип запроса есть (например, банк), а цены для него в прайсе нет — не выдумываем.
         return _questions_draft(language, needs_human)
 
+    # Неизвестный тип не роняет генерацию: он пропускается, а пропуск попадает в notice.
+    # Выбор в пользу пропуска, а не NO_DRAFT: обращение почти всегда несёт несколько типов,
+    # и отдавать менеджеру пустую карточку из-за одного незнакомого — терять работающий
+    # черновик там, где хватает пометки. Но если после пропуска говорить не о чем (ниже),
+    # исход именно NO_DRAFT: молча ответить не на то, о чём спросили, хуже, чем не ответить.
     lines = [GREETING[language]]
-    for request in facts.request_types[:2]:
+    known = [request for request in facts.request_types if request in SUBSTANCE]
+    for request in known[:2]:
         lines.append(SUBSTANCE[request][language])
     lines.extend(price_line(prices[key], language) for key in keys)
     lines.append(DISCLAIMER[language])
@@ -714,10 +743,16 @@ def draft(
     if language in RTL_LANGUAGES:
         lines = [line if line.startswith(RLM) else RLM + line for line in lines]
 
+    notice = ""
+    if skipped:
+        names = ", ".join(request.value for request in skipped)
+        notice = f"в черновике не отражены типы запроса без шаблона: {names}"
+
     return Reply(
         body="\n".join(lines),
         language=language,
         used_prices=keys,
-        needs_human=needs_human,
+        needs_human=needs_human or bool(skipped),
         outcome=OUTCOME_DRAFT,
+        notice=notice,
     )
