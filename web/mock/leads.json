@@ -15,19 +15,11 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "регистрац"
+    "value": "вы с этим помогаете или только регистрация"
    },
    {
     "kind": "quote",
-    "value": "банк"
-   },
-   {
-    "kind": "quote",
-    "value": "счёт в банке"
-   },
-   {
-    "kind": "quote",
-    "value": "платёжный шлюз"
+    "value": "нужен счёт в банке + платёжный шлюз для интернет-магазина"
    }
   ],
   "violations": [],
@@ -75,11 +67,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "офис"
-   },
-   {
-    "kind": "quote",
-    "value": "виз"
+    "value": "переезжаем командой 8 человек, нужен офис в TECOM в этом месяце, плюс визы на всех"
    },
    {
     "kind": "quote",
@@ -127,15 +115,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "visa"
-   },
-   {
-    "kind": "quote",
-    "value": "golden"
-   },
-   {
-    "kind": "quote",
-    "value": "aed"
+    "value": "can i get a golden visa if i buy property for 2m aed"
    }
   ],
   "violations": [],
@@ -172,16 +152,21 @@
   "category": "general setup question",
   "received_at": "2026-09-07T15:38:00Z",
   "is_synthetic": true,
-  "tier": "LOW",
+  "tier": "MEDIUM",
   "reasons": [
-   "из текста не извлечён ни один тип запроса",
-   "язык обращения ru, но других признаков нет",
-   "уверенность извлечения 0.00 — ниже порога"
+   "язык обращения ru, но других признаков нет"
   ],
-  "evidence": [],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "а ежегодное продление сколько стоит и что туда входит"
+   }
+  ],
   "violations": [],
   "facts": {
-   "request_types": [],
+   "request_types": [
+    "renewal"
+   ],
    "jurisdiction_hint": null,
    "headcount": null,
    "timeline_days": null,
@@ -189,15 +174,17 @@
    "language": "ru",
    "is_spam": false,
    "has_contact": false,
-   "confidence": 0.0
+   "confidence": 1.0
   },
   "facts_source": "offline_heuristic",
   "reply": {
-   "body": "Здравствуйте! Чтобы ответить по делу и без лишних цифр, уточните пару вещей.\nЧто именно нужно в первую очередь — регистрация компании, офис, визы или бухгалтерия?\nПланируете mainland или фризону и сколько виз потребуется?\nК какому сроку нужно решение?\nОтветьте одной строкой — подготовим расчёт и вышлем в течение дня.",
+   "body": "Здравствуйте!\nПо продлению: собираем пакетом лицензию, Ejari и визовую квоту — документы лучше подавать заранее, просрочка добавляет штрафы.\nОриентир по рынку: ежегодное продление (лицензия, Ejari, визовая квота) — ⁦AED 15 000–30 000⁩ в год.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
-   "outcome": "questions",
+   "outcome": "draft",
    "needs_human": false,
-   "used_prices": []
+   "used_prices": [
+    "renewal_year"
+   ]
   },
   "status": "new"
  },
@@ -216,7 +203,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "регистрац"
+    "value": "скажите а сколько занимает регистрация по времени"
    }
   ],
   "violations": [],
@@ -300,15 +287,15 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "офис"
+    "value": "переносим команду 15 человек, ищем офис под ключ с интернетом и мебелью в ТЕКОМе"
    },
    {
     "kind": "quote",
-    "value": "помещение"
+    "value": "когда можем приехать посмотреть помещение"
    },
    {
     "kind": "quote",
-    "value": "виз"
+    "value": "плюс визы"
    },
    {
     "kind": "quote",
@@ -356,15 +343,11 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "bookkeeping"
+    "value": "do you do bookkeeping too or only filings"
    },
    {
     "kind": "quote",
-    "value": " tax"
-   },
-   {
-    "kind": "quote",
-    "value": "VAT"
+    "value": "we need corporate tax registration and VAT filing"
    }
   ],
   "violations": [],
@@ -442,7 +425,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "company formation"
+    "value": "Do you provide company formation for a UK ltd owner"
    }
   ],
   "violations": [],
@@ -487,7 +470,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "открыть компанию"
+    "value": "хочу открыть компанию в дубае, торговля автозапчастями"
    }
   ],
   "violations": [],
@@ -534,19 +517,11 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "лицензи"
+    "value": "открываем филиал, 5 человек, лицензия нужна до конца месяца иначе слетает контракт с заказчиком"
    },
    {
     "kind": "quote",
-    "value": "открываем"
-   },
-   {
-    "kind": "quote",
-    "value": "фризон"
-   },
-   {
-    "kind": "quote",
-    "value": "филиал"
+    "value": "фризона любая, лишь бы быстро"
    },
    {
     "kind": "quote",
@@ -595,11 +570,11 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "ищу работу"
+    "value": "Меня зовут Дмитрий, ищу работу менеджером по продажам в Дубае, опыт 6 лет в B2B"
    },
    {
     "kind": "quote",
-    "value": "Резюме вышлю"
+    "value": "Резюме вышлю по запросу"
    }
   ],
   "violations": [],
@@ -634,18 +609,20 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
   ],
   "evidence": [
    {
     "kind": "quote",
-    "value": "виз"
+    "value": "по визе вопрос, у меня виза заканчивается через две недели, а я в стране, что делать, штраф будет"
    }
   ],
   "violations": [],
   "facts": {
    "request_types": [
-    "visa"
+    "visa",
+    "renewal"
    ],
    "jurisdiction_hint": null,
    "headcount": null,
@@ -658,12 +635,13 @@
   },
   "facts_source": "offline_heuristic",
   "reply": {
-   "body": "Здравствуйте!\nПо визам: оформляем рабочие визы под ключ — медкомиссия, Emirates ID, штамп; квота считается от площади офиса.\nОриентир по рынку: рабочая виза под ключ, на человека — ⁦AED 3 500–7 000⁩ за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "body": "Здравствуйте!\nПо визам: оформляем рабочие визы под ключ — медкомиссия, Emirates ID, штамп; квота считается от площади офиса.\nОриентир по рынку: рабочая виза под ключ, на человека — ⁦AED 3 500–7 000⁩ за визу.\nОриентир по рынку: ежегодное продление (лицензия, Ejari, визовая квота) — ⁦AED 15 000–30 000⁩ в год.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
    "needs_human": false,
    "used_prices": [
-    "visa_employment"
+    "visa_employment",
+    "renewal_year"
    ]
   },
   "status": "new"
@@ -683,7 +661,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "открыть компанию"
+    "value": "сколько стоит открыть компанию"
    }
   ],
   "violations": [],
@@ -728,7 +706,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "лицензи"
+    "value": "здравствуйте, а вы помогаете с лицензией на образовательные услуги"
    }
   ],
   "violations": [],
@@ -775,31 +753,11 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "офис"
+    "value": "Регистрируем холдинг: 3 юрлица, офис на всех один, 12 сотрудников"
    },
    {
     "kind": "quote",
-    "value": "лицензи"
-   },
-   {
-    "kind": "quote",
-    "value": "Регистрируем"
-   },
-   {
-    "kind": "quote",
-    "value": "юрлиц"
-   },
-   {
-    "kind": "quote",
-    "value": "холдинг"
-   },
-   {
-    "kind": "quote",
-    "value": "виз"
-   },
-   {
-    "kind": "quote",
-    "value": "бухгалт"
+    "value": "Нужен просчёт пакета целиком - лицензии, офис, визы, бухгалтерия на год"
    },
    {
     "kind": "quote",
@@ -851,11 +809,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "бухгалт"
-   },
-   {
-    "kind": "quote",
-    "value": "отчётност"
+    "value": "хотим перейти от текущего бухгалтера к вам, есть косяки в отчётности за прошлый год"
    }
   ],
   "violations": [],
@@ -899,7 +853,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "виз"
+    "value": "нужна резидентская виза на себя и жену, компанию открывать не хочу"
    }
   ],
   "violations": [],
@@ -943,15 +897,11 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "регистрац"
+    "value": "Интересует регистрация в mainland - с местным партнёром или без"
    },
    {
     "kind": "quote",
-    "value": "фризон"
-   },
-   {
-    "kind": "quote",
-    "value": "mainland"
+    "value": "И можно ли потом перевести компанию из фризоны в mainland"
    }
   ],
   "violations": [],
@@ -996,7 +946,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "регистрац"
+    "value": "Интересует, какая юрисдикция подойдёт и какие сроки регистрации"
    }
   ],
   "violations": [],
@@ -1042,19 +992,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "офис"
-   },
-   {
-    "kind": "quote",
-    "value": "виз"
-   },
-   {
-    "kind": "quote",
-    "value": "банк"
-   },
-   {
-    "kind": "quote",
-    "value": "счёт в банке"
+    "value": "мы это, компания, нас семеро, переезжаем из Алматы, нужен офис и визы, ну и счёт в банке ещё"
    }
   ],
   "violations": [],
@@ -1105,11 +1043,7 @@
    },
    {
     "kind": "quote",
-    "value": "looking for job"
-   },
-   {
-    "kind": "quote",
-    "value": "job opportunity"
+    "value": "Dear Sir, I am a certified accountant from Lahore with 9 years experience, looking for job opportunity in your esteemed company"
    }
   ],
   "violations": [],
@@ -1149,7 +1083,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "бухгалт"
+    "value": "нужен бухгалтер на аутсорс, компания в IFZA, оборот небольшой"
    }
   ],
   "violations": [],
@@ -1228,7 +1162,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "open company"
+    "value": "хочу open company in dubai for crypto trading, это вообще легально сейчас"
    }
   ],
   "violations": [],
@@ -1275,19 +1209,11 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "помещение"
+    "value": "ищем помещение под колл-центр на 25 мест, нужно срочно, готовы подписать в этом месяце если цена устроит"
    },
    {
     "kind": "quote",
     "value": "25 мест"
-   },
-   {
-    "kind": "quote",
-    "value": "готовы подписать"
-   },
-   {
-    "kind": "quote",
-    "value": "цена устроит"
    }
   ],
   "violations": [],
@@ -1332,11 +1258,11 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "SEO agency"
+    "value": "We are a leading SEO agency from Noida"
    },
    {
     "kind": "quote",
-    "value": "rank your website"
+    "value": "We can rank your website #1 on Google in 3 months, guaranteed"
    }
   ],
   "violations": [],
@@ -1378,7 +1304,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "рабочих мест"
+    "value": "нам нужно 12 рабочих мест с 1 октября, барша хайтс рассматриваем"
    },
    {
     "kind": "quote",
@@ -1386,15 +1312,7 @@
    },
    {
     "kind": "quote",
-    "value": "бюджет"
-   },
-   {
-    "kind": "quote",
-    "value": "готовы подписать"
-   },
-   {
-    "kind": "quote",
-    "value": "договор на"
+    "value": "бюджет есть, готовы подписать договор на год"
    }
   ],
   "violations": [],
@@ -1434,18 +1352,20 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
   ],
   "evidence": [
    {
     "kind": "quote",
-    "value": "виз"
+    "value": "продлеваю визу сотруднику, он уже в стране"
    }
   ],
   "violations": [],
   "facts": {
    "request_types": [
-    "visa"
+    "visa",
+    "renewal"
    ],
    "jurisdiction_hint": null,
    "headcount": null,
@@ -1458,12 +1378,13 @@
   },
   "facts_source": "offline_heuristic",
   "reply": {
-   "body": "Здравствуйте!\nПо визам: оформляем рабочие визы под ключ — медкомиссия, Emirates ID, штамп; квота считается от площади офиса.\nОриентир по рынку: рабочая виза под ключ, на человека — ⁦AED 3 500–7 000⁩ за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "body": "Здравствуйте!\nПо визам: оформляем рабочие визы под ключ — медкомиссия, Emirates ID, штамп; квота считается от площади офиса.\nОриентир по рынку: рабочая виза под ключ, на человека — ⁦AED 3 500–7 000⁩ за визу.\nОриентир по рынку: ежегодное продление (лицензия, Ejari, визовая квота) — ⁦AED 15 000–30 000⁩ в год.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
    "needs_human": false,
    "used_prices": [
-    "visa_employment"
+    "visa_employment",
+    "renewal_year"
    ]
   },
   "status": "new"
@@ -1483,7 +1404,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "фриз зона"
+    "value": "скок стоит фриз зона"
    }
   ],
   "violations": [],
@@ -1566,47 +1487,47 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "офис"
+    "value": "eezone, если основные клиенты в саудовской аравии и европе 3) нужен ли реальный офис или хватит flexi desk, мы физически будем в дубае примерно 6 месяцев в…"
    },
    {
     "kind": "quote",
-    "value": "desk"
+    "value": "клиенты в саудовской аравии и европе 3) нужен ли реальный офис или хватит flexi desk, мы физически будем в дубае примерно 6 месяцев в году 4) визы: нужно 3…"
    },
    {
     "kind": "quote",
-    "value": "flexi"
+    "value": "овные клиенты в саудовской аравии и европе 3) нужен ли реальный офис или хватит flexi desk, мы физически будем в дубае примерно 6 месяцев в году 4) визы:…"
    },
    {
     "kind": "quote",
-    "value": "лицензи"
+    "value": "вопросы такие: 1) можно ли все три вида деятельности на одну лицензию или нужно три 2) mainland или freezone, если основные клиенты в саудовской аравии и…"
    },
    {
     "kind": "quote",
-    "value": "freezone"
+    "value": "мы группа из трёх партнёров, сейчас компания зарегистрирована в Грузии, но банки там душат, поэтому смотрим ОАЭ"
    },
    {
     "kind": "quote",
-    "value": "mainland"
+    "value": "жно ли все три вида деятельности на одну лицензию или нужно три 2) mainland или freezone, если основные клиенты в саудовской аравии и европе 3) нужен ли…"
    },
    {
     "kind": "quote",
-    "value": "виз"
+    "value": "такие: 1) можно ли все три вида деятельности на одну лицензию или нужно три 2) mainland или freezone, если основные клиенты в саудовской аравии и европе 3)…"
    },
    {
     "kind": "quote",
-    "value": "бухгалт"
+    "value": "или хватит flexi desk, мы физически будем в дубае примерно 6 месяцев в году 4) визы: нужно 3 партнёрские + 2 сотрудника, потом ещё 4 5) банк - какой реально…"
    },
    {
     "kind": "quote",
-    "value": "аудит"
+    "value": "ё 4 5) банк - какой реально открывает счёт нерезидентам, у нас уже был отказ 6) бухгалтерия и corporate tax, нужен ли аудит при обороте около 4 млн AED 7)…"
    },
    {
     "kind": "quote",
-    "value": " tax"
+    "value": "счёт нерезидентам, у нас уже был отказ 6) бухгалтерия и corporate tax, нужен ли аудит при обороте около 4 млн AED 7) сколько всё это стоит целиком за первый…"
    },
    {
     "kind": "quote",
-    "value": "банк"
+    "value": "льно открывает счёт нерезидентам, у нас уже был отказ 6) бухгалтерия и corporate tax, нужен ли аудит при обороте около 4 млн AED 7) сколько всё это стоит…"
    },
    {
     "kind": "quote",
@@ -1618,15 +1539,11 @@
    },
    {
     "kind": "quote",
-    "value": "бюджет"
+    "value": "бюджет на старт есть, ориентируемся на 120-150 тысяч дирхам, но если нужно больше - обсудим, лишь бы без сюрпризов, а то нам уже называли одну цену, а потом…"
    },
    {
     "kind": "quote",
-    "value": "AED"
-   },
-   {
-    "kind": "quote",
-    "value": "дирхам"
+    "value": "ыл отказ 6) бухгалтерия и corporate tax, нужен ли аудит при обороте около 4 млн AED 7) сколько всё это стоит целиком за первый год и за второй.\nwe can also…"
    }
   ],
   "violations": [],
@@ -1649,7 +1566,7 @@
   },
   "facts_source": "offline_heuristic",
   "reply": {
-   "body": "‏تحية طيبة سيرغي، بخصوص أسئلتك: يمكن عادةً دمج تجارة الإلكترونيات بالجملة مع خدمات تطوير البرمجيات ضمن رخصة واحدة إذا سمح بذلك تصنيف النشاط لدى الجهة المرخِّصة، أما التوظيف فيُعامل غالباً كنشاط منفصل بشروط خاصة، والماينلاند أنسب لعملاء الخليج والتعامل المباشر، بينما تبقى الفري زون خياراً عملياً للتصدير والخدمات.\n‏وجود مكتب فعلي يوسّع حصة التأشيرات ويقوّي ملفك أمام البنوك مقارنةً بالفليكسي ديسك، وهو اعتبار مهم لديك بعد الرفض السابق، إذ ينظر البنك إلى طبيعة النشاط وحضوركم الفعلي ومصدر الأموال أكثر من نظره إلى الإقامة.\n‏أما ضريبة الشركات فتقتضي دفاتر منتظمة وتسجيلاً نظامياً، ومع دوران قريب من هذا الحجم تُدرس الحاجة إلى التدقيق بحسب الشكل القانوني والجهة المرخِّصة.\n‏كمؤشر أولي: تأسيس شركة ماينلاند مع الرخصة والرسوم الحكومية ⁦AED 15 000–35 000⁩، ومكتب خاص صغير في مركز أعمال ⁦AED 35 000–60 000⁩ سنوياً، من دون تأشيرات وخدمات محاسبية.\n‏هذه أرقام استرشادية فقط، والكلفة النهائية للسنة الأولى والثانية تُحتسب بعد مكالمة نحدد فيها الأنشطة وعدد التأشيرات والجهة المناسبة، حتى لا تظهر أي مفاجآت لاحقاً.\n‏هل يناسبك لقاء في مكتبنا بدبي بعد العشرين من الشهر لمراجعة الملف كاملاً؟",
+   "body": "‏مرحبًا سيرجي، شكرًا على التفاصيل الواضحة؛ عمليًا يمكن ضمّ تجارة الإلكترونيات بالجملة وخدمات تطوير البرمجيات ضمن رخصة واحدة في كثير من الحالات، بينما نشاط التوظيف يخضع لاشتراطات منفصلة وغالبًا يحتاج رخصة مستقلة، ومع عملاء في السعودية وأوروبا يكون الـmainland أنسب للتوريد والتعاقد المحلي، مع بقاء الفريزون خيارًا للجزء الخدمي.\n‏بالنسبة للمكاتب، فإن عدد التأشيرات المطلوب (ثلاث للشركاء واثنتان للموظفين ثم أربع لاحقًا) يتجاوز ما يغطيه الفليكسي ديسك عادةً، لذا يُنصح بمكتب فعلي، وعند دوران يقارب أربعة ملايين درهم تنطبق ضريبة الشركات مع مسك دفاتر منتظم، ويُحدَّد وجوب التدقيق حسب الشكل القانوني والجهة المرخِّصة.\n‏أما الحساب البنكي فالقبول يعتمد على وضوح النشاط ومصدر الأموال وسِجل الشركة السابق، ورفض سابق لا يمنع فتح ملف جديد بمستندات مُعدّة بعناية.\n‏كمؤشر أولي: تأسيس شركة mainland بالرخصة والرسوم الحكومية ⁦AED 15 000–35 000⁩، ومكتب خاص صغير في مركز أعمال ⁦AED 35 000–60 000⁩ سنويًا، إضافة إلى كلفة التأشيرات والمحاسبة حسب الحجم.\n‏الرقم النهائي للسنة الأولى والثانية يُحتسب بعد مكالمة نراجع فيها الأنشطة وعدد التأشيرات وهيكل الملكية، دون بنود مفاجئة لاحقًا.\n‏بما أنكم في دبي من العشرين، نقترح لقاءً في مكتبنا أو مكالمة في الوقت الذي يناسبكم بعد وصولكم.",
    "language": "ar",
    "outcome": "draft",
    "needs_human": true,
@@ -1676,19 +1593,15 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "офис"
+    "value": "нужен офис 4 кабинета + переговорка, заезд 1 ноября"
    },
    {
     "kind": "quote",
-    "value": "кабинет"
+    "value": "что нужно для смены адреса в лицензии"
    },
    {
     "kind": "quote",
-    "value": "переговорк"
-   },
-   {
-    "kind": "quote",
-    "value": "лицензи"
+    "value": "компания уже зарегистрирована в DMCC, хотим переехать к вам в барша"
    }
   ],
   "violations": [],
@@ -1734,11 +1647,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "аудит"
-   },
-   {
-    "kind": "quote",
-    "value": "налог"
+    "value": "Нужен аудит за 2025 год и подача корпоративного налога"
    }
   ],
   "violations": [],
@@ -1782,7 +1691,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "офис"
+    "value": "почём офис у вас"
    }
   ],
   "violations": [],
@@ -1827,7 +1736,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "лицензи"
+    "value": "скажите, а лицензию \"general trading\" можно сразу получить или сначала нужна обычная торговая"
    }
   ],
   "violations": [],
@@ -1870,7 +1779,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "register"
+    "value": "what documents do i need to register an LLC as a non resident"
    }
   ],
   "violations": [],
@@ -1915,11 +1824,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "business database"
-   },
-   {
-    "kind": "quote",
-    "value": "Buy verified"
+    "value": "Buy verified UAE business database, 120000 contacts with emails and phones, only $199"
    }
   ],
   "violations": [],
@@ -1960,11 +1865,11 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "офис"
+    "value": "Компания 20 человек, ищем офис 200-250 кв"
    },
    {
     "kind": "quote",
-    "value": "кв.м"
+    "value": "Компания 20 человек, ищем офис 200-250 кв.м в Barsha Heights, договор на 2 года"
    },
    {
     "kind": "quote",
@@ -1972,7 +1877,7 @@
    },
    {
     "kind": "quote",
-    "value": "договор на"
+    "value": "м в Barsha Heights, договор на 2 года"
    }
   ],
   "violations": [],
@@ -2015,11 +1920,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "visa"
-   },
-   {
-    "kind": "quote",
-    "value": "emirates id"
+    "value": "мне нужен medical + emirates id для family visa, вы это делаете"
    }
   ],
   "violations": [],
@@ -2138,11 +2039,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "unit at"
-   },
-   {
-    "kind": "quote",
-    "value": "licence"
+    "value": "our licence expires in 21 days and we must move to a bigger unit at the same time"
    },
    {
     "kind": "quote",
@@ -2153,7 +2050,7 @@
   "facts": {
    "request_types": [
     "office",
-    "setup"
+    "renewal"
    ],
    "jurisdiction_hint": null,
    "headcount": 14,
@@ -2166,13 +2063,13 @@
   },
   "facts_source": "offline_heuristic",
   "reply": {
-   "body": "Hello,\nOn the office: we run our own business centre in Dubai, with small private offices and flexi-desks that cover the visa quota.\nMarket range: small private office in a business centre — ⁦AED 35 000–60 000⁩ per year.\nMarket range: mainland company setup package (licence and government fees) — ⁦AED 15 000–35 000⁩ one-off.\nThis is a market range; the final figure depends on your activity and visa count — we will price it exactly after a short call.\nAre you leaning towards mainland or a free zone — or would you compare both?",
+   "body": "Hello,\nOn the office: we run our own business centre in Dubai, with small private offices and flexi-desks that cover the visa quota.\nMarket range: small private office in a business centre — ⁦AED 35 000–60 000⁩ per year.\nMarket range: annual renewal (licence, Ejari, visa quota) — ⁦AED 15 000–30 000⁩ per year.\nThis is a market range; the final figure depends on your activity and visa count — we will price it exactly after a short call.\nAre you leaning towards mainland or a free zone — or would you compare both?",
    "language": "en",
    "outcome": "draft",
    "needs_human": true,
    "used_prices": [
     "office_mini_year",
-    "setup_mainland_package"
+    "renewal_year"
    ]
   },
   "status": "new"
@@ -2192,11 +2089,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "freezone"
-   },
-   {
-    "kind": "quote",
-    "value": "bank"
+    "value": "which bank opens accounts fastest for a freezone company with a non resident director"
    }
   ],
   "violations": [],
@@ -2241,7 +2134,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "виз"
+    "value": "виза инвестора и виза партнёра это одно и то же"
    }
   ],
   "violations": [],
@@ -2283,7 +2176,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "تأسيس"
+    "value": "السلام عليكم، أريد تأسيس شركة في دبي لتجارة المواد الغذائية"
    }
   ],
   "violations": [],
@@ -2302,7 +2195,7 @@
   },
   "facts_source": "offline_heuristic",
   "reply": {
-   "body": "‏وعليكم السلام ورحمة الله، شكرًا لتواصلكم بشأن تأسيس شركة لتجارة المواد الغذائية في دبي.\n‏تبدأ الخطوات باختيار الشكل القانوني والنشاط التجاري المناسب، ثم حجز الاسم التجاري والحصول على الموافقة المبدئية، وبعدها تحديد المقر أو المكتب المرن، واستكمال إصدار الرخصة، مع مراعاة أن نشاط المواد الغذائية يتطلب موافقة الجهة المعنية بسلامة الأغذية قبل بدء العمل.\n‏أما المدة فهي مرتبطة بإجراءات الجهات الحكومية وموافقاتها، ولا يمكننا تحديدها من جانبنا.\n‏للتوجيه المبدئي: تأسيس شركة في البر الرئيسي يقع ضمن ⁦AED 15 000–35 000⁩ شاملًا الرخصة والرسوم الحكومية، والتأسيس في المناطق الحرة يقع ضمن ⁦AED 12 500–27 000⁩.\n‏تبقى هذه الأرقام مؤشرًا عامًا، ويُحسب المبلغ النهائي بعد حديث قصير نفهم فيه تفاصيل نشاطكم وعدد التأشيريات المطلوبة.\n‏هل تفضّلون التأسيس في البر الرئيسي للبيع داخل السوق المحلي، أم في منطقة حرة مع التركيز على إعادة التصدير؟",
+   "body": "‏وعليكم السلام ورحمة الله، وشكرًا لتواصلكم معنا بشأن تأسيس شركة لتجارة المواد الغذائية في دبي.\n‏تبدأ الخطوات باختيار الشكل القانوني والنشاط المناسب وحجز الاسم التجاري، ثم استخراج الموافقة المبدئية وتحديد مقر العمل، وبعدها إصدار الرخصة التجارية وفتح الحساب البنكي والانتقال إلى ملف الإقامات؛ ونشاط الأغذية يتطلب موافقة الجهة المختصة بسلامة الغذاء على المقر والمنتجات، أما المدة فهي مرهونة بالجهات الحكومية ولا يمكننا الالتزام بها.\n‏في المنطقة الحرة يقع النطاق التقديري بين ⁦AED 12 500–27 000⁩ كدفعة واحدة، وفي البر الرئيسي بين ⁦AED 15 000–35 000⁩ شاملًا الرخصة والرسوم الحكومية.\n‏هذه الأرقام للاسترشاد فقط، والكلفة النهائية تُحسب بعد مكالمة قصيرة نفهم فيها تفاصيل نشاطكم وعدد الإقامات المطلوبة وطبيعة المقر.\n‏هل تفضّلون التجارة العامة للمواد الغذائية بالجملة أم إعادة التصدير والتخزين، حتى نحدّد الجهة والنشاط الأدق لكم؟",
    "language": "ar",
    "outcome": "draft",
    "needs_human": true,
@@ -2328,7 +2221,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "филиал"
+    "value": "а если у меня уже есть компания в казахстане, можно филиал открыть или проще новую"
    }
   ],
   "violations": [],
@@ -2404,39 +2297,28 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "запрошено услуг: 2 — нужен пакет"
+   "запрошено услуг: 3 — нужен пакет"
   ],
   "evidence": [
    {
     "kind": "quote",
-    "value": "desk"
+    "value": "Need 8 flexi desks + trade licence renewal before 30 Sep"
    },
    {
     "kind": "quote",
-    "value": "flexi"
+    "value": "What is the fastest freezone for a fintech consultancy"
    },
    {
     "kind": "quote",
-    "value": "licence"
-   },
-   {
-    "kind": "quote",
-    "value": "freezone"
-   },
-   {
-    "kind": "quote",
-    "value": "Budget"
-   },
-   {
-    "kind": "quote",
-    "value": "approved"
+    "value": "Budget is approved, we just need speed"
    }
   ],
   "violations": [],
   "facts": {
    "request_types": [
     "office",
-    "setup"
+    "setup",
+    "renewal"
    ],
    "jurisdiction_hint": null,
    "headcount": null,
@@ -2475,7 +2357,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "банк"
+    "value": "отказали в открытии счёта в банке, уже второй раз"
    }
   ],
   "violations": [],
@@ -2555,11 +2437,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "помещение"
-   },
-   {
-    "kind": "quote",
-    "value": "лицензи"
+    "value": "нужна лицензия и помещение"
    }
   ],
   "violations": [],
@@ -2605,11 +2483,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "фризон"
-   },
-   {
-    "kind": "quote",
-    "value": "мейнленд"
+    "value": "подскажите чем мейнленд отличается от фризоны"
    }
   ],
   "violations": [],
@@ -2654,11 +2528,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "арбитраж"
-   },
-   {
-    "kind": "quote",
-    "value": "депозит от"
+    "value": "Предлагаю участие в арбитраже криптовалюты, доход 30% в месяц, депозит от 500$"
    }
   ],
   "violations": [],
@@ -2699,15 +2569,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "office"
-   },
-   {
-    "kind": "quote",
-    "value": "visa"
-   },
-   {
-    "kind": "quote",
-    "value": "bank"
+    "value": "need office + 6 employment visas + corporate bank acc"
    },
    {
     "kind": "quote",
@@ -2758,11 +2620,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "Free Zone"
-   },
-   {
-    "kind": "quote",
-    "value": "виз"
+    "value": "Нужно оформить 3 рабочие визы для сотрудников, компания уже есть в SPC Free Zone"
    }
   ],
   "violations": [],
@@ -2846,11 +2704,11 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "регистрац"
+    "value": "интересует регистрация компании для маркетплейса"
    },
    {
     "kind": "quote",
-    "value": "налог"
+    "value": "налоги какие будут"
    }
   ],
   "violations": [],
@@ -2898,19 +2756,11 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "офис"
+    "value": "бюджет до 180k AED в год на офис"
    },
    {
     "kind": "quote",
-    "value": "office"
-   },
-   {
-    "kind": "quote",
-    "value": "visa"
-   },
-   {
-    "kind": "quote",
-    "value": "accounting"
+    "value": "hi, мы стартап, 9 people, нужен office + visas + accounting"
    },
    {
     "kind": "quote",
@@ -2919,14 +2769,6 @@
    {
     "kind": "quote",
     "value": "180k"
-   },
-   {
-    "kind": "quote",
-    "value": "бюджет"
-   },
-   {
-    "kind": "quote",
-    "value": "AED"
    }
   ],
   "violations": [],
@@ -2974,11 +2816,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "регистрац"
-   },
-   {
-    "kind": "quote",
-    "value": "налог"
+    "value": "мы просрочили регистрацию по корпоративному налогу, штраф уже пришёл"
    }
   ],
   "violations": [],
@@ -3022,7 +2860,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "виз"
+    "value": "how much за визу"
    }
   ],
   "violations": [],
@@ -3066,7 +2904,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "банк"
+    "value": "мне нужно понять реально ли вести бизнес из россии через дубайскую компанию, платежи проходят или банки режут"
    }
   ],
   "violations": [],
@@ -3108,7 +2946,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "открыть компанию"
+    "value": "можно ли открыть компанию удалённо, без приезда в оаэ"
    }
   ],
   "violations": [],
@@ -3157,11 +2995,7 @@
    },
    {
     "kind": "quote",
-    "value": "Сдаю квартиру"
-   },
-   {
-    "kind": "quote",
-    "value": "без комиссии"
+    "value": "Сдаю квартиру в Марине, 1BR с видом, 95 тысяч в год, собственник, без комиссии"
    }
   ],
   "violations": [],
@@ -3203,19 +3037,7 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "office"
-   },
-   {
-    "kind": "quote",
-    "value": "seats"
-   },
-   {
-    "kind": "quote",
-    "value": "visa"
-   },
-   {
-    "kind": "quote",
-    "value": "residence"
+    "value": "нам нужен office space asap, 10 seats, + 10 residence visa"
    },
    {
     "kind": "quote",
@@ -3266,19 +3088,11 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "офис"
+    "value": "нам надо 6, говорят зависит от офиса"
    },
    {
     "kind": "quote",
-    "value": "лицензи"
-   },
-   {
-    "kind": "quote",
-    "value": "фризон"
-   },
-   {
-    "kind": "quote",
-    "value": "виз"
+    "value": "сколько виз можно на одну лицензию во фризоне"
    }
   ],
   "violations": [],
@@ -3357,21 +3171,19 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "запрошено услуг: 2 — нужен пакет",
+   "язык обращения ru — основная аудитория"
   ],
   "evidence": [
    {
     "kind": "quote",
-    "value": "виз"
-   },
-   {
-    "kind": "quote",
-    "value": "резидентств"
+    "value": "а можно ли на туристической визе зарегистрировать компанию или надо сначала резидентство"
    }
   ],
   "violations": [],
   "facts": {
    "request_types": [
+    "setup",
     "visa"
    ],
    "jurisdiction_hint": null,
@@ -3385,11 +3197,12 @@
   },
   "facts_source": "offline_heuristic",
   "reply": {
-   "body": "Здравствуйте!\nПо визам: оформляем рабочие визы под ключ — медкомиссия, Emirates ID, штамп; квота считается от площади офиса.\nОриентир по рынку: рабочая виза под ключ, на человека — ⁦AED 3 500–7 000⁩ за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — ⁦AED 15 000–35 000⁩ разово.\nОриентир по рынку: рабочая виза под ключ, на человека — ⁦AED 3 500–7 000⁩ за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
    "needs_human": false,
    "used_prices": [
+    "setup_mainland_package",
     "visa_employment"
    ]
   },
@@ -3412,19 +3225,11 @@
   "evidence": [
    {
     "kind": "quote",
-    "value": "офис"
+    "value": "команда 8 человек, едем в декабре, нужен офис в вашем бизнес центре и 8 виз"
    },
    {
     "kind": "quote",
-    "value": "флекси"
-   },
-   {
-    "kind": "quote",
-    "value": "фризон"
-   },
-   {
-    "kind": "quote",
-    "value": "виз"
+    "value": "уже общались с фризоной, но там офис не дают, только флекси-десk"
    },
    {
     "kind": "quote",
