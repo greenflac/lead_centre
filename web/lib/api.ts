@@ -9,7 +9,7 @@ import leadsJson from "../mock/leads.json";
 import companiesJson from "../mock/companies.json";
 import statsJson from "../mock/stats.json";
 import { ApiError, type Company, type Lead, type LeadStatus, type Stats } from "./types";
-import { collectQuotes, extractFacts, scoreInbound } from "./mockEngine";
+import { extractFacts, scoreInbound } from "./mockEngine";
 import { draftReply } from "./mockReply";
 import {
   normalizeCard,
@@ -106,8 +106,7 @@ export async function getStats(): Promise<Stats> {
 export async function postLead(text: string, channel: string): Promise<Lead> {
   if (isMock) {
     await sleep(MOCK_LATENCY_MS);
-    const facts = extractFacts(text);
-    const quotes = collectQuotes(text, facts);
+    const { facts, quotes } = extractFacts(text);
     const scored = scoreInbound(text, facts, quotes);
     const reply = draftReply(facts, scored.tier);
     const lead: Lead = {
