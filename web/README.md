@@ -62,24 +62,38 @@ An `outcome: "unavailable"` answer becomes a visible error, never an empty list.
 `web/mock/*.json` is **generated from real repository files**, never hand-written:
 
 ```bash
-python3 web/scripts/gen_mock.py
+PYTHONPATH=. python3 web/scripts/gen_mock.py
 ```
+
+Its own output is the check: `leads: checked 70, tiers {HIGH: 13, MEDIUM: 40, LOW: 17,
+INVALID: 0}, violations 0` / `companies: checked 60, tiers {HIGH: 12, MEDIUM: 48}, skipped
+0`. Those are the numbers on the screenshots; if they and the header ever disagree, the
+mock is stale — regenerate and reshoot.
 
 * `data/inbound_seed.csv` → 70 requests. Priorities, reasons, evidence and draft replies
   come from the actual engine — `leadcentre.engine.score.score_inbound` and
   `leadcentre.engine.reply.draft` with `data/pricelist_demo.yaml`.
 * `data/gleif_ae_lapsed_sample.json` → 60 companies through `GleifAdapter(offline=True)`
   and `leadcentre.engine.score.score`.
-* The one thing the generator does itself is fact extraction: `engine/extract.py` calls an
-  LLM provider, and the mock must build with no network and no API key. That substitute is
-  labelled `facts_source: offline_heuristic` in every record and shown in the card as
-  "offline heuristic (mock mode)".
+* Facts come from `leadcentre.engine.facts_rules.rules_facts` — the same deterministic
+  extractor the eval bench uses, because `engine/extract.py` needs a provider and a key and
+  the mock must build with neither. Records carry `facts_source: offline_heuristic`, shown
+  in the card as "offline heuristic (mock mode)"; `confidence` there means "markers
+  matched" (1.00 / 0.00), not a model's probability.
 
 Requests typed into the **New request** tab in mock mode are scored in the browser by
-`lib/mockEngine.ts` and `lib/mockReply.ts`, which mirror `engine/rubric.py`, `score.py` and
-`reply.py`. Both files carry a `DEBT(2026-09-09)` note: that is knowledge duplicated in two
-languages, kept only because a browser cannot run the Python engine with no backend
-attached. In live mode neither file is executed.
+`lib/mockEngine.ts` (a port of `engine/facts_rules.py` + `score.score_inbound` with the
+thresholds of `engine/rubric.py`) and `lib/mockReply.ts` (a port of `engine/reply.py` and
+the demo price ranges). Both carry a `DEBT(2026-09-09)` note: knowledge duplicated in two
+languages, kept only because a browser cannot run Python with no backend attached. In live
+mode neither file is executed.
+
+**They are checked against Python, not trusted.** Ten seed requests covering all seven
+categories were scored by `rules_facts` + `score_inbound` in Python and then typed into the
+form in Chromium; tier and the full list of reasons matched on 10 of 10. The check has a
+negative control: mutating `SIGNALS_FOR_HIGH` from 2 to 1 in the TypeScript copy turned
+`acct-08` from MEDIUM into HIGH and the comparison reported 1 mismatch, so it is capable of
+failing. Redo this whenever the rubric moves.
 
 ## Honest labels
 
@@ -114,7 +128,7 @@ All taken from the running production build (`next start`), Chromium at 1440 px.
 | `05-discovered.png` | Registry watchlist |
 | `06-error-provider-budget.png` | Backend answering 402: readable error, raw detail, retry |
 | `07-empty-state.png` | Search matching nothing |
-| `08-live-backend.png`, `09-live-new-request.png` | Live mode against `leadcentre/api.py` |
+| `08-live-backend.png`, `09-live-new-request.png` | Live mode against `leadcentre/api.py`. That backend ran with `OFFLINE=1`, so its extractor is a stub and the cards show empty facts and confidence 0.00 — that is the backend's offline mode, not the dashboard |
 
 ## Language
 
