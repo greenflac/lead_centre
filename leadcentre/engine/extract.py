@@ -280,6 +280,37 @@ class Provider(Protocol):
     def complete(self, body: dict) -> Completion: ...
 
 
+def anthropic_client():
+    """Клиент Anthropic. Ключ — из CLAUDE_KEY, запасной ANTHROPIC_API_KEY.
+
+    Публичная функция, потому что этим же клиентом ходит translit.py: два места,
+    читающие ключ по-своему, — это второй способ узнать известное (Е1).
+    """
+    api_key = os.environ.get("CLAUDE_KEY") or os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise ExtractionError("нет ключа: ни CLAUDE_KEY, ни ANTHROPIC_API_KEY не заданы")
+    try:
+        import anthropic
+    except ImportError as exc:  # П2: дешёвая проверка раньше сетевой
+        raise ExtractionError("нет пакета anthropic: pip install anthropic") from exc
+    return anthropic.Anthropic(api_key=api_key, timeout=TIMEOUT_S, max_retries=MAX_RETRIES)
+
+
+def anthropic_error(exc: Exception) -> ExtractionError:
+    """Ошибка API → наш тип. Лимиты отделены от сети: чинятся они по-разному."""
+    text = str(exc)
+    # 400 «credit balance is too low» приходит обычным BadRequestError — по коду ответа
+    # его от опечатки в теле не отличить, отличаем по тексту.
+    if "credit balance" in text or "billing" in text.lower():
+        return ProviderBudgetError(
+            "anthropic: кончились деньги на аккаунте — API отвечает 400 "
+            "«credit balance is too low». Что делать: пополнить баланс в Console → "
+            "Plans & Billing либо переключиться: LLM_PROVIDER=pollinations. "
+            f"Ответ API как есть: {text}"
+        )
+    return ExtractionError(f"anthropic: запрос не удался: {type(exc).__name__}: {text}")
+
+
 class AnthropicProvider:
     """Claude через официальный SDK. Схему держит сам API (structured outputs)."""
 
@@ -328,34 +359,14 @@ class AnthropicProvider:
         return body
 
     def _client(self):
-        api_key = os.environ.get("CLAUDE_KEY") or os.environ.get("ANTHROPIC_API_KEY")
-        if not api_key:
-            raise ExtractionError("нет ключа: ни CLAUDE_KEY, ни ANTHROPIC_API_KEY не заданы")
-        try:
-            import anthropic
-        except ImportError as exc:  # П2: дешёвая проверка раньше сетевой
-            raise ExtractionError("нет пакета anthropic: pip install anthropic") from exc
-        return anthropic.Anthropic(api_key=api_key, timeout=TIMEOUT_S, max_retries=MAX_RETRIES)
+        return anthropic_client()
 
     def complete(self, body: dict) -> Completion:
         client = self._client()
         try:
             response = client.messages.create(**body)
         except Exception as exc:
-            # 400 «credit balance is too low» приходит как обычный BadRequestError —
-            # по коду ответа его от опечатки в теле не отличить, отличаем по тексту.
-            text = str(exc)
-            if "credit balance" in text or "billing" in text.lower():
-                raise ProviderBudgetError(
-                    "anthropic: кончились деньги на аккаунте — "
-                    "API отвечает 400 «credit balance is too low». "
-                    "Что делать: пополнить баланс в Console → Plans & Billing "
-                    "либо переключиться на другого провайдера: LLM_PROVIDER=pollinations. "
-                    f"Ответ API как есть: {text}"
-                ) from exc
-            raise ExtractionError(
-                f"anthropic: запрос не удался: {type(exc).__name__}: {text}"
-            ) from exc
+            raise anthropic_error(exc) from exc
 
         if response.stop_reason not in ("end_turn", "stop_sequence"):
             raise ExtractionError(f"anthropic: модель не договорила: {response.stop_reason}")
