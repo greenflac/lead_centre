@@ -24,6 +24,7 @@ export default function Page() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [statsFailed, setStatsFailed] = useState(false);
   const [leadsError, setLeadsError] = useState<ApiError | null>(null);
   const [companiesError, setCompaniesError] = useState<ApiError | null>(null);
   const [loadingLeads, setLoadingLeads] = useState(true);
@@ -64,8 +65,14 @@ export default function Page() {
     void loadLeads();
     void loadCompanies();
     getStats()
-      .then(setStats)
-      .catch(() => setStats(null));
+      .then((data) => {
+        setStats(data);
+        setStatsFailed(false);
+      })
+      .catch(() => {
+        setStats(null);
+        setStatsFailed(true);
+      });
   }, [loadLeads, loadCompanies]);
 
   const onLeadChanged = useCallback((updated: Lead) => {
@@ -135,7 +142,9 @@ export default function Page() {
               <small>
                 {stats
                   ? `${stats.leads.synthetic} synthetic / ${stats.leads.real} real requests · ${stats.companies.source}`
-                  : "loading…"}
+                  : statsFailed
+                    ? "counters unavailable — /stats did not answer"
+                    : "loading…"}
               </small>
             </div>
           </div>
