@@ -78,27 +78,39 @@ def _addresses(entity: dict) -> tuple[dict, tuple[str, ...]]:
 
 
 def _english_name(entity: dict) -> str:
-    """Название латиницей.
+    """Название латиницей, по порядку доверия к источнику.
 
-    Если в реестре название уже латиницей — оставляем его: en-вариант из otherNames бывает
-    другой формой того же лица («… SOLE PROPRIETORSHIP LLC»), и подменять им основное имя
-    значит показывать менеджеру не то название, которое он найдёт в реестре.
+    Порядок — данные, а не ветвление, потому что каждая ступень куплена наблюдением:
+
+    1. Латинское `legalName` — как в реестре, подменять нечем и незачем.
+    2. `ALTERNATIVE_LANGUAGE_LEGAL_NAME` — официальное имя на другом языке.
+    3. `PREFERRED_ASCII_TRANSLITERATED_LEGAL_NAME` — ASCII-написание, выбранное самим
+       реестром. Стоит выше прежнего и торгового имени: у LEI 213800MZ26M5G2T1NB81
+       en-вариант — это `NEW APPOLO DMCC` с типом PREVIOUS_LEGAL_NAME, а компания
+       сейчас `NEW APOLLO FZCO`. Менеджер ищет по названию из карточки, и по прежнему
+       имени он текущую компанию не найдёт.
+    4. Торговое имя, затем прежнее — хуже актуального, но это написания из реестра.
+    5. `AUTO_ASCII_TRANSLITERATED_LEGAL_NAME` — машинная транслитерация самого реестра
+       («bydyk antrnashwnal ltjart albtrwlywm»). Читается плохо, поэтому ниже прежнего
+       имени, но выше арабской строки, которую менеджер не прочитает вовсе.
+    6. Арабское имя как последнее средство: выдумывать написание адаптер не станет.
     """
     legal = (entity.get("legalName") or {}).get("name", "")
     if any("A" <= ch.upper() <= "Z" for ch in legal):
         return legal
-    for other in entity.get("otherNames") or []:
-        if other.get("language") == "en" and other.get("name"):
-            return other["name"]
-    # ИЗМЕРЕНО 2026-09-09: в выборках GLEIF (120 записей) арабское название у 51 компании,
-    # английский вариант в otherNames — у 43. Оставшиеся 8 не «без латиницы»: их ASCII-имя
-    # лежит в transliteratedOtherNames, куда адаптер раньше не смотрел, и менеджер видел
-    # арабскую строку. Написание из реестра точнее машинной транслитерации: сверка по этим
-    # восьми дала совпадение 3 из 8 — марочные имена (Sogno, Froma, OXrage) по звучанию
-    # не восстанавливаются. Поэтому источник имеет приоритет над моделью всегда.
-    for other in entity.get("transliteratedOtherNames") or []:
-        if other.get("name"):
-            return other["name"]
+    other_names = entity.get("otherNames") or []
+    translit = entity.get("transliteratedOtherNames") or []
+    for source, kind in (
+        (other_names, "ALTERNATIVE_LANGUAGE_LEGAL_NAME"),
+        (translit, "PREFERRED_ASCII_TRANSLITERATED_LEGAL_NAME"),
+        (other_names, "TRADING_OR_OPERATING_NAME"),
+        (other_names, "PREVIOUS_LEGAL_NAME"),
+        (translit, "AUTO_ASCII_TRANSLITERATED_LEGAL_NAME"),
+    ):
+        for item in source:
+            english = source is translit or item.get("language") == "en"
+            if item.get("type") == kind and english and item.get("name"):
+                return item["name"]
     return legal
 
 
