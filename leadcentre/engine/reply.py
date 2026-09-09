@@ -488,10 +488,9 @@ ARABIC_EFFORT = "low"
 # ANTHROPIC_API_KEY в этой среде не задан, см. docs/ops/env_status.md.
 ARABIC_KEY_ENV = "CLAUDE_KEY"
 
-# DEBT(2026-09-09): пакет anthropic импортируется, но в pyproject.toml его нет
-# (dependencies = []), а pyproject пишет другой агент (Ц2). Импорт локальный, поэтому
-# ru/en-ветка работает и без пакета, но арабская без него отдаёт NO_DRAFT. Владельцу
-# pyproject: добавить зависимость anthropic>=1.4 в [project.dependencies].
+# Пакет anthropic объявлен в pyproject.toml, но импортируется локально в функции:
+# ru/en-ветка не должна падать из-за необязательного для неё пакета, а арабская без
+# него честно отдаёт NO_DRAFT вместо отката на английский.
 
 # Пометка в карточку: сгенерированный арабский носителем не вычитан (Ц4).
 NATIVE_REVIEW_NOTICE = (

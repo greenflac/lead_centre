@@ -17,6 +17,9 @@ from leadcentre.engine import extract as extract_mod
 from leadcentre.models import InboundMessage, LeadFacts, RequestType
 
 # Порог «срочно» по умолчанию, когда в тексте есть слова срочности без числа.
+# ВЫБРАНО (автор, 2026-09-09). Сторожится измерительным стендом: мутация 14 -> 400
+# роняет каппу 0.838 -> 0.723 и негативные контроли 6 из 6 -> 5 из 6, вердикт стенда
+# становится НЕ ГОДНО.
 URGENT_DEFAULT_DAYS = 14
 
 # --- факты без модели: режим rules ---
