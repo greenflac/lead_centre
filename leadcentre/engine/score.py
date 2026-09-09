@@ -164,9 +164,12 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
 
     # Горячим делает только набор содержательных признаков: одного мало, иначе HIGH
     # достаётся половине входящих и перестаёт что-либо значить (см. SIGNALS_FOR_HIGH).
-    if substantive >= rubric.SIGNALS_FOR_HIGH:
-        tier = _step(tier, 1)
-    elif substantive and tier is Tier.LOW:
+    # Две разные причины подняться на ступень, намеренно не слитые в одно условие:
+    # набор признаков делает обращение горячим, а один признак вытаскивает из LOW
+    # обращение, где не распознан тип запроса. Слияние через or прячет вторую причину.
+    enough_signals = substantive >= rubric.SIGNALS_FOR_HIGH
+    rescued_from_low = bool(substantive) and tier is Tier.LOW
+    if enough_signals or rescued_from_low:
         tier = _step(tier, 1)
 
     # Понижающие. Низкая уверенность извлечения не даёт подняться выше среднего:
