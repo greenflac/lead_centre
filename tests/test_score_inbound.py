@@ -88,6 +88,124 @@ def test_package_reason_names_the_count():
     assert any("запрошено услуг: 2" in r for r in score_inbound(make_message(), facts).reasons)
 
 
+# --- порог команды: 5 человек ----------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("headcount", "expected"),
+    [
+        (0, Tier.MEDIUM),     # край снизу: команды нет
+        (1, Tier.MEDIUM),
+        (4, Tier.MEDIUM),     # на человека меньше порога — повышения нет
+        (5, Tier.HIGH),       # ровно порог TEAM_MIN_HEADCOUNT
+        (6, Tier.HIGH),
+        (12, Tier.HIGH),      # середина реального диапазона
+        (200, Tier.HIGH),
+        (None, Tier.MEDIUM),  # численность не извлечена
+    ],
+)
+def test_team_headcount_threshold_is_5(headcount, expected):
+    result = score_inbound(make_message(), make_facts(headcount=headcount))
+    assert result.tier is expected
+    assert result.violations == ()
+
+
+def test_team_headcount_reason_names_the_number():
+    result = score_inbound(make_message(), make_facts(headcount=7))
+    assert any("команда 7 чел." in r for r in result.reasons)
+
+
+def test_headcount_below_threshold_leaves_no_reason():
+    """Негативный контроль: не сработавший признак не пишет причину в карточку."""
+    result = score_inbound(make_message(), make_facts(headcount=4))
+    assert not [r for r in result.reasons if "команда" in r]
+
+
+# --- бюджет: засчитывается только сумма, а не вопрос о цене ----------------------
+
+
+@pytest.mark.parametrize(
+    "budget_hint",
+    [
+        "скок стоит",          # ровно тот вход, что давал ложный HIGH на prc-01
+        "сколько стоит?",
+        "бюджет есть",
+        "готовы обсуждать бюджет",
+        "недорого",
+        "",
+        None,
+    ],
+)
+def test_budget_without_a_digit_does_not_raise_the_tier(budget_hint):
+    """Вопрос о цене — не бюджет: из «скок стоит» горячий лид не следует (И2, живой дефект)."""
+    result = score_inbound(make_message(), make_facts(budget_hint=budget_hint))
+    assert result.tier is Tier.MEDIUM
+    assert not [r for r in result.reasons if "бюджет" in r]
+
+
+@pytest.mark.parametrize(
+    "budget_hint",
+    [
+        "120-150 тысяч дирхам",
+        "AED 60k",
+        "до 50000 в год",
+        "бюджет 30 тыс.",
+        "5",  # край: одна цифра — уже сумма
+    ],
+)
+def test_budget_with_a_digit_raises_the_tier(budget_hint):
+    result = score_inbound(make_message(), make_facts(budget_hint=budget_hint))
+    assert result.tier is Tier.HIGH
+    assert any("назван бюджет" in r for r in result.reasons)
+
+
+def test_budget_reason_is_trimmed_to_40_characters():
+    long_hint = "1" + "я" * 80
+    result = score_inbound(make_message(), make_facts(budget_hint=long_hint))
+    reason = next(r for r in result.reasons if "назван бюджет" in r)
+    assert reason == f"назван бюджет: {long_hint[:40]}"
+
+
+# --- регрессии живых прогонов ----------------------------------------------------
+
+
+def test_live_lead_is_high_for_substantive_reasons_not_for_the_language():
+    """Живой лид: «нужно 12 рабочих мест с 1 октября, бюджет есть, готовы подписать».
+
+    Он обязан быть HIGH, но причина в карточке — команда и срок, а не «написано по-русски».
+    Заперто по дефекту: раньше HIGH выдавался с единственной причиной про язык.
+    """
+    facts = make_facts(
+        request_types=(RequestType.OFFICE,),
+        headcount=12,
+        timeline_days=22,
+        budget_hint="бюджет есть",  # цифр нет — как бюджет не засчитывается
+        language="ru",
+        confidence=0.9,
+        quotes=("нужно 12 рабочих мест с 1 октября",),
+    )
+    result = score_inbound(make_message("нужно 12 рабочих мест с 1 октября"), facts)
+    assert result.tier is Tier.HIGH
+    assert any("команда 12 чел." in r for r in result.reasons)
+    assert any("срок 22 дн." in r for r in result.reasons)
+    assert not [r for r in result.reasons if "бюджет" in r]
+    # содержательных причин минимум две — карточка не держится на языке
+    assert len([r for r in result.reasons if "язык" not in r]) >= 2
+
+
+def test_prc_01_price_question_in_russian_is_not_high():
+    """Живой дефект prc-01: «скок стоит» по-русски давало HIGH. Теперь MEDIUM."""
+    facts = make_facts(
+        request_types=(RequestType.OFFICE,),
+        budget_hint="скок стоит",
+        language="ru",
+        quotes=("скок стоит",),
+    )
+    result = score_inbound(make_message("скок стоит офис?"), facts)
+    assert result.tier is Tier.MEDIUM
+    assert "язык обращения ru, но других признаков нет" in result.reasons
+
+
 # --- язык: довесок, а не самостоятельный повод ------------------------------------
 
 
@@ -206,6 +324,23 @@ def test_three_bumps_do_not_go_above_high():
     assert result.tier is Tier.HIGH
     assert result.violations == ()
     assert len(result.reasons) == 3  # все три повышения названы поимённо
+
+
+def test_all_five_signals_still_cap_at_high():
+    """Потолок лестницы при новом счётчике: пять признаков сразу — всё равно ровно HIGH."""
+    facts = make_facts(
+        request_types=(RequestType.OFFICE, RequestType.VISA, RequestType.SETUP),
+        timeline_days=3,
+        headcount=40,
+        budget_hint="300000 AED",
+        language="ru",
+        confidence=1.0,
+        quotes=("сорок человек с ноября", "бюджет 300000 AED"),
+    )
+    result = score_inbound(make_message(), facts)
+    assert result.tier is Tier.HIGH
+    assert result.violations == ()
+    assert len(result.reasons) == 5
 
 
 def test_two_bumps_from_low_base_reach_high():

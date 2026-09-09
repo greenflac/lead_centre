@@ -75,7 +75,7 @@ export default function NewLeadView({
             Paste any text a customer could send. The card below is built the same way as every card in the inbox.
           </span>
         </div>
-        <div className="card-col">
+        <div className="new-request-body">
           <div className="form-grid">
             <div>
               <label className="field-label" htmlFor="request-text">
@@ -125,6 +125,32 @@ export default function NewLeadView({
               ) : null}
             </div>
           </div>
+
+          <aside className="pipeline">
+            <div className="section-title">What happens on submit</div>
+            <ol className="pipeline-steps">
+              <li>
+                <strong>Mask contacts.</strong> Phone numbers and e-mail addresses are cut out of the text before
+                anything is sent to the model.
+              </li>
+              <li>
+                <strong>Extract facts.</strong> Services asked for, head count, timeline, jurisdiction, language, plus a
+                confidence figure.
+              </li>
+              <li>
+                <strong>Score.</strong> The model proposes facts, the code decides the priority — a fixed rubric with
+                reasons and invariants, not the model&apos;s opinion.
+              </li>
+              <li>
+                <strong>Draft a reply</strong> in the customer&apos;s language, with price ranges taken from the demo
+                price list and never invented.
+              </li>
+            </ol>
+            <div className="panel-note">
+              A request with no evidence quote cannot be raised to HIGH: the engine returns &ldquo;not scored&rdquo;
+              instead of guessing.
+            </div>
+          </aside>
         </div>
       </div>
 

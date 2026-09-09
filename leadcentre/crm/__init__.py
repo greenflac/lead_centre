@@ -22,6 +22,7 @@ from leadcentre.crm.null import NullSink
 
 __all__ = [
     "OUTCOMES",
+    "CrmConfigError",
     "REJECTED",
     "SENT",
     "SKIPPED",

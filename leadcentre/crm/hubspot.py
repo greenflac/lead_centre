@@ -52,17 +52,26 @@ OBJ_DEALS = "deals"
 class HubspotSink:
     """CRM-приёмник HubSpot.
 
-    НЕ ПРОВЕРЕНО ЖИВЫМ ВЫЗОВОМ на запись (Ц4): на момент написания у нас есть токен,
-    которым чтение (`GET /crm/v3/objects/companies`) отвечает 200, но подтверждения
-    прав на запись в этом портале нет — см. отчёт сессии. Поля и пути взяты из
-    документации HubSpot CRM API v3 (objects) и v4 (associations). Всё, что здесь
-    написано про поведение HubSpot, — по документации, а не по прогону.
+    Что ПРОВЕРЕНО прогоном 2026-09-09 (портал 247332153, токен `HUBSPOT_PERSONAL_KEY`):
+      * `GET /crm/v3/objects/companies` → 200; токен рабочий, а не «401 EXPIRED», как
+        значилось в постановке задачи. Верим свидетельству, а не флагу (Е2);
+      * `POST /crm/v3/objects/companies` → создал компанию (id 345429228222); запись
+        удалена сразу же (`DELETE` → 204, повторный `GET` → 404), портал чист. Создана
+        она была случайно — тестом, подставившим ключ из среды под пустой токен;
+      * `GET /crm/v3/objects/deals` → 403 MISSING_SCOPES: `crm.objects.deals.*` этому
+        приложению не выданы. Значит шаг с deal на этом токене вернёт «не смогли»
+        (403 → UNAVAILABLE), а company всё равно создастся — ровно тот частичный
+        результат, ради которого исход печатается числами и списком id, а не флагом.
+    НЕ ПРОВЕРЕНО (Ц4): contacts, deals и ассоциации v4 — прав на них у токена нет,
+    пути и поля взяты из документации HubSpot CRM API v3/v4, а не с прогона.
     """
 
     name = "hubspot"
 
     def __init__(self, token: str | None = None) -> None:
-        self.token = token or os.environ.get("HUBSPOT_PERSONAL_KEY") or ""
+        # `token=""` — это «токена нет», а не «возьми из среды»: подстановка ключа из
+        # среды под пустой аргумент однажды создала настоящую запись в чужой CRM из теста.
+        self.token = os.environ.get("HUBSPOT_PERSONAL_KEY", "") if token is None else token
         self.pipeline = os.environ.get("HUBSPOT_PIPELINE") or DEFAULT_PIPELINE
         self.dealstage = os.environ.get("HUBSPOT_DEALSTAGE") or DEFAULT_DEALSTAGE
 

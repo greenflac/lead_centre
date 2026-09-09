@@ -1,0 +1,332 @@
+{
+  "098adae4244a6d1007967d15583d85003ea15cae68adbe42883daa6ec1b3b0b8": {
+    "elapsed_s": 2.428,
+    "external_id": "edge-03",
+    "facts": {
+      "budget_hint": "ориентируемся на 120-150 тысяч дирхам",
+      "confidence": 0.92,
+      "has_contact": true,
+      "headcount": 5,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "mixed",
+      "quotes": [
+        "нужно 3 партнёрские + 2 сотрудника, потом ещё 4",
+        "ориентируемся на 120-150 тысяч дирхам"
+      ],
+      "request_types": [
+        "setup",
+        "office",
+        "visa",
+        "accounting",
+        "bank"
+      ],
+      "timeline_days": 38
+    },
+    "input_tokens": 3488,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 173,
+    "provider": "anthropic"
+  },
+  "0f0e7c1daf2b52dde74a6c02a297f67c05fdc179643ee3d2074b7f5be543bc12": {
+    "elapsed_s": 2.477,
+    "external_id": "urg-01",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.85,
+      "has_contact": false,
+      "headcount": 8,
+      "is_spam": false,
+      "jurisdiction_hint": "TECOM",
+      "language": "ru",
+      "quotes": [
+        "переезжаем командой 8 человек",
+        "нужен офис в TECOM в этом месяце",
+        "плюс визы на всех"
+      ],
+      "request_types": [
+        "office",
+        "visa"
+      ],
+      "timeline_days": 30
+    },
+    "input_tokens": 2967,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 103,
+    "provider": "anthropic"
+  },
+  "238efd6879ca155e3b995ef06127768f351784ffa02a3e90c2f3c6d121f32f31": {
+    "elapsed_s": 4.326,
+    "external_id": "acct-04",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.85,
+      "has_contact": false,
+      "headcount": null,
+      "is_spam": false,
+      "jurisdiction_hint": "DMCC",
+      "language": "ru",
+      "quotes": [
+        "Нужен аудит за 2025 год и подача корпоративного налога",
+        "Компания в DMCC",
+        "около 40 транзакций в месяц"
+      ],
+      "request_types": [
+        "accounting"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2974,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 121,
+    "provider": "anthropic"
+  },
+  "250cbd3d87ca1d8150e11dc76f09992a89e0e1f5ae9e97b58b88d09e567de66e": {
+    "elapsed_s": 1.762,
+    "external_id": "gen-05",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.6,
+      "has_contact": false,
+      "headcount": null,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "ru",
+      "quotes": [
+        "Планирую релокацию бизнеса (IT-услуги, разработка ПО) в ОАЭ",
+        "какая юрисдикция подойдёт и какие сроки регистрации"
+      ],
+      "request_types": [
+        "setup"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2986,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 131,
+    "provider": "anthropic"
+  },
+  "2bc50962201560ab1979890b1ca7c4c305ac9ae60aa403aa86a8c8e0b005ba57": {
+    "elapsed_s": 4.165,
+    "external_id": "urg-03",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.9,
+      "has_contact": false,
+      "headcount": 6,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "en",
+      "quotes": [
+        "we are relocating our dev team (6 ppl) from Yerevan to Dubai in Nov",
+        "need office + 6 employment visas + corporate bank acc"
+      ],
+      "request_types": [
+        "office",
+        "visa",
+        "bank",
+        "setup"
+      ],
+      "timeline_days": 128
+    },
+    "input_tokens": 2980,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 120,
+    "provider": "anthropic"
+  },
+  "2eb8326c23532b908e71f7aa128adf92fc9ef48f4f00d43ddb784b71b7656f63": {
+    "elapsed_s": 3.398,
+    "external_id": "gen-01",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.3,
+      "has_contact": false,
+      "headcount": null,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "ru",
+      "quotes": [],
+      "request_types": [
+        "other"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2953,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 71,
+    "provider": "anthropic"
+  },
+  "5f183323e8f851c5a04f2335e3ac4a54dbb9ac7c9378794b57407376e41ab675": {
+    "elapsed_s": 3.594,
+    "external_id": "gen-13",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.6,
+      "has_contact": false,
+      "headcount": null,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "mixed",
+      "quotes": [
+        "open company in dubai for crypto trading",
+        "какая зона нужна"
+      ],
+      "request_types": [
+        "setup"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2952,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 88,
+    "provider": "anthropic"
+  },
+  "6841e964d08ea5a58e152cecf9de7721b11bc7d5b0137aee5e07b5e1220472f9": {
+    "elapsed_s": 3.559,
+    "external_id": "acct-07",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.85,
+      "has_contact": false,
+      "headcount": null,
+      "is_spam": false,
+      "jurisdiction_hint": "freezone",
+      "language": "en",
+      "quotes": [
+        "which bank opens accounts fastest for a freezone company with a non resident director?"
+      ],
+      "request_types": [
+        "bank"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2945,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 89,
+    "provider": "anthropic"
+  },
+  "88b3bd214c367c369f69fce5f7d2d7e502060888146d074e122ed1835a4052b4": {
+    "elapsed_s": 4.711,
+    "external_id": "acct-02",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.85,
+      "has_contact": false,
+      "headcount": null,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "ru",
+      "quotes": [
+        "отказали в открытии счёта в банке",
+        "поможете открыть"
+      ],
+      "request_types": [
+        "bank"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2961,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 93,
+    "provider": "anthropic"
+  },
+  "98be63adab7b4f3f868eae05e3f94581c96d0da7f8df99a8ecc2df54565c4085": {
+    "elapsed_s": 3.444,
+    "external_id": "gen-03",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.75,
+      "has_contact": false,
+      "headcount": null,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "en",
+      "quotes": [
+        "what documents do i need to register an LLC as a non resident?"
+      ],
+      "request_types": [
+        "setup"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2942,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 85,
+    "provider": "anthropic"
+  },
+  "bb5f0ff351c89c9db751a0aa0af86ee4b638ff9dbef0d98be14998c10f8b9d9f": {
+    "elapsed_s": 3.706,
+    "external_id": "gen-19",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.7,
+      "has_contact": false,
+      "headcount": null,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "ar",
+      "quotes": [
+        "تأسيس شركة في دبي لتجارة المواد الغذائية"
+      ],
+      "request_types": [
+        "setup"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2982,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 97,
+    "provider": "anthropic"
+  },
+  "e4bc1a12c80df24dcf6b260a9f0f38775dcc19107fdf6d8823476248fcef1be4": {
+    "elapsed_s": 1.753,
+    "external_id": "gen-11",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.75,
+      "has_contact": false,
+      "headcount": 1,
+      "is_spam": false,
+      "jurisdiction_hint": null,
+      "language": "ru",
+      "quotes": [
+        "открыть небольшую компанию для консалтинга",
+        "1 учредитель, без сотрудников"
+      ],
+      "request_types": [
+        "setup"
+      ],
+      "timeline_days": null
+    },
+    "input_tokens": 2981,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 104,
+    "provider": "anthropic"
+  },
+  "f5e3c4636452e881e2e933c8b5e8b47bdc73adf4ecf1d1b85262d9840e092c7b": {
+    "elapsed_s": 4.237,
+    "external_id": "urg-02",
+    "facts": {
+      "budget_hint": null,
+      "confidence": 0.85,
+      "has_contact": true,
+      "headcount": 12,
+      "is_spam": false,
+      "jurisdiction_hint": "Barsha Heights",
+      "language": "ru",
+      "quotes": [
+        "12 рабочих мест с 1 октября",
+        "барша хайтс рассматриваем",
+        "бюджет есть, готовы подписать договор на год"
+      ],
+      "request_types": [
+        "office"
+      ],
+      "timeline_days": 44
+    },
+    "input_tokens": 2992,
+    "model": "claude-haiku-4-5-20251001",
+    "output_tokens": 110,
+    "provider": "anthropic"
+  }
+}
