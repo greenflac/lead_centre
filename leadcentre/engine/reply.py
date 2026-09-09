@@ -75,70 +75,49 @@ SUBSTANCE: dict[RequestType, dict[str, str]] = {
         "ru": "По офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы "
               "и флекси-десками закрываем визовую квоту.",
         "en": "On the office: we run our own business centre in Dubai, with small "
-              "private offices and flexi-desks that cover the visa quota.",
-        "ar": "بخصوص المكتب: لدينا مركز أعمال خاص بنا في دبي، فيه مكاتب صغيرة "
-              "ومكاتب مرنة تغطي حصة التأشيرات.",
-    },
+              "private offices and flexi-desks that cover the visa quota.",    },
     RequestType.SETUP: {
         "ru": "По регистрации: считаем оба варианта — mainland и фризона, "
               "выбор зависит от вида деятельности и того, нужны ли визы.",
         "en": "On the setup: we compare both routes — mainland and free zone; "
-              "the choice depends on your activity and how many visas you need.",
-        "ar": "بخصوص التأسيس: نحسب المسارين معًا — البر الرئيسي والمنطقة الحرة، "
-              "والاختيار يعتمد على النشاط وعدد التأشيرات المطلوبة.",
-    },
+              "the choice depends on your activity and how many visas you need.",    },
     RequestType.VISA: {
         "ru": "По визам: оформляем рабочие визы под ключ — медкомиссия, Emirates ID, "
               "штамп; квота считается от площади офиса.",
         "en": "On visas: we handle employment visas end to end — medical, Emirates ID, "
-              "stamping; the quota depends on your office space.",
-        "ar": "بخصوص التأشيرات: نتولى تأشيرات العمل من البداية إلى النهاية — الفحص الطبي "
-              "والهوية الإماراتية والختم، والحصة تعتمد على مساحة المكتب.",
-    },
+              "stamping; the quota depends on your office space.",    },
     RequestType.ACCOUNTING: {
         "ru": "По бухгалтерии: ведём учёт, VAT и корпоративный налог, "
               "объём работ зависит от числа операций в месяц.",
         "en": "On accounting: we cover bookkeeping, VAT and corporate tax; "
-              "the scope depends on your monthly transaction volume.",
-        "ar": "بخصوص المحاسبة: نتولى الدفاتر وضريبة القيمة المضافة وضريبة الشركات، "
-              "وحجم العمل يعتمد على عدد العمليات شهريًا.",
-    },
+              "the scope depends on your monthly transaction volume.",    },
     RequestType.BANK: {
         "ru": "По счёту: сопровождаем открытие в местных банках, "
               "решение принимает банк, мы готовим комплект и защищаем заявку.",
         "en": "On banking: we support account opening with local banks — the bank "
-              "decides, we prepare and defend the application.",
-        "ar": "بخصوص الحساب البنكي: ندعم فتح الحساب لدى البنوك المحلية — القرار للبنك، "
-              "ونحن نجهّز الملف وندافع عن الطلب.",
-    },
+              "decides, we prepare and defend the application.",    },
     RequestType.OTHER: {
         "ru": "Спасибо за обращение — разберём вашу задачу по шагам.",
         "en": "Thanks for reaching out — let us take your case step by step.",
-        "ar": "شكرًا لتواصلكم — سنراجع طلبكم خطوة بخطوة.",
     },
 }
 
-GREETING = {"ru": "Здравствуйте!", "en": "Hello,", "ar": "مرحبًا،"}
+GREETING = {"ru": "Здравствуйте!", "en": "Hello,"}
 
 # Оговорка вместо точной цены: обещать точную цифру черновику запрещено.
 DISCLAIMER = {
     "ru": "Это рыночный диапазон, итог зависит от вида деятельности и числа виз — "
           "посчитаем точно после короткого разговора.",
     "en": "This is a market range; the final figure depends on your activity and visa "
-          "count — we will price it exactly after a short call.",
-    "ar": "هذا مدى سوقي، والمبلغ النهائي يعتمد على النشاط وعدد التأشيرات — "
-          "نحسبه بدقة بعد مكالمة قصيرة.",
-}
+          "count — we will price it exactly after a short call.",}
 
 CLOSER_URGENT = {
     "ru": "Вижу, что сроки сжатые: возьмём в работу сегодня — во сколько удобно созвониться?",
     "en": "Your timeline looks tight: we can start today — what time suits a call?",
-    "ar": "أرى أن الوقت ضيق: نبدأ اليوم — ما الوقت المناسب لمكالمة؟",
 }
 CLOSER_MEETING = {
     "ru": "Удобно встретиться в нашем офисе в Дубае на этой неделе или созвониться?",
     "en": "Would a meeting at our Dubai office this week work, or a call instead?",
-    "ar": "هل يناسبكم لقاء في مكتبنا بدبي هذا الأسبوع، أم مكالمة؟",
 }
 
 # Замыкающий вопрос спрашивает только то, чего в фактах НЕТ. Спросить про уже сказанное —
@@ -164,22 +143,18 @@ CLOSER_QUESTION = {
     "headcount": {
         "ru": "Подскажите, сколько человек планируете нанять в первый год?",
         "en": "Could you tell us how many people you plan to hire in the first year?",
-        "ar": "كم عدد الموظفين الذين تخططون لتوظيفهم في السنة الأولى؟",
     },
     "timeline_days": {
         "ru": "К какому сроку нужно, чтобы всё было готово?",
         "en": "By when do you need everything up and running?",
-        "ar": "ما الموعد الذي تحتاجون أن يكون فيه كل شيء جاهزًا؟",
     },
     "jurisdiction_hint": {
         "ru": "Смотрите mainland или фризону — или как раз хотите сравнить два варианта?",
         "en": "Are you leaning towards mainland or a free zone — or would you compare both?",
-        "ar": "هل تميلون إلى البر الرئيسي أم إلى منطقة حرة، أم نقارن بين الخيارين؟",
     },
     "has_contact": {
         "ru": "Оставьте номер WhatsApp — пришлём расчёт туда и не потеряем ваш вопрос.",
         "en": "Share a WhatsApp number and we will send the numbers there.",
-        "ar": "شاركونا رقم واتساب وسنرسل الأرقام عليه.",
     },
 }
 
@@ -188,26 +163,22 @@ GROUNDING = {
     "headcount": {
         "ru": "вас {value} человек",
         "en": "there are {value} of you",
-        "ar": "عددكم {value}",
     },
     "timeline_days": {
         "ru": "срок {value} дн.",
         "en": "your timeline is {value} days",
-        "ar": "المدة {value} يومًا",
     },
     "jurisdiction_hint": {
         "ru": "формат {value}",
         "en": "you are looking at {value}",
-        "ar": "الخيار {value}",
     },
 }
 GROUNDED_MEETING_TAIL = {
     "ru": "предлагаю созвон сегодня или встречу в нашем офисе в Дубае.",
     "en": "let us do a call today or meet at our Dubai office.",
-    "ar": "أقترح مكالمة اليوم أو لقاءً في مكتبنا بدبي.",
 }
 # Чем склеиваются две опоры в строке-предложении встречи.
-GROUNDING_JOINER = {"ru": " и ", "en": " and ", "ar": "، و"}
+GROUNDING_JOINER = {"ru": " и ", "en": " and "}
 
 # Уточняющие вопросы, когда фактов мало. Порядок — от самого важного.
 QUESTIONS = {
@@ -221,21 +192,14 @@ QUESTIONS = {
         "Are you looking at mainland or a free zone, and how many visas do you need?",
         "By when do you need this done?",
     ),
-    "ar": (
-        "ما الذي تحتاجونه أولًا — تأسيس شركة أم مكتب أم تأشيرات أم محاسبة؟",
-        "هل تنظرون إلى البر الرئيسي أم إلى منطقة حرة، وكم تأشيرة تحتاجون؟",
-        "ما الموعد النهائي الذي تحتاجون القرار قبله؟",
-    ),
 }
 QUESTIONS_INTRO = {
     "ru": "Здравствуйте! Чтобы ответить по делу и без лишних цифр, уточните пару вещей.",
     "en": "Hello, to answer precisely and without guessing numbers, a couple of questions.",
-    "ar": "مرحبًا! لكي نجيب بدقة ومن دون أرقام تخمينية، نحتاج توضيح نقطتين.",
 }
 QUESTIONS_CLOSER = {
     "ru": "Ответьте одной строкой — подготовим расчёт и вышлем в течение дня.",
     "en": "One line back is enough — we will prepare the numbers and send them the same day.",
-    "ar": "يكفي سطر واحد في ردكم — سنجهّز الحساب ونرسله في اليوم نفسه.",
 }
 
 # Исходы черновика (Р1).
@@ -251,19 +215,17 @@ class PriceItem:
     key: str
     label_ru: str
     label_en: str
-    label_ar: str
     unit_ru: str
     unit_en: str
-    unit_ar: str
     min: int
     max: int
     origin: str
 
     def label(self, language: str) -> str:
-        return {"ru": self.label_ru, "ar": self.label_ar}.get(language, self.label_en)
+        return self.label_ru if language == "ru" else self.label_en
 
     def unit(self, language: str) -> str:
-        return {"ru": self.unit_ru, "ar": self.unit_ar}.get(language, self.unit_en)
+        return self.unit_ru if language == "ru" else self.unit_en
 
 
 @dataclass(frozen=True)
@@ -360,10 +322,8 @@ def load_prices(path: Path | str = DEFAULT_PRICELIST) -> dict[str, PriceItem]:
                 key=key,
                 label_ru=str(body["label_ru"]),
                 label_en=str(body["label_en"]),
-                label_ar=str(body["label_ar"]),
                 unit_ru=str(body["unit_ru"]),
                 unit_en=str(body["unit_en"]),
-                unit_ar=str(body["unit_ar"]),
                 min=low,
                 max=high,
                 origin=str(body["origin"]),
