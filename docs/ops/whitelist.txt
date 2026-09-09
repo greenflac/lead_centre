@@ -46,6 +46,12 @@ docker.io
 *.docker.io
 n8n.io
 *.n8n.io
+gleif.org
+*.gleif.org
+lei.info
+*.lei.info
+opencorporates.com
+*.opencorporates.com
 # --- B. SORP и рынок (первоисточники ресерча 01, 05) ---
 sorp.ae
 *.sorp.ae
