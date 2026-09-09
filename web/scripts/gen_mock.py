@@ -25,16 +25,17 @@ import csv
 import json
 import re
 import sys
-from datetime import UTC, date, datetime, timedelta
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
-from leadcentre.engine import reply as reply_mod  # noqa: E402
-from leadcentre.engine.score import score, score_inbound  # noqa: E402
-from leadcentre.models import InboundMessage, LeadFacts, RequestType, Tier  # noqa: E402
-from leadcentre.sources.gleif import GleifAdapter  # noqa: E402
+from leadcentre.engine import reply as reply_mod
+from leadcentre.engine.facts_rules import rules_facts
+from leadcentre.engine.score import score, score_inbound
+from leadcentre.models import InboundMessage, LeadFacts, RequestType, Tier
+from leadcentre.sources.gleif import GleifAdapter
 
 SEED_CSV = REPO / "data" / "inbound_seed.csv"
 OUT_DIR = REPO / "web" / "mock"
@@ -87,16 +88,16 @@ TIMELINE_PHRASES: tuple[tuple[str, int], ...] = (
     ("in nov", 60),
     ("к декабрю", 85),
 )
-TIMELINE_RE_DAYS = re.compile(r"через\s+(\d{1,3})\s*(дн|дней|дня)", re.I)
-TIMELINE_RE_WEEKS = re.compile(r"через\s+(\d{1,2})\s*(недел)", re.I)
-TIMELINE_RE_EXPIRES = re.compile(r"(истека\w*|expires?)\D{0,20}(\d{1,3})\s*(дн|day)", re.I)
+TIMELINE_RE_DAYS = re.compile(r"через\s+(\d{1,3})\s*(дн|дней|дня)", re.IGNORECASE)
+TIMELINE_RE_WEEKS = re.compile(r"через\s+(\d{1,2})\s*(недел)", re.IGNORECASE)
+TIMELINE_RE_EXPIRES = re.compile(r"(истека\w*|expires?)\D{0,20}(\d{1,3})\s*(дн|day)", re.IGNORECASE)
 
 HEADCOUNT_RE = re.compile(
     r"(\d{1,3})\s*(человек|чел\b|сотрудник\w*|рабочих мест|рабочих\s+мест|мест\b|ppl\b|"
     r"people|employees|staff|виз\w*|visas?)",
-    re.I,
+    re.IGNORECASE,
 )
-HEADCOUNT_RE_TEAM = re.compile(r"(?:команд\w*|team)\D{0,12}(\d{1,3})", re.I)
+HEADCOUNT_RE_TEAM = re.compile(r"(?:команд\w*|team)\D{0,12}(\d{1,3})", re.IGNORECASE)
 BUDGET_MARKERS = ("бюджет", "budget", "готовы подписать", "ready to sign", "aed", "дирхам")
 PHONE_RE = re.compile(r"\+?\d[\d\-\s()]{8,}\d")
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
@@ -126,6 +127,12 @@ def _quote_for(text: str, marker: str) -> str | None:
 
 
 def extract_facts_offline(external_id: str, text: str, language: str) -> LeadFacts:
+    """УСТАРЕЛО: оставлено только для истории, вызывать нельзя.
+
+    Своя копия эвристики расходилась с копией измерительного стенда на одном и том же
+    наборе (13/37/20 против 12/41/17), поэтому обе заменены общим
+    leadcentre.engine.facts_rules.rules_facts. См. facts_for_message ниже.
+    """
     """Заменитель LLM-извлечения для mock-данных. Не движок — см. докстринг модуля."""
     low = text.lower()
     quotes: list[str] = []
@@ -239,7 +246,15 @@ def build_leads() -> list[dict]:
             received_at=received_on,
             is_synthetic=row["is_synthetic"].strip().lower() == "true",
         )
-        facts = extract_facts_offline(external_id, text, row["language"])
+        # Общая с измерительным стендом эвристика (Е1): своя копия расходилась.
+        facts = rules_facts(
+            InboundMessage(
+                external_id=external_id,
+                channel=row["channel"],
+                text=text,
+                received_at=date.fromisoformat(row["received_at"][:10]),
+            )
+        )
         result = score_inbound(message, facts)
         drafted = reply_mod.draft(message, facts, result.tier, prices)
         leads.append({

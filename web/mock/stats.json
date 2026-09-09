@@ -4,8 +4,8 @@
   "checked": 70,
   "by_tier": {
    "HIGH": 13,
-   "MEDIUM": 37,
-   "LOW": 20,
+   "MEDIUM": 40,
+   "LOW": 17,
    "INVALID": 0
   },
   "violations": 0,
