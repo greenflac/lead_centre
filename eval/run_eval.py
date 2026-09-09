@@ -33,16 +33,14 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from leadcentre.engine import extract as extract_mod  # noqa: E402
-from leadcentre.models import InboundMessage, LeadFacts, RequestType, Tier  # noqa: E402
+from leadcentre.engine import extract as extract_mod
+from leadcentre.models import InboundMessage, LeadFacts, RequestType, Tier
 
 # --- константы-решения (И4) ---
 
 # ВЫБРАНО: разметка человека тремя значениями; INVALID — исход движка, а не суждение
 # человека (docs/data/inbound_seed.md, раздел «Правила разметки для владельца»).
 TIERS = ("HIGH", "MEDIUM", "LOW")
-URGENT_DAYS = 30           # ВЫБРАНО (правила разметки): решение нужно в пределах 30 дней
-PACKAGE_MIN_TYPES = 2      # ВЫБРАНО (правила разметки): «два и более направления сразу»
 URGENT_DEFAULT_DAYS = 14   # ВЫБРАНО: «срочно/asap/в этом месяце» без числа — считаем 14 дней
 STABILITY_RUNS = 3         # РАСЧЁТ по docs/BLUEPRINT.md §10: «3 прогона»
 KAPPA_TARGET = 0.6         # РАСЧЁТ по docs/BLUEPRINT.md §10: каппа >= 0.6
@@ -138,6 +136,11 @@ BUDGET_MARKERS = (
     "approved",
 )
 
+# ВЫБРАНО: детерминированный извлекатель уверен в том, что нашёл, — он нашёл литерал,
+# а не предположил. Это НЕ вероятность модели; в режиме llm confidence приходит из ответа.
+RULES_CONFIDENCE_MATCHED = 1.0
+RULES_CONFIDENCE_EMPTY = 0.0   # ничего не нашли — «моделью не смотрено», честный ноль
+
 URGENT_MARKERS = (
     "срочно", "urgent", "asap", "в этом месяце", "this month", "до конца месяца",
     "до пятницы", "сегодня", "today", "как можно быстрее", "лишь бы быстро",
@@ -151,16 +154,16 @@ MONTHS = {
     "september": 9, "october": 10, "november": 11, "december": 12, "nov": 11, "dec": 12,
 }
 
-NUM_DAYS_RE = re.compile(r"(?:через|in|within)\s+(\d+)\s*(?:дн|дней|day|days)", re.I)
-NUM_WEEKS_RE = re.compile(r"(?:через|in|within)\s+(\d+)\s*(?:недел|week)", re.I)
+NUM_DAYS_RE = re.compile(r"(?:через|in|within)\s+(\d+)\s*(?:дн|дней|day|days)", re.IGNORECASE)
+NUM_WEEKS_RE = re.compile(r"(?:через|in|within)\s+(\d+)\s*(?:недел|week)", re.IGNORECASE)
 EXPIRES_RE = re.compile(
-    r"(?:expires?|истека\w*|заканчива\w*|слетает)\D{0,25}(\d+)\s*(дн|day|week|недел)", re.I
+    r"(?:expires?|истека\w*|заканчива\w*|слетает)\D{0,25}(\d+)\s*(дн|day|week|недел)", re.IGNORECASE
 )
 HEADCOUNT_RE = re.compile(
     r"(\d+)\s*(?:человек|чел\b|людей|people|ppl|persons|seats|мест|сотрудник\w*|staff)",
-    re.I,
+    re.IGNORECASE,
 )
-MONEY_RE = re.compile(r"\d[\d\s.,]*\s*(?:aed|дирхам|тысяч|k\b)", re.I)
+MONEY_RE = re.compile(r"\d[\d\s.,]*\s*(?:aed|дирхам|тысяч|k\b)", re.IGNORECASE)
 
 
 def _timeline_days(text: str, received_at: date) -> int | None:
@@ -199,27 +202,54 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
     """
     low = message.text.lower()
     scrubbed = extract_mod.scrub_pii(message.text)
-    types = tuple(
-        kind for kind, markers in TYPE_MARKERS.items() if any(m in low for m in markers)
-    )
+    quotes: list[str] = []
+
+    def hit(marker: str) -> bool:
+        """Нашли маркер — кладём в цитаты ровно тот кусок текста, который его вызвал (Е2)."""
+        index = low.find(marker)
+        if index < 0:
+            return False
+        fragment = message.text[index: index + len(marker)]
+        if fragment not in quotes:
+            quotes.append(fragment)
+        return True
+
+    types: list[RequestType] = []
+    for kind, markers in TYPE_MARKERS.items():
+        # перебираем все маркеры, а не до первого: цитаты нужны все, что сработали
+        matched = False
+        for marker in markers:
+            matched = hit(marker) or matched
+        if matched:
+            types.append(kind)
     headcount = None
     found = HEADCOUNT_RE.search(low)
     if found:
         headcount = int(found.group(1))
+        quotes.append(message.text[found.start(): found.end()])
     budget = None
-    if any(marker in low for marker in BUDGET_MARKERS) or MONEY_RE.search(low):
+    money = MONEY_RE.search(low)
+    budget_matched = False
+    for marker in BUDGET_MARKERS:
+        budget_matched = hit(marker) or budget_matched
+    if budget_matched or money:
         budget = "упомянут бюджет или готовность платить"
+        if money:
+            quotes.append(message.text[money.start(): money.end()])
+    is_spam = False
+    for marker in SPAM_MARKERS:
+        is_spam = hit(marker) or is_spam
     return LeadFacts(
-        request_types=types,
+        request_types=tuple(types),
         jurisdiction_hint=None,
         headcount=headcount,
         timeline_days=_timeline_days(message.text, message.received_at),
         budget_hint=budget,
         language=extract_mod.detect_language(message.text),
-        is_spam=any(marker in low for marker in SPAM_MARKERS),
+        is_spam=is_spam,
         has_contact=scrubbed.has_contact,
-        confidence=0.0,
-        quotes=(),
+        confidence=RULES_CONFIDENCE_MATCHED if quotes else RULES_CONFIDENCE_EMPTY,
+        quotes=tuple(dict.fromkeys(quotes)),
     )
 
 
@@ -228,49 +258,41 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
 LEAD_SCORER_NAMES = ("score_lead", "score_inbound", "lead_tier", "score_facts")
 
 
-def fallback_tier(facts: LeadFacts) -> Tier:
-    """DEBT(2026-09-09): в `leadcentre/engine/score.py` пока нет скоринга обращений — там
-    только компании из GLEIF. Пока его нет, стенд считает приоритет сам, по тем же правилам,
-    что даны владельцу для разметки (docs/data/inbound_seed.md). Как только в движке появится
-    `score_lead`, стенд возьмёт его, и эта функция вызываться перестанет; чем именно считали,
-    видно в шапке вывода (Е2).
-    """
-    if facts.is_spam:
-        return Tier.LOW
-    has_subject = bool(facts.request_types) or facts.headcount is not None
-    if not has_subject and not facts.has_contact:
-        return Tier.LOW
-    urgent = facts.timeline_days is not None and facts.timeline_days <= URGENT_DAYS
-    package = len(facts.request_types) >= PACKAGE_MIN_TYPES
-    if urgent or bool(facts.budget_hint) or package:
-        return Tier.HIGH
-    if has_subject:
-        return Tier.MEDIUM
-    return Tier.LOW
-
-
 def resolve_scorer():
-    """Кто считает приоритет — выводится из того, что действительно нашлось (Е2)."""
+    """Кто считает приоритет — выводится из того, что действительно нашлось (Е2).
+
+    Своей копии рубрики у стенда нет и быть не должно (Е1): прибор, считающий приоритет
+    сам, меряет себя. Нет функции в движке — третий исход, а не подмена (Р1).
+    """
     from leadcentre.engine import score as score_mod
 
     for name in LEAD_SCORER_NAMES:
         fn = getattr(score_mod, name, None)
         if callable(fn):
-            return fn, f"leadcentre.engine.score.{name}"
-    return (
-        fallback_tier,
-        "eval.run_eval.fallback_tier [DEBT: в движке скоринга обращений ещё нет]",
+            source = Path(inspect.getsourcefile(score_mod) or "")
+            digest = hashlib.sha256(source.read_bytes()).hexdigest()[:12] if source.exists() else "?"
+            return fn, f"leadcentre.engine.score.{name} (score.py sha256:{digest})"
+    return None, (
+        "не смогли проверить: в leadcentre.engine.score нет ни одной из функций "
+        + ", ".join(LEAD_SCORER_NAMES)
     )
 
 
 def call_scorer(fn, facts: LeadFacts, message: InboundMessage) -> Tier:
-    params = [
-        p
+    """Порядок аргументов выводится из подписи движка, а не из нашего представления о ней (Е2)."""
+    names = [
+        p.name
         for p in inspect.signature(fn).parameters.values()
         if p.kind in (p.POSITIONAL_ONLY, p.POSITIONAL_OR_KEYWORD)
         and p.default is inspect.Parameter.empty
     ]
-    result = fn(facts, message) if len(params) >= 2 else fn(facts)
+    known = {"facts": facts, "message": message, "inbound": message, "msg": message}
+    if len(names) >= 2:
+        if not set(names[:2]) <= set(known):
+            raise CannotMeasure(f"неизвестная подпись скоринга: {names}")
+        result = fn(*(known[n] for n in names[:2]))
+    else:
+        result = fn(facts)
     tier = getattr(result, "tier", result)
     if not isinstance(tier, Tier):
         raise CannotMeasure(f"скоринг вернул не Tier, а {type(tier).__name__}")
@@ -484,6 +506,8 @@ def measure_agreement(
             block.notes.append(f"{ext}: движок сказал INVALID — это не LOW и не ошибка разметки")
             continue
         pairs.append((expected, tier.value))
+        if tier.value != expected:
+            block.notes.append(f"разошлись {ext:8} разметка {expected:6} движок {tier.value:6}")
     block.checked = len(pairs)
     block.matched = sum(1 for a, b in pairs if a == b)
     block.mismatched = block.checked - block.matched
@@ -587,6 +611,12 @@ def run(argv: list[str] | None = None) -> int:
     by_id = {m.external_id: m for m in messages}
 
     scorer, scorer_name = resolve_scorer()
+    if scorer is None:
+        print(scorer_name)
+        print("проверено 0, совпало 0, разошлось 0, не смогли "
+              f"{len(messages)} — считать приоритет нечем")
+        print("вердикт стенда: НЕ СМОГЛИ ПРОВЕРИТЬ (это не успех — Р2)")
+        return EXIT_UNMEASURABLE
     engine = Engine(
         mode=args.engine,
         scorer=scorer,
