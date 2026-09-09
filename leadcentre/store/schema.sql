@@ -1,10 +1,12 @@
 -- SORP Lead Centre — схема хранилища (Supabase / Postgres).
 --
--- НАКАТЫВАЕТ ВЛАДЕЛЕЦ ПРОЕКТА: Supabase → SQL Editor → выполнить этот файл целиком,
--- либо `psql "$SUPABASE_DB_URL" -f leadcentre/store/schema.sql`.
--- Ключами из среды (SUPABASE_SECRET_KEY / SUPABASE_PUBLISHABLE_KEY) DDL выполнить нельзя:
--- PostgREST выполняет только SQL, обёрнутый в заранее созданную функцию, а строки
--- подключения к Postgres в среде нет. Проверено 2026-09-09:
+-- НАКАЧЕНО 2026-09-09 миграцией `lead_centre_initial_schema` через MCP-сервер Supabase
+-- (проект uskpnltyicbjlgmhskvv). Проверено после накатывания: 5 таблиц на месте, RLS
+-- включён на всех, security advisors — ноль замечаний; запись и чтение живыми ключами
+-- прошли (запрошено 5, записано 5, прочитано обратно 5).
+--
+-- Ключами из среды (SUPABASE_SECRET_KEY / SUPABASE_PUBLISHABLE_KEY) DDL выполнить нельзя,
+-- нужен MCP или SQL Editor. Проверено 2026-09-09:
 --   GET  /rest/v1/               → 200 (PostgREST жив)
 --   GET  /rest/v1/leads          → 404 PGRST205 «Could not find the table 'public.leads'»
 --   POST /rest/v1/rpc/exec_sql   → 404 PGRST202 «Could not find the function public.exec_sql»

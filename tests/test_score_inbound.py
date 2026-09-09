@@ -53,18 +53,31 @@ def test_no_request_types_with_one_bump_reaches_only_medium():
     [
         (0, Tier.HIGH),    # «нужно вчера»
         (1, Tier.HIGH),
-        (15, Tier.HIGH),   # середина
-        (29, Tier.HIGH),
-        (30, Tier.HIGH),   # ровно порог URGENT_TIMELINE_DAYS — ещё срочно
-        (31, Tier.MEDIUM),  # на день дальше — признак не сработал
+        (30, Tier.HIGH),   # месяц — прежний порог, теперь середина диапазона
+        (45, Tier.HIGH),   # urg-02: «с 1 октября», получено 17 августа
+        (59, Tier.HIGH),
+        (60, Tier.HIGH),   # ровно порог URGENT_TIMELINE_DAYS — ещё срочно
+        (61, Tier.MEDIUM),  # на день дальше — признак не сработал
         (90, Tier.MEDIUM),
+        (365, Tier.MEDIUM),
         (None, Tier.MEDIUM),  # срок не извлечён
     ],
 )
-def test_urgent_timeline_threshold_is_30_days(timeline_days, expected):
-    """Спутник — команда 10 человек: срок становится вторым признаком и даёт HIGH."""
+def test_urgent_timeline_threshold_is_60_days(timeline_days, expected):
+    """Спутник — команда 10 человек: срок становится вторым признаком и даёт HIGH.
+
+    Порог 60, а не 30: решение об офисе и регистрации принимают за месяц-два, и на
+    пороге 30 негативный контроль urg-02 (45 дней) уезжал в MEDIUM против разметки.
+    """
     facts = make_facts(timeline_days=timeline_days, headcount=10)
     assert score_inbound(make_message(), facts).tier is expected
+
+
+@pytest.mark.parametrize("timeline_days", [61, 90, 365])
+def test_timeline_beyond_the_threshold_leaves_no_reason(timeline_days):
+    """Негативный контроль: не сработавший признак не пишет причину в карточку."""
+    result = score_inbound(make_message(), make_facts(timeline_days=timeline_days))
+    assert not [r for r in result.reasons if "срок" in r]
 
 
 def test_urgent_timeline_alone_is_only_one_signal():
@@ -72,7 +85,6 @@ def test_urgent_timeline_alone_is_only_one_signal():
     result = score_inbound(make_message(), make_facts(timeline_days=1))
     assert result.tier is Tier.MEDIUM
     assert any("срок 1 дн." in r for r in result.reasons)
-    assert result.violations == ()
 
 
 def test_urgent_timeline_reason_names_the_number():
