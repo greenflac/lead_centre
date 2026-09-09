@@ -8,7 +8,16 @@ from __future__ import annotations
 from datetime import date
 
 from leadcentre.engine import rubric
-from leadcentre.models import AddressType, Company, Event, Evidence, Score, Tier
+from leadcentre.models import (
+    AddressType,
+    Company,
+    Event,
+    Evidence,
+    InboundMessage,
+    LeadFacts,
+    Score,
+    Tier,
+)
 
 
 def classify_address(company: Company) -> AddressType:
@@ -88,6 +97,74 @@ def score(company: Company, today: date) -> Score:
         tier=tier,
         address_type=address_type,
         event=event,
+        reasons=tuple(reasons),
+        evidence=evidence,
+        violations=tuple(violations),
+    )
+
+
+# --- входящие обращения: ось C поверх базового уровня ---
+
+
+def _step(tier: Tier, delta: int) -> Tier:
+    """Сдвиг на ступень по лестнице приоритетов, без выхода за края."""
+    ladder = rubric.TIER_LADDER
+    index = min(max(ladder.index(tier) + delta, 0), len(ladder) - 1)
+    return ladder[index]
+
+
+def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
+    """Приоритет входящего обращения.
+
+    Модель извлекла факты, дальше решает код: повышают срочность, пакет услуг и язык,
+    понижают отсутствие деталей и низкая уверенность извлечения. Спам и обращение без
+    единого извлечённого запроса — это LOW, а не «не смогли»: текст мы прочитали.
+    Нарушение инварианта — INVALID, отдельный третий исход (Р1).
+    """
+    reasons: list[str] = []
+    violations: list[str] = []
+
+    if facts.is_spam:
+        return Score(
+            tier=Tier.LOW,
+            address_type=AddressType.UNKNOWN,
+            event=Event.NONE,
+            reasons=("обращение помечено как спам или не по теме",),
+            evidence=tuple(Evidence("quote", q) for q in facts.quotes),
+        )
+
+    tier = rubric.INBOUND_BASE if facts.request_types else rubric.INBOUND_BASE_NO_REQUEST
+    if not facts.request_types:
+        reasons.append("из текста не извлечён ни один тип запроса")
+
+    if facts.timeline_days is not None and facts.timeline_days <= rubric.URGENT_TIMELINE_DAYS:
+        tier = _step(tier, 1)
+        reasons.append(f"срок {facts.timeline_days} дн. — не больше {rubric.URGENT_TIMELINE_DAYS}")
+    if len(facts.request_types) >= rubric.PACKAGE_MIN_REQUEST_TYPES:
+        tier = _step(tier, 1)
+        reasons.append(f"запрошено услуг: {len(facts.request_types)} — нужен пакет")
+    if facts.language in rubric.TARGET_LANGUAGES:
+        tier = _step(tier, 1)
+        reasons.append(f"язык обращения {facts.language} — основная аудитория")
+
+    # Понижающие. Низкая уверенность извлечения не даёт подняться выше среднего:
+    # приоритет, выведенный из ненадёжных фактов, дороже пропущенного лида.
+    if facts.confidence < rubric.LOW_CONFIDENCE:
+        tier = min(tier, Tier.MEDIUM, key=rubric.TIER_LADDER.index)
+        reasons.append(f"уверенность извлечения {facts.confidence:.2f} — ниже порога")
+
+    evidence = tuple(Evidence("quote", q) for q in facts.quotes)
+    if tier is Tier.HIGH and not evidence:
+        violations.append("HIGH без цитаты из обращения")
+    if tier is Tier.HIGH and not message.text.strip():
+        violations.append("HIGH на пустом тексте обращения")
+    if violations:
+        tier = Tier.INVALID
+
+    return Score(
+        tier=tier,
+        address_type=AddressType.UNKNOWN,
+        event=Event.NONE,
         reasons=tuple(reasons),
         evidence=evidence,
         violations=tuple(violations),
