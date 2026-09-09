@@ -57,6 +57,15 @@ items:
     max: 27000
     origin: "РЕСЕРЧ 07 §1: IFZA 12.9k (0 виз) - 26.9k (6 виз), Meydan от 12.5k"
 
+  renewal_year:
+    label_ru: "ежегодное продление (лицензия, Ejari, визовая квота)"
+    label_en: "annual renewal (licence, Ejari, visa quota)"
+    unit_ru: "в год"
+    unit_en: "per year"
+    min: 15000
+    max: 30000
+    origin: "РЕСЕРЧ 07 §1: продление mainland 15-30k/год; сервис продлений ~5k учтён внутри"
+
   visa_employment:
     label_ru: "рабочая виза под ключ, на человека"
     label_en: "employment visa, all-in, per person"
