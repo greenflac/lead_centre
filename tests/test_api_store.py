@@ -16,8 +16,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from leadcentre import api
-from leadcentre.crm import CrmLead, HubspotSink, NullSink, get_sink
-from leadcentre.crm import base as crm_base
+from leadcentre.crm import CrmConfigError, CrmLead, HubspotSink, NullSink, get_sink
 from leadcentre.engine.extract import ProviderBudgetError
 from leadcentre.store import LocalStore, StoreError, StoreRejected, StoreUnavailable, get_store
 from leadcentre.store.base import DisagreementRow, LeadRow, ReplyRow, ScoreRow
@@ -185,13 +184,8 @@ def test_hubspot_contact_needs_real_contact():
 
 def test_get_sink_rejects_unknown_name(monkeypatch):
     monkeypatch.setenv("CRM_SINK", "битрикс")
-    with pytest.raises(crm_base_config_error()):
+    with pytest.raises(CrmConfigError):
         get_sink()
-
-
-def crm_base_config_error():
-    from leadcentre.crm import CrmConfigError
-    return CrmConfigError
 
 
 # --- API ---

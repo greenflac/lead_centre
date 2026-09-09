@@ -223,7 +223,9 @@ def handle_lead(payload: LeadIn, today: date | None = None) -> dict[str, Any]:
 
     run_id = str(uuid.uuid4())
     storage = {"outcome": OUTCOME_OK, "store": store().name, "detail": ""}
-    lead_id = ""
+    # `None`, а не пустая строка: пустую строку клиент подставит в URL и получит 404
+    # вместо ответа «эта карточка не сохранена».
+    lead_id: str | None = None
     try:
         lead_id = store().save_lead(
             LeadRow(

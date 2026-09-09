@@ -58,8 +58,8 @@ MIN_PHONE_DIGITS = 9                     # ВЫБРАНО: короче — эт
 # латиницей внутри русской фразы (TECOM, IFZA).
 MIXED_SHARE = 0.2
 
-# v2: `budget_hint` заполняется только названной суммой. v1 оставлен рядом для сравнения.
-PROMPT_VERSION = "extract_v2"
+# v3: timeline_days считается от даты обращения. Прежние версии лежат рядом для сравнения.
+PROMPT_VERSION = "extract_v3"
 PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / f"{PROMPT_VERSION}.md"
 
 PHONE_MASK = "[phone]"
@@ -205,8 +205,11 @@ def load_prompt() -> str:
 
 def user_content(message: InboundMessage, scrubbed: Scrubbed) -> str:
     """Пользовательская часть запроса. Текст сюда попадает только после `scrub_pii`."""
+    # Дата обращения — отдельной явной строкой: без неё модель считала «с 20 числа»
+    # относительно чего придётся, и timeline_days плясал между прогонами (ИЗМЕРЕНО).
     return (
-        f"Канал: {message.channel}. Дата: {message.received_at.isoformat()}.\n"
+        f"Обращение получено: {message.received_at.isoformat()}\n"
+        f"Канал: {message.channel}\n"
         f"Текст обращения:\n{scrubbed.text}"
     )
 

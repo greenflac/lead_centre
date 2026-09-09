@@ -41,7 +41,11 @@ from leadcentre.models import InboundMessage, LeadFacts, RequestType, Tier
 # ВЫБРАНО: разметка человека тремя значениями; INVALID — исход движка, а не суждение
 # человека (docs/data/inbound_seed.md, раздел «Правила разметки для владельца»).
 TIERS = ("HIGH", "MEDIUM", "LOW")
-URGENT_DEFAULT_DAYS = 14   # ВЫБРАНО: «срочно/asap/в этом месяце» без числа — считаем 14 дней
+# ВЫБРАНО: «срочно/asap/в этом месяце» без числа — считаем сроком в 14 дней.
+# DEBT(2026-09-09): мутация этой константы в обе стороны (1 и 400) не меняет ни одного
+# числа на текущих 30 размеченных обращениях и 6 контролях — её никто не сторожит (Т1).
+# Нужен размеченный случай, где нечёткая срочность — единственный признак HIGH.
+URGENT_DEFAULT_DAYS = 14
 STABILITY_RUNS = 3         # РАСЧЁТ по docs/BLUEPRINT.md §10: «3 прогона»
 KAPPA_TARGET = 0.6         # РАСЧЁТ по docs/BLUEPRINT.md §10: каппа >= 0.6
 STABILITY_TARGET = 0.9     # РАСЧЁТ по docs/BLUEPRINT.md §10: >= 90%
@@ -159,8 +163,11 @@ NUM_WEEKS_RE = re.compile(r"(?:через|in|within)\s+(\d+)\s*(?:недел|wee
 EXPIRES_RE = re.compile(
     r"(?:expires?|истека\w*|заканчива\w*|слетает)\D{0,25}(\d+)\s*(дн|day|week|недел)", re.IGNORECASE
 )
+# Одно необязательное слово между числом и единицей: «12 рабочих мест», «6 employment
+# visas» пишут именно так; без него прибор молча терял размер команды.
 HEADCOUNT_RE = re.compile(
-    r"(\d+)\s*(?:человек|чел\b|людей|people|ppl|persons|seats|мест|сотрудник\w*|staff)",
+    r"(\d+)\s*(?:[а-яёa-z]+\s+)?"
+    r"(?:человек|чел\b|людей|people|ppl|persons|seats|мест\b|сотрудник\w*|staff)",
     re.IGNORECASE,
 )
 MONEY_RE = re.compile(r"\d[\d\s.,]*\s*(?:aed|дирхам|тысяч|k\b)", re.IGNORECASE)
@@ -227,15 +234,18 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
     if found:
         headcount = int(found.group(1))
         quotes.append(message.text[found.start(): found.end()])
-    budget = None
+    # budget_hint — кусок текста, а не наш пересказ (Е2): движок смотрит на содержимое
+    # поля (в нём должна быть сумма), и подмена пересказом молча съела бы сигнал.
+    budget_parts: list[str] = []
     money = MONEY_RE.search(low)
-    budget_matched = False
+    if money:
+        fragment = message.text[money.start(): money.end()].strip()
+        budget_parts.append(fragment)
+        quotes.append(fragment)
     for marker in BUDGET_MARKERS:
-        budget_matched = hit(marker) or budget_matched
-    if budget_matched or money:
-        budget = "упомянут бюджет или готовность платить"
-        if money:
-            quotes.append(message.text[money.start(): money.end()])
+        if hit(marker):
+            budget_parts.append(message.text[low.find(marker): low.find(marker) + len(marker)])
+    budget = "; ".join(dict.fromkeys(budget_parts)) or None
     is_spam = False
     for marker in SPAM_MARKERS:
         is_spam = hit(marker) or is_spam
@@ -580,7 +590,11 @@ def measure_controls(engine: Engine, messages: dict[str, InboundMessage], path: 
         f"итог контролей: {block.matched} из {total} "
         f"(ожидается {CONTROLS_EXPECTED} из {CONTROLS_EXPECTED})"
     )
-    if block.checked == 0:
+    # Три исхода и здесь: провал контроля — «не годно», а недоехавший контроль
+    # (обращения нет в выборке, извлечение упало) — «не смогли», а не провал (Р1).
+    if block.mismatched:
+        block.verdict = "не годно"
+    elif block.unmeasured or block.checked < CONTROLS_EXPECTED:
         block.verdict = "не смогли проверить"
     elif block.matched == total == CONTROLS_EXPECTED:
         block.verdict = "годно"
