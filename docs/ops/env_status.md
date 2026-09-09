@@ -3,24 +3,40 @@
 Всё ниже, кроме явных пометок, — ИЗМЕРЕНО в этом контейнере командами, вывод которых
 приведён в `docs/ops/whitelist_check.txt` и в отчёте сессии.
 
-## 1. Ключи
+## 1. Ключи — прогон 2026-09-09 (после «добавил все ключи»)
 
-| Переменная | Есть | Проверка |
-|---|---|---|
-| `CLAUDE_KEY` | да | `GET https://api.anthropic.com/v1/models` с этим ключом → **200**; негативный контроль (заведомо неверный ключ) → **401**. Ключ рабочий, доступны `claude-opus-5`, `claude-sonnet-5`, `claude-fable-5-1` и др. |
-| `ANTHROPIC_API_KEY` | **нет** | имени в среде нет |
-| `SERPER_API_KEY` | нет | host `google.serper.dev` доезжает (403 без ключа), ключа нет |
-| `SUPABASE_URL` / `SUPABASE_ANON_KEY` | нет | — |
-| `HUBSPOT_TOKEN` | нет | — |
-| `GITHUB_TOKEN` / `GH_TOKEN` | да (выдан платформой) | — |
+Каждый ключ проверен живым запросом и негативным контролем (заведомо неверный ключ
+на тот же эндпоинт), иначе 200 не отличить от «эндпоинт пускает всех» (И5).
+Значения ключей нигде не печатаются — только имена и коды ответов.
 
-Следствия для кода MVP:
+| Переменная | Запрос | Реальный ключ | Негативный контроль | Вывод |
+|---|---|---|---|---|
+| `CLAUDE_KEY` | `GET api.anthropic.com/v1/models` | **200** | 401 | рабочий |
+| `SERPER_KEY` | `POST google.serper.dev/search` | **200** | 403 | рабочий |
+| `SUPABASE_PUBLISHABLE_KEY` | `GET $SUPABASE_URL/rest/v1/<нет таблицы>` | **404** «table not found» — авторизация пройдена | 401 «Invalid API key» | рабочий |
+| `SUPABASE_SECRET_KEY` | то же + `GET /rest/v1/` | **404 / 200** | 401 | рабочий |
+| `SUPABASE_JWKS_URL` | `GET` | **200** | — | рабочий |
+| `HUBSPOT_PERSONAL_KEY` | `GET api.hubapi.com/crm/v3/objects/contacts?limit=1` | **401** | 401 | **НЕ работает** |
 
-1. SDK `anthropic` по умолчанию читает **`ANTHROPIC_API_KEY`**, а не `CLAUDE_KEY`.
-   В коде брать ключ явно: `os.environ["CLAUDE_KEY"]` (или продублировать имя в среде).
-2. В среде задан `ANTHROPIC_BASE_URL`; ИЗМЕРЕНО — он равен `https://api.anthropic.com`,
-   то есть публичному API, подменять его в коде не нужно.
-3. Ключ в код/логи/чат не попадает: читается из среды, в отчётах только имя.
+Про `/rest/v1/` (корень): с publishable-ключом он отдаёт 401 «Only secret API keys can be
+used for this endpoint» — это ограничение самого эндпоинта, а не плохой ключ; на обычном
+запросе к таблице ключ проходит. Поэтому проверять publishable корнем нельзя.
+
+### HubSpot: ключ мёртвый
+
+Ответ API: `EXPIRED_AUTHENTICATION`, «The OAuth token used to make this call expired
+20705 day(s) ago», expire time `1970-01-01T00:00:00Z` — то есть HubSpot не признаёт токен
+вообще. Тот же 401 даёт и заведомо неверный токен, так что негативный контроль не
+различает их: работоспособность НЕ подтверждена ни одним запросом.
+Формат тоже не тот: в переменной лежит строка вида `CiR…` (OAuth access token), а для
+серверных вызовов нужен токен **Private App** вида `pat-naX-…`
+(HubSpot → Settings → Integrations → Private Apps → Create private app, скоупы
+`crm.objects.contacts.read/write`, `crm.objects.companies.read/write`).
+Устаревший способ `?hapikey=` тоже даёт 401 — HubSpot их отключил.
+
+Замечание по имени: SDK `anthropic` по умолчанию читает `ANTHROPIC_API_KEY`, которого в
+среде нет. В коде MVP ключ брать явно из `CLAUDE_KEY`. `ANTHROPIC_BASE_URL` = публичный
+`https://api.anthropic.com`, подменять не нужно.
 
 ## 2. Вайтлист доменов — ПОСЛЕ перезаливки (прогон 2026-09-09, `whitelist_check.txt`)
 
