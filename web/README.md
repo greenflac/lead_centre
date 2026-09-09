@@ -42,6 +42,21 @@ and nothing else:
 The mode is shown in the header (`MOCK DATA` / `LIVE DATA`), so nobody mistakes demo
 numbers for production ones.
 
+**Live calls go through this app, not straight to the backend.** `leadcentre/api.py`
+returns no CORS headers (measured 2026-09-09: `curl -D- -H "Origin: http://localhost:3100"
+http://127.0.0.1:8000/leads` shows no `access-control-*`), so a browser calling it from
+another origin gets a bare "Failed to fetch". `next.config.mjs` therefore rewrites
+`/api/backend/*` to `NEXT_PUBLIC_API_URL`, and the browser only ever calls its own origin.
+The alternative — adding `CORSMiddleware` on the backend — is the API owner's call; the
+proxy works either way.
+
+`lib/live.ts` translates the backend envelopes (`{outcome, leads: [...]}` with
+`{lead, score, reply}` cards) into the flat `Lead` the components render. The shapes there
+are measured, not guessed: they come from `OFFLINE=1 python -m leadcentre.api` running
+locally, and the whole live path was exercised through the browser — list, score a new
+request, approve — see `screenshots/08-live-backend.png` and `09-live-new-request.png`.
+An `outcome: "unavailable"` answer becomes a visible error, never an empty list.
+
 ## Where the mock data comes from
 
 `web/mock/*.json` is **generated from real repository files**, never hand-written:
@@ -87,8 +102,19 @@ attached. In live mode neither file is executed.
 
 ## Screenshots
 
-`screenshots/` — inbox, lead card, new-request form and its result, discovered tab, error
-state and empty state; all taken from the running production build.
+All taken from the running production build (`next start`), Chromium at 1440 px.
+
+| File | What it shows |
+|---|---|
+| `01-inbox.png` | Inbox list and the open card |
+| `02-lead-card.png`, `02b-…-closeup.png` | An urgent HIGH request |
+| `02c-lead-card-low.png` | Emoji-only edge case: LOW, no evidence, questions instead of prices |
+| `03-new-request-form.png` | The form and the pipeline explainer |
+| `04-new-request-result.png` | Card produced from a request typed into the form |
+| `05-discovered.png` | Registry watchlist |
+| `06-error-provider-budget.png` | Backend answering 402: readable error, raw detail, retry |
+| `07-empty-state.png` | Search matching nothing |
+| `08-live-backend.png`, `09-live-new-request.png` | Live mode against `leadcentre/api.py` |
 
 ## Language
 

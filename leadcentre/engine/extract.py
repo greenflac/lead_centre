@@ -41,6 +41,12 @@ DEFAULT_PROVIDER = "anthropic"           # ВЫБРАНО: основной; п�
 ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
 ANTHROPIC_EFFORT = "low"                 # ВЫБРАНО: задача простая; LLM_EFFORT переопределяет
 ANTHROPIC_THINKING = "off"               # ВЫБРАНО: рассуждать тут не над чем; LLM_THINKING
+# ВЫБРАНО координатором 2026-09-09. Обоснование: медиана длины обращения в
+# data/inbound_seed.csv — 98 символов, а ошибки Haiku на относительных датах («с 20 числа»)
+# наблюдались на длинных простынях (edge-03 — 1332 символа). Длина текста, начиная с
+# которой обращение уходит на дорогую модель; ровно LONG_MESSAGE_CHARS — ещё короткое.
+LONG_MESSAGE_CHARS = 600
+LONG_MODEL = "claude-opus-5"             # ВЫБРАНО: ИЗМЕРЕНО стабилен на edge-03 (7,7,7)
 # ИЗМЕРЕНО 2026-09-09 (см. отчёт): `output_config.effort` и adaptive-мышление принимают
 # модели ниже; Haiku 4.5 на них отвечает 400. Список — то, что проверено прогоном.
 EFFORT_MODELS = ("claude-opus-5", "claude-opus-4-", "claude-sonnet-5", "claude-sonnet-4-6",
@@ -126,6 +132,18 @@ class Extraction:
     offline: bool
     scrubbed: Scrubbed
     dropped_quotes: int      # цитат, которых в обращении нет: модель их придумала
+    route_reason: str = ""   # почему выбрана эта модель — в карточку, для демонстрации
+
+    def served_by(self) -> str:
+        """Одной строкой: чем фактически обслужен лид. Имя модели берётся из ответа,
+        а не из намерения (Е2) — если API подменил модель, видно будет это."""
+        cache = ""
+        if self.cache_read_tokens or self.cache_write_tokens:
+            cache = (f", кэш: прочитано {self.cache_read_tokens}, "
+                     f"записано {self.cache_write_tokens}")
+        return (f"обслужено: {self.provider}/{self.model} за {self.elapsed_s:.2f} с "
+                f"({self.route_reason}; токены {self.input_tokens}/{self.output_tokens}"
+                f"{cache})")
 
 
 # --- минимизация персональных данных (общая для всех провайдеров) ---
@@ -221,6 +239,34 @@ def user_content(message: InboundMessage, scrubbed: Scrubbed) -> str:
 # --- провайдеры ---
 
 
+@dataclass(frozen=True)
+class Route:
+    """Куда отправлять этот лид. Решение принимается по длине текста, до всякой сети."""
+
+    model: str
+    effort: str          # "" — не слать параметр
+    thinking: str        # "" — не слать параметр
+    reason: str
+
+
+def route(message: InboundMessage) -> Route:
+    """Короткие обращения — дешёвая модель, длинные — дорогая и стабильная.
+
+    `LLM_MODEL` выключает маршрутизацию: заданная руками модель идёт на всё, иначе
+    оператор не смог бы прогнать набор на одной модели для сравнения.
+    """
+    forced = os.environ.get("LLM_MODEL")
+    if forced:
+        return Route(forced, os.environ.get("LLM_EFFORT", ""),
+                     os.environ.get("LLM_THINKING", ""), "LLM_MODEL задан вручную")
+    length = len(message.text)
+    if length > LONG_MESSAGE_CHARS:
+        return Route(LONG_MODEL, "low", "off",
+                     f"длинное обращение: {length} символов > {LONG_MESSAGE_CHARS}")
+    return Route(ANTHROPIC_MODEL, ANTHROPIC_EFFORT, ANTHROPIC_THINKING,
+                 f"короткое обращение: {length} символов <= {LONG_MESSAGE_CHARS}")
+
+
 class Provider(Protocol):
     """Сменный адаптер модели. Тело запроса и разбор ответа — его дело; вырезание ПД,
     валидация фактов и сборка LeadFacts — дело конвейера, одинаковое для всех."""
@@ -239,8 +285,17 @@ class AnthropicProvider:
 
     name = "anthropic"
 
+    def __init__(self, route_: Route | None = None) -> None:
+        # Маршрут задаётся на лид; без него — прежнее поведение по переменным среды.
+        self.route = route_ or Route(
+            os.environ.get("LLM_MODEL") or ANTHROPIC_MODEL,
+            os.environ.get("LLM_EFFORT", ANTHROPIC_EFFORT),
+            os.environ.get("LLM_THINKING", ANTHROPIC_THINKING),
+            "маршрут не задан: значения по умолчанию",
+        )
+
     def model(self) -> str:
-        return os.environ.get("LLM_MODEL") or ANTHROPIC_MODEL
+        return self.route.model
 
     def build_body(self, system: str, content: str) -> dict:
         model = self.model()
@@ -262,10 +317,10 @@ class AnthropicProvider:
         # Уровень усилий и мышление — конфигурация, а не константа в коде. `none`/`off`
         # означает «не слать параметр вовсе»: у моделей, которые его не принимают,
         # он не должен появляться в теле даже пустым.
-        effort = (os.environ.get("LLM_EFFORT") or ANTHROPIC_EFFORT).strip().lower()
+        effort = self.route.effort.strip().lower()
         if effort not in ("", "none") and supports_effort:
             body["output_config"]["effort"] = effort
-        thinking = (os.environ.get("LLM_THINKING") or ANTHROPIC_THINKING).strip().lower()
+        thinking = self.route.thinking.strip().lower()
         if thinking == "adaptive" and supports_effort:
             body["thinking"] = {"type": "adaptive"}
         elif thinking in ("off", "disabled") and supports_effort:
@@ -410,6 +465,11 @@ PROVIDERS: dict[str, type] = {
     AnthropicProvider.name: AnthropicProvider,
     OpenAICompatibleProvider.name: OpenAICompatibleProvider,
 }
+
+
+def _default_is_anthropic() -> bool:
+    key = (os.environ.get("LLM_PROVIDER") or DEFAULT_PROVIDER).strip().lower()
+    return key == AnthropicProvider.name
 
 
 def get_provider(name: str | None = None) -> Provider:
@@ -567,6 +627,7 @@ def _offline_extraction(message: InboundMessage) -> Extraction:
         offline=True,
         scrubbed=scrubbed,
         dropped_quotes=0,
+        route_reason="OFFLINE: модель не вызывалась",
     )
 
 
@@ -588,7 +649,9 @@ def extract_detailed(message: InboundMessage, provider: Provider | None = None) 
             f"обращение {message.external_id!r} пустое (ни букв, ни цифр) — "
             "извлекать нечего, запрос к модели не отправлялся"
         )
-    provider = provider or get_provider()
+    chosen = route(message)
+    provider = provider or (AnthropicProvider(chosen) if _default_is_anthropic()
+                            else get_provider())
     body, scrubbed = build_request_body(message, provider)
     started = time.monotonic()
     completion = provider.complete(body)
@@ -607,6 +670,7 @@ def extract_detailed(message: InboundMessage, provider: Provider | None = None) 
         offline=False,
         scrubbed=scrubbed,
         dropped_quotes=dropped,
+        route_reason=chosen.reason if isinstance(provider, AnthropicProvider) else "",
     )
 
 

@@ -14,7 +14,7 @@ import os
 import threading
 import uuid
 from collections import Counter
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -102,7 +102,7 @@ class LocalStore:
         lead_id = row.id or str(uuid.uuid4())
         payload = row.payload()
         payload["id"] = lead_id
-        payload["created_at"] = datetime.now().isoformat()
+        payload["created_at"] = datetime.now(UTC).isoformat()
         with self._lock:
             self._data["leads"].append(payload)
             self._flush()

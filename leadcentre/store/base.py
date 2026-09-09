@@ -16,7 +16,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import Any, Protocol
 
 # --- исходы ---
@@ -194,7 +194,7 @@ class DisagreementRow:
             "tier_shown": self.tier_shown,
             "reason": self.reason,
             "author": self.author,
-            "created_at": _iso(self.created_at or datetime.now()),
+            "created_at": _iso(self.created_at or datetime.now(UTC)),
         }
 
 
