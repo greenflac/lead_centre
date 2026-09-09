@@ -92,13 +92,26 @@ def test_english_legal_name_is_kept_as_is():
     assert company.registration_status == "ISSUED"
 
 
-def test_arabic_names_are_replaced_where_the_source_has_an_english_variant():
-    """Правило 1: арабское legalName подменяется en-вариантом из otherNames.
+def test_no_card_shows_an_arabic_name():
+    """Главный инвариант: НИ ОДНА карточка обеих выборок не показывает название арабицей.
 
-    ИЗМЕРЕНО по кэшу lapsed (60 записей): 37 legalName арабские, у 30 из них есть
-    en-вариант — ровно эти 30 и подменяются. Негативный контроль (И5): оставшиеся
-    7 арабских имён — не дефект адаптера, а отсутствие en-варианта в источнике;
-    число печатается, а не прячется (Е3).
+    Написан про саму беду, а не про её случай: счёт «подменено N» переживает ровно одно
+    изменение источника, а это требование переживёт любое (И2 — беда наблюдаема).
+    ИЗМЕРЕНО 2026-09-09: 120 записей, арабских названий 0 (было 8).
+    """
+    cards = []
+    for mode in ("lapsed", "fresh"):
+        cards += list(GleifAdapter(mode=mode, offline=True).fetch(60).companies)
+    assert len(cards) == 120
+    arabic = [(c.external_id, c.name) for c in cards if _is_arabic(c.name)]
+    assert arabic == [], f"карточек с арабским названием {len(arabic)}"
+
+
+def test_every_arabic_legal_name_is_replaced_in_the_lapsed_sample():
+    """ИЗМЕРЕНО по кэшу lapsed (60 записей): 37 legalName арабские, подменяются все 37.
+
+    Раньше подменялось 30: у семи латиница нашлась в transliteratedOtherNames, куда
+    адаптер не смотрел.
     """
     records = json.loads((DATA_DIR / "gleif_ae_lapsed_sample.json").read_text())
     companies = GleifAdapter(mode="lapsed", offline=True).fetch(60).companies
@@ -107,20 +120,113 @@ def test_arabic_names_are_replaced_where_the_source_has_an_english_variant():
     legal_names = [
         (r["attributes"]["entity"].get("legalName") or {}).get("name", "") for r in records
     ]
-    assert len([n for n in legal_names if _is_arabic(n)]) == 37
+    arabic_in_source = [n for n in legal_names if _is_arabic(n)]
+    assert len(arabic_in_source) == 37
 
     swapped = [(c, legal) for c, legal in zip(companies, legal_names) if c.name != legal]
-    assert len(swapped) == 30
+    assert len(swapped) == 37
     # подменяются ТОЛЬКО арабские: латинское название остаётся как в реестре
     assert [legal for _, legal in swapped if not _is_arabic(legal)] == []
     assert all(not _is_arabic(c.name) for c, _ in swapped)
 
-    left_arabic = [c for c in companies if _is_arabic(c.name)]
-    assert len(left_arabic) == 7
-    for company in left_arabic:
-        record = next(r for r in records if r["attributes"]["lei"] == company.external_id)
-        other = record["attributes"]["entity"].get("otherNames") or []
-        assert not [o for o in other if o.get("language") == "en"], company.external_id
+
+def test_source_split_between_other_names_and_transliterated_names():
+    """Откуда взялась латиница — числами (Е3), по обеим выборкам: 43 + 8 из 51."""
+    records = json.loads((DATA_DIR / "gleif_ae_lapsed_sample.json").read_text())
+    records += json.loads((DATA_DIR / "gleif_ae_fresh_sample.json").read_text())
+    arabic = [
+        r
+        for r in records
+        if _is_arabic((r["attributes"]["entity"].get("legalName") or {}).get("name", ""))
+    ]
+    assert len(arabic) == 51
+
+    from_other_names = [
+        r
+        for r in arabic
+        if [o for o in r["attributes"]["entity"].get("otherNames") or []
+            if o.get("language") == "en"]
+    ]
+    from_transliterated = [r for r in arabic if r not in from_other_names]
+    assert len(from_other_names) == 43
+    assert len(from_transliterated) == 8
+    # у всех восьми ASCII-написание в реестре действительно есть — иначе брать было бы неоткуда
+    assert all(
+        r["attributes"]["entity"].get("transliteratedOtherNames") for r in from_transliterated
+    )
+
+
+def test_ascii_name_is_taken_from_the_registry_not_guessed():
+    """Третья ступень цепочки: ASCII-написание реестра, а не машинная транслитерация.
+
+    Сверка машинной транслитерации с реестром по этим восьми дала 3 из 8: «OXrage»
+    по звучанию не восстанавливается (машина слышит «OAUX REG»). Реестр имеет приоритет.
+    """
+    records = json.loads((DATA_DIR / "gleif_ae_fresh_sample.json").read_text())
+    record = next(r for r in records if r["attributes"]["lei"] == "2549005ZMETNR15CNY09")
+    entity = record["attributes"]["entity"]
+    # предпосылки: имя арабское, en-варианта нет, ASCII-написание в реестре есть
+    assert _is_arabic(entity["legalName"]["name"])
+    assert [o for o in entity.get("otherNames") or [] if o.get("language") == "en"] == []
+    assert [o["name"] for o in entity["transliteratedOtherNames"]] == [
+        "OXrage Consulting - F.Z.E"
+    ]
+
+    assert to_company(record).name == "OXrage Consulting - F.Z.E"
+
+    companies = GleifAdapter(mode="fresh", offline=True).fetch(60).companies
+    company = next(c for c in companies if c.external_id == "2549005ZMETNR15CNY09")
+    assert company.name == "OXrage Consulting - F.Z.E"
+
+
+def _record(legal_name: str, other_names=(), transliterated=()) -> dict:
+    """Минимальная запись GLEIF: проверяем порядок ступеней, а не разбор адресов."""
+    return {
+        "attributes": {
+            "lei": "T" * 20,
+            "entity": {
+                "legalName": {"name": legal_name},
+                "otherNames": list(other_names),
+                "transliteratedOtherNames": list(transliterated),
+                "legalAddress": {"addressLines": ["линия"], "city": "Dubai", "country": "AE"},
+                "status": "ACTIVE",
+            },
+            "registration": {"status": "ISSUED", "nextRenewalDate": "2027-01-01T00:00:00Z"},
+        }
+    }
+
+
+EN_NAME = {"name": "English Legal Name LLC", "language": "en"}
+ASCII_NAME = {"name": "Askii Registry Name FZE", "language": "ar"}
+ARABIC = "شركة اختبار ذ.م.م"
+
+
+def test_priority_chain_latin_legal_name_wins_over_everything():
+    company = to_company(_record("Latin Legal Name FZE", [EN_NAME], [ASCII_NAME]))
+    assert company.name == "Latin Legal Name FZE"
+
+
+def test_priority_chain_english_other_name_wins_over_transliterated():
+    company = to_company(_record(ARABIC, [EN_NAME], [ASCII_NAME]))
+    assert company.name == "English Legal Name LLC"
+
+
+def test_priority_chain_transliterated_used_when_no_english_variant():
+    company = to_company(_record(ARABIC, [], [ASCII_NAME]))
+    assert company.name == "Askii Registry Name FZE"
+
+
+def test_priority_chain_arabic_stays_when_the_source_has_nothing_else():
+    """Негативный контроль цепочки: выдумывать написание адаптер не начинает."""
+    company = to_company(_record(ARABIC, [], []))
+    assert company.name == ARABIC
+
+
+def test_priority_chain_ignores_non_english_other_names():
+    """Русский или французский вариант — не латиница реестра, ступень его не берёт."""
+    other = [{"name": "Тестовая компания", "language": "ru"}]
+    company = to_company(_record(ARABIC, other, [ASCII_NAME]))
+    assert company.name == "Askii Registry Name FZE"
 
 
 def test_latin_legal_name_is_not_replaced_by_another_form_from_other_names():

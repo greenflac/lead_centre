@@ -1128,6 +1128,138 @@
   "is_synthetic": false
  },
  {
+  "id": "2549002AK9WSSOGB2B03",
+  "name": "Dua Baby - F.Z.E",
+  "city": "Ajman",
+  "country": "AE",
+  "address_lines": [
+   "Ajman Free Zone C1 Building",
+   "Ajman Free Zone"
+  ],
+  "registrar_id": "RA000570",
+  "license_no": "43283",
+  "created_on": "2025-07-28",
+  "next_renewal_on": "2026-08-29",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 11 дн.",
+   "город вне целевых (Ajman) — ступень понижена"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "2549002AK9WSSOGB2B03"
+   },
+   {
+    "kind": "license_no",
+    "value": "43283"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-29"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-07-28"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "213800LRM489Y9CNTP46",
+  "name": "EMIRATES OVERSEAS GENERAL TRADING - F.Z.E",
+  "city": "DUBAI",
+  "country": "AE",
+  "address_lines": [
+   "OFFICE - C1 - 812 - 005",
+   "PO BOX 72441"
+  ],
+  "registrar_id": "RA000570",
+  "license_no": "2495",
+  "created_on": "2006-02-06",
+  "next_renewal_on": "2026-09-01",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 8 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "213800LRM489Y9CNTP46"
+   },
+   {
+    "kind": "license_no",
+    "value": "2495"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-01"
+   },
+   {
+    "kind": "created_on",
+    "value": "2006-02-06"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "2549002446EXVQTQCI63",
+  "name": "ENIGMA COMMERCIAL INVESTMENT - SOLE PROPRIETORSHIP L.L.C.",
+  "city": "Abu Dhabi",
+  "country": "AE",
+  "address_lines": [
+   "The Landmark Tower",
+   "65th Floor",
+   "Corniche Road",
+   "Al Markaziyah West"
+  ],
+  "registrar_id": "RA000568",
+  "license_no": "CN-4458557",
+  "created_on": "2022-05-05",
+  "next_renewal_on": "2026-09-05",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 4 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "2549002446EXVQTQCI63"
+   },
+   {
+    "kind": "license_no",
+    "value": "CN-4458557"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-05"
+   },
+   {
+    "kind": "created_on",
+    "value": "2022-05-05"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
   "id": "549300OIRJVKU0HO6U38",
   "name": "EPS AFRICA FZE",
   "city": "RAS AL-KHAIMAH",
@@ -1300,6 +1432,49 @@
   "is_synthetic": false
  },
  {
+  "id": "254900HUZQWJ9OEBUU78",
+  "name": "FROMA GENERAL TRADING (L.L.C)",
+  "city": "DUBAI",
+  "country": "AE",
+  "address_lines": [
+   "Dubai Investments Park 1",
+   "مكتب رقم 815 ملك جوسى بيدرو الو دى نورونها - الخليج التجاري"
+  ],
+  "registrar_id": "RA000573",
+  "license_no": "562942",
+  "created_on": "2004-11-20",
+  "next_renewal_on": "2026-09-04",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 5 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "254900HUZQWJ9OEBUU78"
+   },
+   {
+    "kind": "license_no",
+    "value": "562942"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-04"
+   },
+   {
+    "kind": "created_on",
+    "value": "2004-11-20"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
   "id": "98450060E3F9B68FE636",
   "name": "FT Professional Shipping Service (F.Z.C) LLC",
   "city": "منطقة عجمان الحرة",
@@ -1336,6 +1511,48 @@
    {
     "kind": "created_on",
     "value": "2015-02-02"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "213800JDIRAZCNKMJP13",
+  "name": "GAUTAM GENERAL TRADING LLC",
+  "city": "DUBAI",
+  "country": "AE",
+  "address_lines": [
+   "MAHAL(6+7) 112-138 - DEIRA - AL RAS, DEIRA"
+  ],
+  "registrar_id": "RA000573",
+  "license_no": "572403",
+  "created_on": "2005-08-15",
+  "next_renewal_on": "2026-09-06",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 3 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "213800JDIRAZCNKMJP13"
+   },
+   {
+    "kind": "license_no",
+    "value": "572403"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-06"
+   },
+   {
+    "kind": "created_on",
+    "value": "2005-08-15"
    }
   ],
   "violations": [],
@@ -1958,6 +2175,94 @@
   "is_synthetic": false
  },
  {
+  "id": "254900W894HQYU0DF657",
+  "name": "SOGNO THREE - SOLE PROPRIETORSHIP L.L.C.",
+  "city": "Abu Dhabi",
+  "country": "AE",
+  "address_lines": [
+   "The Landmark Tower, 65th Floor",
+   "Corniche Road",
+   "Al Markaziyah West"
+  ],
+  "registrar_id": "RA000568",
+  "license_no": "CN-4166645",
+  "created_on": "2021-09-21",
+  "next_renewal_on": "2026-09-04",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 5 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "254900W894HQYU0DF657"
+   },
+   {
+    "kind": "license_no",
+    "value": "CN-4166645"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-04"
+   },
+   {
+    "kind": "created_on",
+    "value": "2021-09-21"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "2549006E8GZDLVZ6SM90",
+  "name": "SOGNO TWO - SOLE PROPRIETORSHIP L.L.C.",
+  "city": "Abu Dhabi",
+  "country": "AE",
+  "address_lines": [
+   "The Landmark Tower, 65th Floor",
+   "Corniche Road",
+   "Al Markaziyah West"
+  ],
+  "registrar_id": "RA000568",
+  "license_no": "CN-4166900",
+  "created_on": "2021-09-21",
+  "next_renewal_on": "2026-09-04",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "MEDIUM",
+  "address_type": "A3_own",
+  "event": "B1_lapsed",
+  "reasons": [
+   "регистрация LEI просрочена 5 дн."
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "2549006E8GZDLVZ6SM90"
+   },
+   {
+    "kind": "license_no",
+    "value": "CN-4166900"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-09-04"
+   },
+   {
+    "kind": "created_on",
+    "value": "2021-09-21"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
   "id": "984500FA1F94E6FODF89",
   "name": "SQUARE GOLD TRADING L.L.C",
   "city": "دبي",
@@ -2295,311 +2600,6 @@
    {
     "kind": "created_on",
     "value": "2019-08-18"
-   }
-  ],
-  "violations": [],
-  "source": "gleif",
-  "is_synthetic": false
- },
- {
-  "id": "2549002446EXVQTQCI63",
-  "name": "انغما للاستثمار التجاري - شركة الشخص الواحد ذ م م",
-  "city": "Abu Dhabi",
-  "country": "AE",
-  "address_lines": [
-   "The Landmark Tower",
-   "65th Floor",
-   "Corniche Road",
-   "Al Markaziyah West"
-  ],
-  "registrar_id": "RA000568",
-  "license_no": "CN-4458557",
-  "created_on": "2022-05-05",
-  "next_renewal_on": "2026-09-05",
-  "registration_status": "LAPSED",
-  "entity_active": true,
-  "tier": "MEDIUM",
-  "address_type": "A3_own",
-  "event": "B1_lapsed",
-  "reasons": [
-   "регистрация LEI просрочена 4 дн."
-  ],
-  "evidence": [
-   {
-    "kind": "lei",
-    "value": "2549002446EXVQTQCI63"
-   },
-   {
-    "kind": "license_no",
-    "value": "CN-4458557"
-   },
-   {
-    "kind": "next_renewal_on",
-    "value": "2026-09-05"
-   },
-   {
-    "kind": "created_on",
-    "value": "2022-05-05"
-   }
-  ],
-  "violations": [],
-  "source": "gleif",
-  "is_synthetic": false
- },
- {
-  "id": "213800LRM489Y9CNTP46",
-  "name": "ايمريتس اوفرسيز جنرال تريدنج - م.م.ح",
-  "city": "DUBAI",
-  "country": "AE",
-  "address_lines": [
-   "OFFICE - C1 - 812 - 005",
-   "PO BOX 72441"
-  ],
-  "registrar_id": "RA000570",
-  "license_no": "2495",
-  "created_on": "2006-02-06",
-  "next_renewal_on": "2026-09-01",
-  "registration_status": "LAPSED",
-  "entity_active": true,
-  "tier": "MEDIUM",
-  "address_type": "A3_own",
-  "event": "B1_lapsed",
-  "reasons": [
-   "регистрация LEI просрочена 8 дн."
-  ],
-  "evidence": [
-   {
-    "kind": "lei",
-    "value": "213800LRM489Y9CNTP46"
-   },
-   {
-    "kind": "license_no",
-    "value": "2495"
-   },
-   {
-    "kind": "next_renewal_on",
-    "value": "2026-09-01"
-   },
-   {
-    "kind": "created_on",
-    "value": "2006-02-06"
-   }
-  ],
-  "violations": [],
-  "source": "gleif",
-  "is_synthetic": false
- },
- {
-  "id": "2549002AK9WSSOGB2B03",
-  "name": "دعاء بيبي - م.م.ح",
-  "city": "Ajman",
-  "country": "AE",
-  "address_lines": [
-   "Ajman Free Zone C1 Building",
-   "Ajman Free Zone"
-  ],
-  "registrar_id": "RA000570",
-  "license_no": "43283",
-  "created_on": "2025-07-28",
-  "next_renewal_on": "2026-08-29",
-  "registration_status": "LAPSED",
-  "entity_active": true,
-  "tier": "MEDIUM",
-  "address_type": "A1_registrar",
-  "event": "B1_lapsed",
-  "reasons": [
-   "регистрация LEI просрочена 11 дн.",
-   "город вне целевых (Ajman) — ступень понижена"
-  ],
-  "evidence": [
-   {
-    "kind": "lei",
-    "value": "2549002AK9WSSOGB2B03"
-   },
-   {
-    "kind": "license_no",
-    "value": "43283"
-   },
-   {
-    "kind": "next_renewal_on",
-    "value": "2026-08-29"
-   },
-   {
-    "kind": "created_on",
-    "value": "2025-07-28"
-   }
-  ],
-  "violations": [],
-  "source": "gleif",
-  "is_synthetic": false
- },
- {
-  "id": "2549006E8GZDLVZ6SM90",
-  "name": "سوجنو تو - شركة الشخص الواحد ذم م",
-  "city": "Abu Dhabi",
-  "country": "AE",
-  "address_lines": [
-   "The Landmark Tower, 65th Floor",
-   "Corniche Road",
-   "Al Markaziyah West"
-  ],
-  "registrar_id": "RA000568",
-  "license_no": "CN-4166900",
-  "created_on": "2021-09-21",
-  "next_renewal_on": "2026-09-04",
-  "registration_status": "LAPSED",
-  "entity_active": true,
-  "tier": "MEDIUM",
-  "address_type": "A3_own",
-  "event": "B1_lapsed",
-  "reasons": [
-   "регистрация LEI просрочена 5 дн."
-  ],
-  "evidence": [
-   {
-    "kind": "lei",
-    "value": "2549006E8GZDLVZ6SM90"
-   },
-   {
-    "kind": "license_no",
-    "value": "CN-4166900"
-   },
-   {
-    "kind": "next_renewal_on",
-    "value": "2026-09-04"
-   },
-   {
-    "kind": "created_on",
-    "value": "2021-09-21"
-   }
-  ],
-  "violations": [],
-  "source": "gleif",
-  "is_synthetic": false
- },
- {
-  "id": "254900W894HQYU0DF657",
-  "name": "سوجنو ثري - شركة الشخص الواحد ذ م م",
-  "city": "Abu Dhabi",
-  "country": "AE",
-  "address_lines": [
-   "The Landmark Tower, 65th Floor",
-   "Corniche Road",
-   "Al Markaziyah West"
-  ],
-  "registrar_id": "RA000568",
-  "license_no": "CN-4166645",
-  "created_on": "2021-09-21",
-  "next_renewal_on": "2026-09-04",
-  "registration_status": "LAPSED",
-  "entity_active": true,
-  "tier": "MEDIUM",
-  "address_type": "A3_own",
-  "event": "B1_lapsed",
-  "reasons": [
-   "регистрация LEI просрочена 5 дн."
-  ],
-  "evidence": [
-   {
-    "kind": "lei",
-    "value": "254900W894HQYU0DF657"
-   },
-   {
-    "kind": "license_no",
-    "value": "CN-4166645"
-   },
-   {
-    "kind": "next_renewal_on",
-    "value": "2026-09-04"
-   },
-   {
-    "kind": "created_on",
-    "value": "2021-09-21"
-   }
-  ],
-  "violations": [],
-  "source": "gleif",
-  "is_synthetic": false
- },
- {
-  "id": "213800JDIRAZCNKMJP13",
-  "name": "غاووتام للتجارة العامة (ش.ذ.م.م)",
-  "city": "DUBAI",
-  "country": "AE",
-  "address_lines": [
-   "MAHAL(6+7) 112-138 - DEIRA - AL RAS, DEIRA"
-  ],
-  "registrar_id": "RA000573",
-  "license_no": "572403",
-  "created_on": "2005-08-15",
-  "next_renewal_on": "2026-09-06",
-  "registration_status": "LAPSED",
-  "entity_active": true,
-  "tier": "MEDIUM",
-  "address_type": "A3_own",
-  "event": "B1_lapsed",
-  "reasons": [
-   "регистрация LEI просрочена 3 дн."
-  ],
-  "evidence": [
-   {
-    "kind": "lei",
-    "value": "213800JDIRAZCNKMJP13"
-   },
-   {
-    "kind": "license_no",
-    "value": "572403"
-   },
-   {
-    "kind": "next_renewal_on",
-    "value": "2026-09-06"
-   },
-   {
-    "kind": "created_on",
-    "value": "2005-08-15"
-   }
-  ],
-  "violations": [],
-  "source": "gleif",
-  "is_synthetic": false
- },
- {
-  "id": "254900HUZQWJ9OEBUU78",
-  "name": "فروما للتجارة العامة (ش.ذ.م.م)",
-  "city": "DUBAI",
-  "country": "AE",
-  "address_lines": [
-   "Dubai Investments Park 1",
-   "مكتب رقم 815 ملك جوسى بيدرو الو دى نورونها - الخليج التجاري"
-  ],
-  "registrar_id": "RA000573",
-  "license_no": "562942",
-  "created_on": "2004-11-20",
-  "next_renewal_on": "2026-09-04",
-  "registration_status": "LAPSED",
-  "entity_active": true,
-  "tier": "MEDIUM",
-  "address_type": "A3_own",
-  "event": "B1_lapsed",
-  "reasons": [
-   "регистрация LEI просрочена 5 дн."
-  ],
-  "evidence": [
-   {
-    "kind": "lei",
-    "value": "254900HUZQWJ9OEBUU78"
-   },
-   {
-    "kind": "license_no",
-    "value": "562942"
-   },
-   {
-    "kind": "next_renewal_on",
-    "value": "2026-09-04"
-   },
-   {
-    "kind": "created_on",
-    "value": "2004-11-20"
    }
   ],
   "violations": [],
