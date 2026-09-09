@@ -21,6 +21,7 @@ from pathlib import Path
 
 import pytest
 
+from leadcentre.engine.facts_rules import rules_facts
 from leadcentre.engine.score import score_inbound
 from leadcentre.models import Tier
 
@@ -45,10 +46,24 @@ def _load_eval_module():
 
 
 @pytest.fixture(scope="module")
-def tiers() -> list[Tier]:
-    run_eval = _load_eval_module()
-    messages = run_eval.load_messages(SEED_CSV)
-    return [score_inbound(m, run_eval.rules_facts(m)).tier for m in messages]
+def messages():
+    return _load_eval_module().load_messages(SEED_CSV)
+
+
+@pytest.fixture(scope="module")
+def facts(messages):
+    """Те же детерминированные факты, что у стенда: одна реализация на всех (Е1)."""
+    return [rules_facts(m) for m in messages]
+
+
+@pytest.fixture(scope="module")
+def scores(messages, facts):
+    return [score_inbound(m, f) for m, f in zip(messages, facts, strict=True)]
+
+
+@pytest.fixture(scope="module")
+def tiers(scores) -> list[Tier]:
+    return [s.tier for s in scores]
 
 
 def test_seed_holds_70_messages(tiers):
@@ -90,3 +105,55 @@ def test_medium_is_the_largest_bucket(tiers):
 def test_no_invalid_leads_in_the_seed(tiers):
     """INVALID на синтетическом наборе означал бы сломанный инвариант, а не лид (Р1)."""
     assert Counter(tiers)[Tier.INVALID] == 0
+
+
+# --- не выродился ли признак срочности при пороге 60 -----------------------------
+#
+# ИЗМЕРЕНО 2026-09-09 на 70 обращениях: срок извлечён у 15, из них 8 укладываются в
+# 60 дней (признак срабатывает) и 7 не укладываются (не срабатывает). При прежнем
+# пороге 30 было 7 и 8. Признак продолжает делить набор, а не помечать всех подряд.
+
+
+def test_timeline_signal_still_discriminates(facts):
+    """Если бы признак срабатывал на КАЖДОМ извлечённом сроке, он означал бы
+
+    «срок вообще упомянут» и перестал бы что-либо отбирать. Обе группы обязаны быть
+    непустыми — это негативный контроль самого признака (И5).
+    """
+    known = [f.timeline_days for f in facts if f.timeline_days is not None]
+    assert len(known) >= 10, f"сроков в наборе всего {len(known)} — мерить нечем"
+
+    fires = [d for d in known if d <= 60]
+    silent = [d for d in known if d > 60]
+    assert fires, "признак срочности не срабатывает ни на одном обращении"
+    assert silent, (
+        f"признак срочности срабатывает на всех {len(known)} сроках — "
+        "он выродился в «срок вообще упомянут»"
+    )
+    # обе группы заметные, а не «один случай для галочки»
+    assert len(fires) >= 3
+    assert len(silent) >= 3
+
+
+def test_timeline_signal_is_not_the_only_road_to_high(messages, facts, tiers):
+    """Горячие не сводятся к «есть срок»: HIGH выдаётся и без извлечённого срока."""
+    high_without_timeline = [
+        m.external_id
+        for m, f, t in zip(messages, facts, tiers, strict=True)
+        if t is Tier.HIGH and f.timeline_days is None
+    ]
+    assert high_without_timeline, "все HIGH держатся на одном признаке — шкала однобокая"
+
+
+def test_urgency_fires_on_8_of_the_15_extracted_deadlines(scores, facts):
+    """Сколько раз признак срочности реально сработал — числом, а не «работает» (Е3).
+
+    Считается по причине в карточке, а не по порогу из `rubric`: тест видит поведение,
+    а не константу, и потому краснеет при любом сдвиге порога в обе стороны.
+    ИЗМЕРЕНО 2026-09-09 при пороге 60: 15 сроков извлечено, 8 сработали, 7 нет.
+    """
+    with_deadline = [f for f in facts if f.timeline_days is not None]
+    fired = [s for s in scores if any(r.startswith("срок ") for r in s.reasons)]
+    assert len(with_deadline) == 15
+    assert len(fired) == 8
+    assert len(with_deadline) - len(fired) == 7
