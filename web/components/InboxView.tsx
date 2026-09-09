@@ -75,13 +75,23 @@ export default function InboxView({
           <span className="panel-note">
             {loading ? "loading…" : `${filtered.length} of ${leads.length}`}
           </span>
-          <div className="filters" style={{ marginLeft: "auto" }}>
+          <input
+            className="search-box"
+            style={{ marginLeft: "auto" }}
+            type="text"
+            placeholder="Search text, id or channel"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </div>
+        <div className="toolbar">
+          <div className="filters">
             <button
               className="filter-btn"
               aria-pressed={tierFilter === null}
               onClick={() => setTierFilter(null)}
             >
-              all
+              all {leads.length}
             </button>
             {TIERS.map((tier) => (
               <button
@@ -95,15 +105,6 @@ export default function InboxView({
               </button>
             ))}
           </div>
-        </div>
-        <div className="panel-head" style={{ background: "var(--surface)" }}>
-          <input
-            className="search-box"
-            type="text"
-            placeholder="Search text, id or channel"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
         </div>
         <div className="lead-list">
           {loading ? (

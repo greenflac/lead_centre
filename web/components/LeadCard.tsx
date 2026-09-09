@@ -125,6 +125,25 @@ export default function LeadCard({
               Facts source: {lead.facts_source === "offline_heuristic" ? "offline heuristic (mock mode)" : lead.facts_source}
             </div>
           </div>
+
+          <div className="section">
+            <div className="section-title">Provenance</div>
+            <dl className="facts">
+              <dt>request id</dt>
+              <dd style={{ fontFamily: "var(--mono)", fontSize: 12 }}>{lead.id}</dd>
+              <dt>channel</dt>
+              <dd>{CHANNEL_LABEL[lead.channel] ?? lead.channel}</dd>
+              <dt>received</dt>
+              <dd>{lead.received_at.replace("T", " ").replace(/\.\d+/, "").replace("Z", " UTC")}</dd>
+              <dt>seed category</dt>
+              <dd>{lead.category}</dd>
+            </dl>
+            <div className="panel-note" style={{ marginTop: 8 }}>
+              {lead.is_synthetic
+                ? "Invented request written for this demo. SORP has no exported request log yet, so nothing here is a real customer."
+                : "Real request record."}
+            </div>
+          </div>
         </div>
 
         <div className="card-col">

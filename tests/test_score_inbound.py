@@ -35,7 +35,7 @@ def test_base_tier_without_request_types_is_low():
 
 def test_no_request_types_with_one_bump_reaches_only_medium():
     """Понижение базы наблюдаемо: с одним повышением обращение без запроса — MEDIUM, не HIGH."""
-    result = score_inbound(make_message(), make_facts(request_types=(), language="ru"))
+    result = score_inbound(make_message(), make_facts(request_types=(), timeline_days=5))
     assert result.tier is Tier.MEDIUM
 
 
@@ -88,22 +88,72 @@ def test_package_reason_names_the_count():
     assert any("запрошено услуг: 2" in r for r in score_inbound(make_message(), facts).reasons)
 
 
-# --- язык обращения --------------------------------------------------------------
+# --- язык: довесок, а не самостоятельный повод ------------------------------------
+
+
+@pytest.mark.parametrize("language", ["ru", "en", "ar", "mixed", "RU"])
+def test_language_alone_never_raises_the_tier(language):
+    """Дефект, ради которого правило и введено: «HIGH, потому что по-русски» не бывает."""
+    result = score_inbound(make_message(), make_facts(language=language))
+    assert result.tier is Tier.MEDIUM
+
+
+def test_russian_alone_says_in_reasons_that_other_signals_are_missing():
+    result = score_inbound(make_message(), make_facts(language="ru"))
+    assert result.tier is Tier.MEDIUM
+    assert "язык обращения ru, но других признаков нет" in result.reasons
 
 
 @pytest.mark.parametrize(
-    ("language", "expected"),
+    ("signal", "expected_reason_part"),
     [
-        ("ru", Tier.HIGH),   # целевой язык
-        ("en", Tier.MEDIUM),
-        ("ar", Tier.MEDIUM),
-        ("mixed", Tier.MEDIUM),
-        ("RU", Tier.MEDIUM),  # сравнение точное, регистр не нормализуется
+        ({"timeline_days": 10}, "срок 10 дн."),
+        ({"headcount": 12}, "команда 12 чел."),
+        ({"budget_hint": "120-150 тысяч дирхам"}, "назван бюджет"),
     ],
 )
-def test_only_russian_raises_the_tier(language, expected):
-    result = score_inbound(make_message(), make_facts(language=language))
-    assert result.tier is expected
+def test_russian_raises_the_tier_only_together_with_a_substantive_signal(
+    signal, expected_reason_part
+):
+    """Эффект языка наблюдаем от базы LOW: признак даёт MEDIUM, признак плюс русский — HIGH.
+
+    (От базы MEDIUM один содержательный признак уже упирается в HIGH, и довесок не виден.)
+    """
+    without_language = score_inbound(
+        make_message(), make_facts(request_types=(), language="en", **signal)
+    )
+    assert without_language.tier is Tier.MEDIUM
+
+    with_language = score_inbound(
+        make_message(), make_facts(request_types=(), language="ru", **signal)
+    )
+    assert with_language.tier is Tier.HIGH
+    assert any(expected_reason_part in r for r in with_language.reasons)
+    assert "язык обращения ru — основная аудитория" in with_language.reasons
+
+
+def test_package_alone_is_a_substantive_signal_for_the_language_rule():
+    """Два типа запроса — тоже содержательный признак: с ними русский уже засчитывается."""
+    facts = make_facts(request_types=(RequestType.OFFICE, RequestType.VISA), language="ru")
+    result = score_inbound(make_message(), facts)
+    assert result.tier is Tier.HIGH
+    assert "язык обращения ru — основная аудитория" in result.reasons
+
+
+@pytest.mark.parametrize("language", ["en", "ar", "mixed", "RU"])
+def test_non_target_language_adds_nothing_even_with_a_signal(language):
+    result = score_inbound(
+        make_message(), make_facts(request_types=(), language=language, headcount=10)
+    )
+    assert result.tier is Tier.MEDIUM
+    assert not [r for r in result.reasons if "язык обращения" in r]
+
+
+def test_russian_alone_from_low_base_stays_low():
+    """Ни одного содержательного признака: язык не вытягивает даже на ступень вверх."""
+    result = score_inbound(make_message(), make_facts(request_types=(), language="ru"))
+    assert result.tier is Tier.LOW
+    assert "язык обращения ru, но других признаков нет" in result.reasons
 
 
 # --- порог уверенности: 0.5 ------------------------------------------------------
@@ -121,8 +171,8 @@ def test_only_russian_raises_the_tier(language, expected):
     ],
 )
 def test_low_confidence_caps_the_tier_at_medium(confidence, expected):
-    """Повышение по языку есть всегда; решает только уверенность."""
-    facts = make_facts(language="ru", confidence=confidence)
+    """Повышение по срочности есть всегда; решает только уверенность."""
+    facts = make_facts(timeline_days=7, confidence=confidence)
     result = score_inbound(make_message(), facts)
     assert result.tier is expected
 

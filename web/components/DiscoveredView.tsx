@@ -94,6 +94,16 @@ export default function DiscoveredView({
         ) : (
           <div className="table-wrap">
             <table className="grid grid-fixed">
+              <colgroup>
+                <col className="c-priority" />
+                <col className="c-company" />
+                <col className="c-city" />
+                <col className="c-auth" />
+                <col className="c-licence" />
+                <col className="c-why" />
+                <col className="c-evidence" />
+                <col className="c-prov" />
+              </colgroup>
               <thead>
                 <tr>
                   <th>Priority</th>

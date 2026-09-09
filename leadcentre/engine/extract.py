@@ -58,7 +58,8 @@ MIN_PHONE_DIGITS = 9                     # ВЫБРАНО: короче — эт
 # латиницей внутри русской фразы (TECOM, IFZA).
 MIXED_SHARE = 0.2
 
-PROMPT_VERSION = "extract_v1"
+# v2: `budget_hint` заполняется только названной суммой. v1 оставлен рядом для сравнения.
+PROMPT_VERSION = "extract_v2"
 PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / f"{PROMPT_VERSION}.md"
 
 PHONE_MASK = "[phone]"
