@@ -7,7 +7,7 @@
   "category": "accounting & banking",
   "received_at": "2026-09-09T10:00:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 2 — нужен пакет",
    "язык обращения ru — основная аудитория"
@@ -42,7 +42,7 @@
    "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nПо счёту: сопровождаем открытие в местных банках, решение принимает банк, мы готовим комплект и защищаем заявку.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "setup_mainland_package"
    ]
@@ -801,7 +801,7 @@
   "category": "visa",
   "received_at": "2026-08-25T15:45:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 2 — нужен пакет",
    "язык обращения ru — основная аудитория"
@@ -832,7 +832,7 @@
    "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: рабочая виза под ключ, на человека — AED 3 500–7 000 за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "setup_mainland_package",
     "visa_employment"
@@ -938,7 +938,7 @@
   "category": "urgent corporate",
   "received_at": "2026-08-22T17:42:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 4 — нужен пакет",
    "язык обращения ru — основная аудитория"
@@ -971,7 +971,7 @@
    "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "office_mini_year",
     "setup_mainland_package"
@@ -1029,7 +1029,7 @@
   "category": "accounting & banking",
   "received_at": "2026-08-21T16:01:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 2 — нужен пакет",
    "язык обращения ru — основная аудитория"
@@ -1060,7 +1060,7 @@
    "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: бухгалтерское сопровождение — AED 1 500–6 000 в месяц.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "setup_mainland_package",
     "accounting_month"
@@ -1407,7 +1407,7 @@
   "category": "edge case",
   "received_at": "2026-08-13T18:33:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 5 — нужен пакет"
   ],
@@ -1444,7 +1444,7 @@
    "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nК какому сроку нужно, чтобы всё было готово?",
    "language": "ru",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "office_mini_year",
     "setup_mainland_package"
@@ -1460,7 +1460,7 @@
   "category": "urgent corporate",
   "received_at": "2026-08-13T16:33:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 2 — нужен пакет",
    "язык обращения ru — основная аудитория"
@@ -1495,7 +1495,7 @@
    "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "office_mini_year",
     "setup_mainland_package"
@@ -1511,7 +1511,7 @@
   "category": "accounting & banking",
   "received_at": "2026-08-12T15:52:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 2 — нужен пакет",
    "язык обращения ru — основная аудитория"
@@ -1546,7 +1546,7 @@
    "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: бухгалтерское сопровождение — AED 1 500–6 000 в месяц.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "setup_mainland_package",
     "accounting_month"
@@ -1771,7 +1771,7 @@
   "category": "visa",
   "received_at": "2026-08-07T13:27:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 2 — нужен пакет"
   ],
@@ -1805,7 +1805,7 @@
    "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: рабочая виза под ключ, на человека — AED 3 500–7 000 за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "setup_mainland_package",
     "visa_employment"
@@ -1952,7 +1952,7 @@
   "category": "accounting & banking",
   "received_at": "2026-08-03T14:43:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 2 — нужен пакет"
   ],
@@ -1982,7 +1982,7 @@
    "body": "Hello,\nOn the setup: we compare both routes — mainland and free zone; the choice depends on your activity and how many visas you need.\nOn banking: we support account opening with local banks — the bank decides, we prepare and defend the application.\nMarket range: mainland company setup package (licence and government fees) — AED 15 000–35 000 one-off.\nThis is a market range; the final figure depends on your activity and visa count — we will price it exactly after a short call.\nCould you tell us how many people you plan to hire in the first year?",
    "language": "en",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "setup_mainland_package"
    ]
@@ -2158,7 +2158,7 @@
   "category": "urgent corporate",
   "received_at": "2026-07-30T13:59:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 2 — нужен пакет"
   ],
@@ -2192,7 +2192,7 @@
    "body": "Hello,\nOn the office: we run our own business centre in Dubai, with small private offices and flexi-desks that cover the visa quota.\nMarket range: small private office in a business centre — AED 35 000–60 000 per year.\nMarket range: mainland company setup package (licence and government fees) — AED 15 000–35 000 one-off.\nThis is a market range; the final figure depends on your activity and visa count — we will price it exactly after a short call.\nCould you tell us how many people you plan to hire in the first year?",
    "language": "en",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "office_mini_year",
     "setup_mainland_package"
@@ -2208,7 +2208,7 @@
   "category": "accounting & banking",
   "received_at": "2026-07-29T12:18:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 2 — нужен пакет",
    "язык обращения ru — основная аудитория"
@@ -2239,7 +2239,7 @@
    "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nПо счёту: сопровождаем открытие в местных банках, решение принимает банк, мы готовим комплект и защищаем заявку.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "setup_mainland_package"
    ]
@@ -2291,7 +2291,7 @@
   "category": "general setup question",
   "received_at": "2026-07-27T17:56:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 2 — нужен пакет",
    "язык обращения ru — основная аудитория"
@@ -2322,7 +2322,7 @@
    "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "office_mini_year",
     "setup_mainland_package"
@@ -2559,7 +2559,7 @@
   "category": "general setup question",
   "received_at": "2026-07-22T15:31:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 2 — нужен пакет",
    "язык обращения ru — основная аудитория"
@@ -2594,7 +2594,7 @@
    "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: бухгалтерское сопровождение — AED 1 500–6 000 в месяц.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "setup_mainland_package",
     "accounting_month"
@@ -2668,7 +2668,7 @@
   "category": "accounting & banking",
   "received_at": "2026-07-20T11:09:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 2 — нужен пакет",
    "язык обращения ru — основная аудитория"
@@ -2699,7 +2699,7 @@
    "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: бухгалтерское сопровождение — AED 1 500–6 000 в месяц.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "setup_mainland_package",
     "accounting_month"
@@ -2757,7 +2757,7 @@
   "category": "general setup question",
   "received_at": "2026-07-18T16:47:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 2 — нужен пакет",
    "язык обращения ru — основная аудитория"
@@ -2788,7 +2788,7 @@
    "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nПо счёту: сопровождаем открытие в местных банках, решение принимает банк, мы готовим комплект и защищаем заявку.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "setup_mainland_package"
    ]
@@ -2930,7 +2930,7 @@
   "category": "visa",
   "received_at": "2026-07-15T09:44:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 3 — нужен пакет",
    "язык обращения ru — основная аудитория"
@@ -2966,7 +2966,7 @@
    "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — AED 35 000–60 000 в год.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "office_mini_year",
     "setup_mainland_package"
@@ -3019,7 +3019,7 @@
   "category": "general setup question",
   "received_at": "2026-07-13T14:22:00Z",
   "is_synthetic": true,
-  "tier": "HIGH",
+  "tier": "MEDIUM",
   "reasons": [
    "запрошено услуг: 2 — нужен пакет",
    "язык обращения ru — основная аудитория"
@@ -3050,7 +3050,7 @@
    "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — AED 15 000–35 000 разово.\nОриентир по рынку: рабочая виза под ключ, на человека — AED 3 500–7 000 за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nПодскажите, сколько человек планируете нанять в первый год?",
    "language": "ru",
    "outcome": "draft",
-   "needs_human": true,
+   "needs_human": false,
    "used_prices": [
     "setup_mainland_package",
     "visa_employment"
