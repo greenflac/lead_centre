@@ -12,8 +12,12 @@ import type { Evidence, Lead, LeadFacts, Reply, Tier } from "./types";
 // --- constants copied from leadcentre/engine/rubric.py (see DEBT note above) ---
 const URGENT_TIMELINE_DAYS = 30;
 const PACKAGE_MIN_REQUEST_TYPES = 2;
+const TEAM_MIN_HEADCOUNT = 5;
 const LOW_CONFIDENCE = 0.5;
 const TARGET_LANGUAGES = ["ru"];
+// Language alone never makes a lead hot: "HIGH because it is in Russian" is a reason no
+// manager believes. It only counts on top of a substantive signal.
+const LANGUAGE_NEEDS_ANOTHER_SIGNAL = true;
 const LADDER: Tier[] = ["LOW", "MEDIUM", "HIGH"];
 const INBOUND_BASE: Tier = "MEDIUM";
 const INBOUND_BASE_NO_REQUEST: Tier = "LOW";
@@ -173,18 +177,34 @@ export function scoreInbound(text: string, facts: LeadFacts, quotes: string[]): 
   let tier: Tier = facts.request_types.length ? INBOUND_BASE : INBOUND_BASE_NO_REQUEST;
   if (!facts.request_types.length) reasons.push("из текста не извлечён ни один тип запроса");
 
+  let bumps = 0;
   if (facts.timeline_days !== null && facts.timeline_days <= URGENT_TIMELINE_DAYS) {
-    tier = step(tier, 1);
+    bumps += 1;
     reasons.push(`срок ${facts.timeline_days} дн. — не больше ${URGENT_TIMELINE_DAYS}`);
   }
   if (facts.request_types.length >= PACKAGE_MIN_REQUEST_TYPES) {
-    tier = step(tier, 1);
+    bumps += 1;
     reasons.push(`запрошено услуг: ${facts.request_types.length} — нужен пакет`);
   }
-  if (TARGET_LANGUAGES.includes(facts.language)) {
-    tier = step(tier, 1);
-    reasons.push(`язык обращения ${facts.language} — основная аудитория`);
+  if (facts.headcount !== null && facts.headcount >= TEAM_MIN_HEADCOUNT) {
+    bumps += 1;
+    reasons.push(`команда ${facts.headcount} чел. — флекси не закроет визовую квоту`);
   }
+  // Only a figure counts as a budget: the question "how much is it" is not a budget.
+  if (facts.budget_hint && /\d/.test(facts.budget_hint)) {
+    bumps += 1;
+    reasons.push(`назван бюджет: ${facts.budget_hint.slice(0, 40)}`);
+  }
+  if (TARGET_LANGUAGES.includes(facts.language)) {
+    if (bumps || !LANGUAGE_NEEDS_ANOTHER_SIGNAL) {
+      bumps += 1;
+      reasons.push(`язык обращения ${facts.language} — основная аудитория`);
+    } else {
+      reasons.push(`язык обращения ${facts.language}, но других признаков нет`);
+    }
+  }
+  tier = step(tier, bumps);
+
   if (facts.confidence < LOW_CONFIDENCE) {
     if (LADDER.indexOf(tier) > LADDER.indexOf("MEDIUM")) tier = "MEDIUM";
     reasons.push(`уверенность извлечения ${facts.confidence.toFixed(2)} — ниже порога`);

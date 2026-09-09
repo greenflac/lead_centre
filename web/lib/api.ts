@@ -11,12 +11,23 @@ import statsJson from "../mock/stats.json";
 import { ApiError, type Company, type Lead, type LeadStatus, type Stats } from "./types";
 import { collectQuotes, extractFacts, scoreInbound } from "./mockEngine";
 import { draftReply } from "./mockReply";
+import {
+  normalizeCard,
+  normalizeCompany,
+  normalizePostedLead,
+  normalizeStats,
+  unwrap,
+} from "./live";
 
-const BASE = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/$/, "");
+const TARGET = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/$/, "");
 
-export const isMock = BASE === "";
+export const isMock = TARGET === "";
 export const apiMode = isMock ? "mock" : "live";
-export const apiBase = BASE;
+export const apiBase = TARGET;
+
+// Requests go to this origin and Next forwards them (see the rewrite in next.config.mjs):
+// the backend has no CORS headers, and a proxied same-origin call needs none.
+const BASE = isMock ? "" : "/api/backend";
 
 // Simulated latency of the demo pipeline, so the form behaves like the real thing
 // (extract + score + draft take seconds against the LLM). ВЫБРАНО: 900 ms.
@@ -67,7 +78,9 @@ export async function getLeads(): Promise<Lead[]> {
     await sleep(120);
     return mockLeads.map((lead) => ({ ...lead }));
   }
-  return request<Lead[]>("/leads");
+  const payload = await request<unknown>("/leads");
+  const rows = unwrap(payload, "leads");
+  return (Array.isArray(rows) ? rows : []).map(normalizeCard);
 }
 
 export async function getCompanies(): Promise<Company[]> {
@@ -75,7 +88,9 @@ export async function getCompanies(): Promise<Company[]> {
     await sleep(120);
     return companiesJson as Company[];
   }
-  return request<Company[]>("/companies");
+  const payload = await request<unknown>("/companies");
+  const rows = unwrap(payload, "companies");
+  return (Array.isArray(rows) ? rows : []).map(normalizeCompany);
 }
 
 export async function getStats(): Promise<Stats> {
@@ -83,7 +98,9 @@ export async function getStats(): Promise<Stats> {
     await sleep(80);
     return statsJson as Stats;
   }
-  return request<Stats>("/stats");
+  const payload = await request<unknown>("/stats");
+  unwrap(payload, "outcome");
+  return normalizeStats(payload);
 }
 
 export async function postLead(text: string, channel: string): Promise<Lead> {
@@ -113,10 +130,11 @@ export async function postLead(text: string, channel: string): Promise<Lead> {
     mockLeads = [lead, ...mockLeads];
     return { ...lead };
   }
-  return request<Lead>("/leads", {
+  const payload = await request<unknown>("/leads", {
     method: "POST",
     body: JSON.stringify({ text, channel }),
   });
+  return normalizePostedLead(payload, text, channel);
 }
 
 function setMockStatus(id: string, status: LeadStatus, reason: string | null): Lead {
@@ -127,12 +145,21 @@ function setMockStatus(id: string, status: LeadStatus, reason: string | null): L
   return { ...updated };
 }
 
+async function readCard(id: string, status: LeadStatus, reason: string | null): Promise<Lead> {
+  const payload = await request<unknown>(`/leads/${encodeURIComponent(id)}`);
+  const card = normalizeCard(unwrap(payload, "card"));
+  return { ...card, status, decision_reason: reason };
+}
+
 export async function approve(id: string): Promise<Lead> {
   if (isMock) {
     await sleep(250);
     return setMockStatus(id, "approved", null);
   }
-  return request<Lead>(`/leads/${encodeURIComponent(id)}/approve`, { method: "POST" });
+  await request<unknown>(`/leads/${encodeURIComponent(id)}/approve`, { method: "POST" });
+  // The decision endpoints answer with a CRM/eval receipt, not the card, so the card is
+  // re-read: what the dashboard shows next is what the backend actually stored (Е2).
+  return readCard(id, "approved", null);
 }
 
 export async function disagree(id: string, reason: string): Promise<Lead> {
@@ -140,8 +167,9 @@ export async function disagree(id: string, reason: string): Promise<Lead> {
     await sleep(250);
     return setMockStatus(id, "rejected", reason);
   }
-  return request<Lead>(`/leads/${encodeURIComponent(id)}/disagree`, {
+  await request<unknown>(`/leads/${encodeURIComponent(id)}/disagree`, {
     method: "POST",
     body: JSON.stringify({ reason }),
   });
+  return readCard(id, "rejected", reason);
 }
