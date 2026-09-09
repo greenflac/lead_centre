@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { postLead } from "../lib/api";
+import { isMock, postLead } from "../lib/api";
 import { ApiError, type Lead } from "../lib/types";
 import LeadCard from "./LeadCard";
 import { ErrorNotice } from "./ui";
@@ -150,6 +150,13 @@ export default function NewLeadView({
               A request with no evidence quote cannot be raised to HIGH: the engine returns &ldquo;not scored&rdquo;
               instead of guessing.
             </div>
+            {isMock ? (
+              <div className="panel-note" style={{ marginTop: 8 }}>
+                <strong>Mock mode:</strong> no backend is attached, so steps 1–4 run in the browser against the same
+                rubric and the same demo price list. Point <code>NEXT_PUBLIC_API_URL</code> at the API and the Python
+                engine does the work instead.
+              </div>
+            ) : null}
           </aside>
         </div>
       </div>
