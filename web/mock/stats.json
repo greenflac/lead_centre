@@ -1,0 +1,33 @@
+{
+ "generated_at": "2026-09-09T18:00:00Z",
+ "leads": {
+  "checked": 70,
+  "by_tier": {
+   "HIGH": 47,
+   "MEDIUM": 8,
+   "LOW": 15,
+   "INVALID": 0
+  },
+  "violations": 0,
+  "synthetic": 70,
+  "real": 0,
+  "source": "data/inbound_seed.csv"
+ },
+ "companies": {
+  "checked": 60,
+  "by_tier": {
+   "HIGH": 12,
+   "MEDIUM": 48,
+   "LOW": 0,
+   "INVALID": 0
+  },
+  "violations": 0,
+  "skipped": 0,
+  "fetched": 60,
+  "source": "gleif:lapsed [cache]"
+ },
+ "notes": [
+  "Mock mode: data generated from repository files, no backend attached.",
+  "Lead facts come from an offline heuristic, not from the LLM extractor."
+ ]
+}

@@ -35,12 +35,20 @@ from leadcentre.models import InboundMessage, LeadFacts, RequestType
 # --- константы-решения ---
 
 DEFAULT_PROVIDER = "anthropic"           # ВЫБРАНО: основной; переопределяется LLM_PROVIDER
-ANTHROPIC_MODEL = "claude-opus-5"        # ВЫБРАНО: по умолчанию, переопределяется LLM_MODEL
+# ВЫБРАНО по замеру времени и цены на лид (см. HANDOFF): извлечение фактов из короткого
+# сообщения — простая работа, чат обещает ответ за секунды. Дорогая модель включается
+# переменной LLM_MODEL, а не правкой кода.
+ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
+ANTHROPIC_EFFORT = "low"                 # ВЫБРАНО: задача простая; LLM_EFFORT переопределяет
+ANTHROPIC_THINKING = "off"               # ВЫБРАНО: рассуждать тут не над чем; LLM_THINKING
+# ИЗМЕРЕНО 2026-09-09 (см. отчёт): `output_config.effort` и adaptive-мышление принимают
+# модели ниже; Haiku 4.5 на них отвечает 400. Список — то, что проверено прогоном.
+EFFORT_MODELS = ("claude-opus-5", "claude-opus-4-", "claude-sonnet-5", "claude-sonnet-4-6",
+                 "claude-fable-")
 POLLINATIONS_MODEL = "openai"            # ИЗМЕРЕНО: алиас GPT-OSS 20B, GET /models 2026-09-09
 POLLINATIONS_URL = "https://text.pollinations.ai/openai"
 USER_AGENT = "leadcentre/0.1 (+SORP Lead Centre)"
 MAX_TOKENS = 4096                        # ВЫБРАНО: ответ — один JSON-объект, с запасом
-EFFORT = "low"                           # ВЫБРАНО: извлечение из абзаца текста — простая задача
 TIMEOUT_S = 60.0                         # ВЫБРАНО: чат-канал, дольше ждать смысла нет
 MAX_RETRIES = 2                          # ВЫБРАНО: столько же, сколько по умолчанию у SDK
 HEADCOUNT_MIN = 1                        # ВЫБРАНО: «ноль человек» — не факт, а мусор в ответе
@@ -227,16 +235,27 @@ class AnthropicProvider:
         return os.environ.get("LLM_MODEL") or ANTHROPIC_MODEL
 
     def build_body(self, system: str, content: str) -> dict:
-        return {
-            "model": self.model(),
+        model = self.model()
+        supports_effort = model.startswith(EFFORT_MODELS)
+        body = {
+            "model": model,
             "max_tokens": MAX_TOKENS,
             "system": system,
             "messages": [{"role": "user", "content": content}],
-            "output_config": {
-                "effort": EFFORT,
-                "format": {"type": "json_schema", "schema": _schema()},
-            },
+            "output_config": {"format": {"type": "json_schema", "schema": _schema()}},
         }
+        # Уровень усилий и мышление — конфигурация, а не константа в коде. `none`/`off`
+        # означает «не слать параметр вовсе»: у моделей, которые его не принимают,
+        # он не должен появляться в теле даже пустым.
+        effort = (os.environ.get("LLM_EFFORT") or ANTHROPIC_EFFORT).strip().lower()
+        if effort not in ("", "none") and supports_effort:
+            body["output_config"]["effort"] = effort
+        thinking = (os.environ.get("LLM_THINKING") or ANTHROPIC_THINKING).strip().lower()
+        if thinking == "adaptive" and supports_effort:
+            body["thinking"] = {"type": "adaptive"}
+        elif thinking in ("off", "disabled") and supports_effort:
+            body["thinking"] = {"type": "disabled"}
+        return body
 
     def _client(self):
         api_key = os.environ.get("CLAUDE_KEY") or os.environ.get("ANTHROPIC_API_KEY")
