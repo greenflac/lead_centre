@@ -241,3 +241,5 @@ MVP за дни, а не недели; LLM + structured outputs + API + БД + C
    n8n) для пилота; `HANDOVER.md` — черновик в день 3, полный — до пилота.
 7. **Модель:** не-Covered (Opus 5 по умолчанию), чтобы не было обязательного 30-дневного хранения;
    регион Supabase — Frankfurt.
+8. **HubSpot — только в демо (синтетика).** CRM пилота — Postgres на VPS SORP (CONCEPT_v6 §7.1);
+   `CrmSink` получает третью реализацию `PostgresSink`, HubSpot включается отдельным решением владельца.
