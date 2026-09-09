@@ -17,6 +17,11 @@ from leadcentre.sources.gleif import GleifAdapter, to_company
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
 
+def _is_arabic(text: str) -> bool:
+    """Есть ли в строке арабские буквы (диапазон U+0600..U+06FF)."""
+    return any("\u0600" <= ch <= "\u06ff" for ch in text)
+
+
 def test_sample_files_exist_and_hold_60_records_each():
     """Негативный контроль прибора: если кэш пуст, «0 нарушений» ничего не значит (Р2)."""
     for name in ("gleif_ae_lapsed_sample.json", "gleif_ae_fresh_sample.json"):
@@ -87,11 +92,58 @@ def test_english_legal_name_is_kept_as_is():
     assert company.registration_status == "ISSUED"
 
 
-def test_every_cached_company_has_english_looking_name():
-    """Ни одно название в выборке не остаётся арабским: en-вариант есть или legalName латиницей."""
+def test_arabic_names_are_replaced_where_the_source_has_an_english_variant():
+    """Правило 1: арабское legalName подменяется en-вариантом из otherNames.
+
+    ИЗМЕРЕНО по кэшу lapsed (60 записей): 37 legalName арабские, у 30 из них есть
+    en-вариант — ровно эти 30 и подменяются. Негативный контроль (И5): оставшиеся
+    7 арабских имён — не дефект адаптера, а отсутствие en-варианта в источнике;
+    число печатается, а не прячется (Е3).
+    """
+    records = json.loads((DATA_DIR / "gleif_ae_lapsed_sample.json").read_text())
     companies = GleifAdapter(mode="lapsed", offline=True).fetch(60).companies
-    arabic = [c.name for c in companies if any("؀" <= ch <= "ۿ" for ch in c.name)]
-    assert arabic == []
+    assert len(records) == len(companies) == 60
+
+    legal_names = [
+        (r["attributes"]["entity"].get("legalName") or {}).get("name", "") for r in records
+    ]
+    assert len([n for n in legal_names if _is_arabic(n)]) == 37
+
+    swapped = [(c, legal) for c, legal in zip(companies, legal_names) if c.name != legal]
+    assert len(swapped) == 30
+    # подменяются ТОЛЬКО арабские: латинское название остаётся как в реестре
+    assert [legal for _, legal in swapped if not _is_arabic(legal)] == []
+    assert all(not _is_arabic(c.name) for c, _ in swapped)
+
+    left_arabic = [c for c in companies if _is_arabic(c.name)]
+    assert len(left_arabic) == 7
+    for company in left_arabic:
+        record = next(r for r in records if r["attributes"]["lei"] == company.external_id)
+        other = record["attributes"]["entity"].get("otherNames") or []
+        assert not [o for o in other if o.get("language") == "en"], company.external_id
+
+
+def test_latin_legal_name_is_not_replaced_by_another_form_from_other_names():
+    """Правило 2 (негативный контроль подмены): у этой записи legalName латиницей,
+
+    а в otherNames лежит ДРУГАЯ форма того же лица. Менеджер должен видеть название
+    из реестра, иначе он не найдёт компанию. ИЗМЕРЕНО: LEI 9845005RS45YEC9BEB28.
+    """
+    records = json.loads((DATA_DIR / "gleif_ae_lapsed_sample.json").read_text())
+    record = next(r for r in records if r["attributes"]["lei"] == "9845005RS45YEC9BEB28")
+    entity = record["attributes"]["entity"]
+    # предпосылка теста, а не его вывод: в источнике действительно есть en-вариант, и он другой
+    assert entity["legalName"]["name"] == "AL DAHRA HOLDING LIMITED"
+    english_variants = [
+        o["name"] for o in entity.get("otherNames") or [] if o.get("language") == "en"
+    ]
+    assert english_variants == ["AL DAHRA HOLDING SOLE PROPRIETORSHIP LLC"]
+
+    assert to_company(record).name == "AL DAHRA HOLDING LIMITED"
+
+    companies = GleifAdapter(mode="lapsed", offline=True).fetch(60).companies
+    company = next(c for c in companies if c.external_id == "9845005RS45YEC9BEB28")
+    assert company.name == "AL DAHRA HOLDING LIMITED"
 
 
 def test_country_falls_back_to_legal_address():

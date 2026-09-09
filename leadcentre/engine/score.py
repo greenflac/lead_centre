@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import date
 
 from leadcentre.engine import rubric
-from leadcentre.models import AddressType, Company, Evidence, Event, Score, Tier
+from leadcentre.models import AddressType, Company, Event, Evidence, Score, Tier
 
 
 def classify_address(company: Company) -> AddressType:

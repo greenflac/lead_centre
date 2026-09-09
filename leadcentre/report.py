@@ -21,8 +21,10 @@ class RunReport:
         return [
             f"источник: {self.source}",
             f"проверено {self.checked}, {tiers}",
-            f"не смогли оценить (INVALID) {self.by_tier.get('INVALID', 0)}, "
-            f"нарушений инвариантов {self.violations}, пропущено записей {self.skipped}",
+            (
+                f"не смогли оценить (INVALID) {self.by_tier.get('INVALID', 0)}, "
+                f"нарушений инвариантов {self.violations}, пропущено записей {self.skipped}"
+            ),
         ]
 
 

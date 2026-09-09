@@ -78,11 +78,19 @@ def _addresses(entity: dict) -> tuple[dict, tuple[str, ...]]:
 
 
 def _english_name(entity: dict) -> str:
-    """Название латиницей, если оно есть в otherNames, иначе как в реестре."""
+    """Название латиницей.
+
+    Если в реестре название уже латиницей — оставляем его: en-вариант из otherNames бывает
+    другой формой того же лица («… SOLE PROPRIETORSHIP LLC»), и подменять им основное имя
+    значит показывать менеджеру не то название, которое он найдёт в реестре.
+    """
+    legal = (entity.get("legalName") or {}).get("name", "")
+    if any("A" <= ch.upper() <= "Z" for ch in legal):
+        return legal
     for other in entity.get("otherNames") or []:
         if other.get("language") == "en" and other.get("name"):
             return other["name"]
-    return (entity.get("legalName") or {}).get("name", "")
+    return legal
 
 
 class GleifAdapter:

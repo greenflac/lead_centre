@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import argparse
-from datetime import date
+from datetime import UTC, date, datetime
 
 from leadcentre import report
 from leadcentre.engine.score import score
@@ -10,7 +10,7 @@ from leadcentre.sources.gleif import GleifAdapter
 
 
 def discover(mode: str, limit: int, today: date | None = None) -> report.RunReport:
-    today = today or date.today()
+    today = today or datetime.now(UTC).date()
     adapter = GleifAdapter(mode=mode)
     result = adapter.fetch(limit)
     scores = [score(c, today) for c in result.companies]

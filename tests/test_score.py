@@ -137,10 +137,13 @@ def test_renewal_soon_requires_issued_status():
 # --- матрица A x B: все 16 ячеек литералами --------------------------------------
 
 _ADDRESS_INPUT = {
-    AddressType.REGISTRAR: dict(address_lines=ADDR_REGISTRAR, registrar_id="RA999999"),
-    AddressType.BUSINESS_CENTRE: dict(address_lines=ADDR_BUSINESS_CENTRE, registrar_id="RA999999"),
-    AddressType.OWN: dict(address_lines=ADDR_OWN, registrar_id="RA999999"),
-    AddressType.UNKNOWN: dict(address_lines=ADDR_EMPTY, registrar_id="RA999999"),
+    AddressType.REGISTRAR: {"address_lines": ADDR_REGISTRAR, "registrar_id": "RA999999"},
+    AddressType.BUSINESS_CENTRE: {
+        "address_lines": ADDR_BUSINESS_CENTRE,
+        "registrar_id": "RA999999",
+    },
+    AddressType.OWN: {"address_lines": ADDR_OWN, "registrar_id": "RA999999"},
+    AddressType.UNKNOWN: {"address_lines": ADDR_EMPTY, "registrar_id": "RA999999"},
 }
 
 
