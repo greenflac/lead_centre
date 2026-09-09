@@ -76,6 +76,7 @@ class RequestType(str, Enum):
     SETUP = "setup"
     VISA = "visa"
     ACCOUNTING = "accounting"
+    RENEWAL = "renewal"          # продление лицензии, визы, Ejari — повторяющаяся выручка
     BANK = "bank"
     OTHER = "other"
 
