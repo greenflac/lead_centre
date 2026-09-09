@@ -3,10 +3,18 @@ name = "leadcentre"
 version = "0.1.0"
 description = "SORP Lead Centre — one qualification engine for inbound messages and discovered companies"
 requires-python = ">=3.11"
-dependencies = ["anthropic>=1.4"]
+dependencies = [
+    "anthropic>=1.4",   # извлечение фактов и арабские черновики
+    "fastapi>=0.115",   # HTTP-слой: leadcentre/api.py
+    "uvicorn>=0.30",    # запуск API локально и в контейнере
+]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff>=0.6"]
+dev = [
+    "pytest>=8",
+    "ruff>=0.6",
+    "httpx>=0.27",      # нужен fastapi.testclient, без него тесты API не собираются
+]
 
 [build-system]
 requires = ["setuptools>=68"]
