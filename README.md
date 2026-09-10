@@ -53,6 +53,7 @@ Everything else:
 
 ```bash
 make test-ci-selfcheck  # negative control: a network call in that mode must fail
+make check-web          # the dashboard's own instruments: contrast, design system, port vs engine
 make discover           # the same scoring run, against the live GLEIF API
 make mutate             # test run with the bytecode cache cleared (see the defect story)
 python eval/run_eval.py --engine=llm --limit 10 --labels ...  # with live extraction, costs money
@@ -152,7 +153,7 @@ Every number below came out of this repository. The command that produced it is 
 
 | Measurement | Value | Where from |
 |---|---|---|
-| Tests | 621 passed, 0 failed, 0 skipped | `make test-ci` — network is blocked by the machine, not by convention; the ban itself is checked by `make test-ci-selfcheck` |
+| Tests | 666 passed, 0 failed, 0 skipped | `make test-ci` — network is blocked by the machine, not by convention; the ban itself is checked by `make test-ci-selfcheck` |
 | Agreement with the author's labels, Cohen's kappa | 0.838 (po 0.900, pe 0.382, 30 pairs, 27 matched) | `python eval/run_eval.py --labels eval/labels_synthetic.csv` |
 | Stability, 3 runs of the same input | 1.0000 on 70 requests | same run |
 | Negative controls | 6 of 6 | same run |

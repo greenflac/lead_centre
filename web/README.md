@@ -174,9 +174,10 @@ Priority reasons come from the Python engine's own bilingual catalogue
 renders it on demand, so the card shows the English rendering of the very reason the engine
 produced — a translation by the engine, not by the dashboard.
 
-## Two scripts that keep the styling honest
+## Three scripts that keep this half honest
 
-Both print numbers rather than a verdict:
+They print numbers rather than a verdict, and CI runs all three on every push
+(`make check-web`) — an unchecked promise is not a check:
 
 * `python3 web/scripts/contrast.py` — WCAG contrast of every colour pair in both schemes, with
   a negative control on the instrument itself (white on white must give 1.00, black on white
@@ -185,3 +186,7 @@ Both print numbers rather than a verdict:
   grid, radii, shadows and physical (non-logical) properties. 4 sizes (12 / 14 / 15 / 16 px,
   15 px for Arabic blocks only), 2 weights, 0 off-grid spacings, 0 shadows, 0 physical
   properties.
+* `python3 web/scripts/crosscheck.py` — runs the same 10 requests through the Python engine
+  and through this TypeScript port and compares every field of both results, including the
+  reasons rendered in both languages. 144 fields, 144 matched, 0 disagreements, and 4 planted
+  disagreements the instrument has to catch — without them a run of zeros would prove nothing.
