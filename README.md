@@ -20,9 +20,8 @@ services soon — a reason with a date and evidence, not a bought contact list.
 What it is not: not a chatbot instead of a person, not a mailing list, not a replacement
 for the manager. It is preparation for the manager's conversation.
 
-A proactive test project for the SORP Group "AI developer (vibe coding)" vacancy
-(`docs/brief/01_vacancy.md`); it is not a production system and is not connected to any
-SORP data. The inbound requests in the demo are synthetic; the registry is real.
+A proactive test project for the SORP Group "AI developer (vibe coding)" vacancy;
+it is not a production system and is not connected to any SORP data. The inbound requests in the demo are synthetic; the registry is real.
 
 ![Inbox: the request list with priorities and an open card](web/screenshots/01-inbox.png)
 
@@ -135,7 +134,7 @@ Repository map:
 | `prompts/` | versioned prompts (`extract_v1`…`v4`, `translit_v1`), loaded by the code |
 | `web/` | Next.js dashboard, mock mode and live mode (`web/README.md`) |
 | `data/` | 70 synthetic requests, GLEIF samples, demo price list |
-| `docs/` | blueprint, data notes, environment measurements, research |
+| `docs/` | one-pager, demo script, data notes (`docs/README.md`) |
 
 ## The registry side
 
@@ -157,7 +156,7 @@ Every number below came out of this repository. The command that produced it is 
 | Negative controls | 6 of 6 | same run |
 | Priority distribution on the 70-request seed | 13 HIGH / 41 MEDIUM / 16 LOW, 0 invariant violations | the engine over `data/inbound_seed.csv` |
 | Cost per lead over the seed | $0.0033 cold cache, $0.0030 warm | token counts of the whole set, Haiku/Opus prices |
-| Extraction latency | ~5 s per lead (8 edge-case requests, 35.1 s total, Haiku 4.5) | run recorded in `HANDOFF_claude-whitelist-env-vars-3x2zo6.md` |
+| Extraction latency | ~5 s per lead (8 edge-case requests, 35.1 s total, Haiku 4.5) | measured 2026-09-09 on live Haiku 4.5; not reproducible without an API key |
 | Registry volume, UAE | 9 362 legal entities with an LEI, of which 3 937 have a lapsed LEI registration | `docs/data/gleif_schema.md` |
 
 Reading of the agreement number, in the bench's own words (`eval/README.md`): it is
@@ -218,8 +217,8 @@ human on every outgoing action.
 - **No owner labels yet.** `eval/labels.csv` does not exist; the kappa above is against the
   author's stand-in labels. Until the owner fills in the 30-row template, the number says the
   engine follows the rubric, nothing more.
-- **No n8n workflow.** It was planned for day 3 of `docs/BLUEPRINT.md` and did not get built;
-  there is no `n8n/` directory in this repository, and this line is here instead of a claim.
+- **No n8n workflow.** It was planned and did not get built; there is no `n8n/` directory
+  in this repository, and this line is here instead of a claim.
 - **HubSpot is partly unverified.** Company creation was exercised live against the portal
   and the record deleted straight afterwards. Deals return 403 `MISSING_SCOPES` on the
   available token, so deals, contacts and v4 associations are written to the documented API
@@ -307,10 +306,9 @@ only safe if you re-check the fields those examples were holding.
 
 ## Related notes in the repository
 
-- `docs/BLUEPRINT.md` — the plan this was built against, including what was to be cut first.
+- `docs/onepager.md` — one page without jargon: the problem, the answer, what is shown honestly.
 - `docs/data/gleif_schema.md` — registry schema, volumes and the two discovery signals.
 - `docs/data/inbound_seed.md` — how the synthetic set is built and which edges it covers.
 - `eval/README.md` — what each measured number means and where the bench is weak.
 - `web/README.md` — dashboard modes, screenshots, and where the mock data comes from.
-- `HANDOFF_claude-whitelist-env-vars-3x2zo6.md` — the working journal: every run, every
-  measurement, and the failures that did not make it into this file.
+- `docs/loom_script.md` — a four-minute walkthrough over the screens that exist.
