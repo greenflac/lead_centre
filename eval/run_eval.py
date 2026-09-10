@@ -472,7 +472,7 @@ def run(argv: list[str] | None = None) -> int:
         print(scorer_name)
         print("проверено 0, совпало 0, разошлось 0, не смогли "
               f"{len(messages)} — считать приоритет нечем")
-        print("вердикт стенда: НЕ СМОГЛИ ПРОВЕРИТЬ (это не успех — Р2)")
+        print("вердикт стенда: НЕ СМОГЛИ ПРОВЕРИТЬ (это не успех: мерить было нечем)")
         return EXIT_UNMEASURABLE
     engine = Engine(
         mode=args.engine,
@@ -552,7 +552,7 @@ def run(argv: list[str] | None = None) -> int:
             )
 
     print("\n" + "=" * 78)
-    print("ИТОГО по блокам (Р1: три исхода, третий не сворачивается в первые два)")
+    print("ИТОГО по блокам (три исхода; третий не сворачивается в первые два)")
     total = Block("всего")
     for block in blocks:
         print(f"  {block.name:<46} {block.verdict:<20} {block.counts()}")
@@ -567,7 +567,7 @@ def run(argv: list[str] | None = None) -> int:
         print("вердикт стенда: НЕ ГОДНО")
         return EXIT_FAILED
     if "не смогли проверить" in verdicts:
-        print("вердикт стенда: НЕ СМОГЛИ ПРОВЕРИТЬ (это не успех — Р2)")
+        print("вердикт стенда: НЕ СМОГЛИ ПРОВЕРИТЬ (это не успех: мерить было нечем)")
         return EXIT_UNMEASURABLE
     print("вердикт стенда: ГОДНО")
     return EXIT_OK
