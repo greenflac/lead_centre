@@ -188,8 +188,8 @@ const REASON_CATALOGUE: Record<string, ReasonSpec> = {
     en: "no request type could be extracted from the text",
   },
   urgent_timeline: {
-    ru: "срок {days:plural:day} — не больше {limit:plural:day}",
-    en: "needed in {days:plural:day} — urgency window is {limit:plural:day}",
+    ru: "срок {days:plural:day} — внутри горячего окна в {limit:plural:day}",
+    en: "needed in {days:plural:day} — inside the hot window of {limit:plural:day}",
   },
   package_request: {
     ru: "запрошено услуг: {count} — нужен пакет",

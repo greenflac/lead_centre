@@ -87,14 +87,14 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "needed in 14 days — urgency window is 60 days",
+   "needed in 14 days — inside the hot window of 60 days",
    "2 services asked about — this is a package, not a single line item",
    "team of 8 — flexi desk will not cover the visa quota",
    "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "needed in 14 days — urgency window is 60 days",
+    "text": "needed in 14 days — inside the hot window of 60 days",
     "code": "urgent_timeline",
     "quotes": [
      0
@@ -428,14 +428,14 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "needed in 14 days — urgency window is 60 days",
+   "needed in 14 days — inside the hot window of 60 days",
    "2 services asked about — this is a package, not a single line item",
    "team of 15 — flexi desk will not cover the visa quota",
    "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "needed in 14 days — urgency window is 60 days",
+    "text": "needed in 14 days — inside the hot window of 60 days",
     "code": "urgent_timeline",
     "quotes": []
    },
@@ -774,13 +774,13 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "needed in 14 days — urgency window is 60 days",
+   "needed in 14 days — inside the hot window of 60 days",
    "team of 5 — flexi desk will not cover the visa quota",
    "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "needed in 14 days — urgency window is 60 days",
+    "text": "needed in 14 days — inside the hot window of 60 days",
     "code": "urgent_timeline",
     "quotes": [
      0,
@@ -1822,13 +1822,13 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "needed in 14 days — urgency window is 60 days",
+   "needed in 14 days — inside the hot window of 60 days",
    "team of 25 — flexi desk will not cover the visa quota",
    "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "needed in 14 days — urgency window is 60 days",
+    "text": "needed in 14 days — inside the hot window of 60 days",
     "code": "urgent_timeline",
     "quotes": [
      0
@@ -1975,13 +1975,13 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "needed in 45 days — urgency window is 60 days",
+   "needed in 45 days — inside the hot window of 60 days",
    "team of 12 — flexi desk will not cover the visa quota",
    "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "needed in 45 days — urgency window is 60 days",
+    "text": "needed in 45 days — inside the hot window of 60 days",
     "code": "urgent_timeline",
     "quotes": [
      0
@@ -2805,12 +2805,12 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "needed in 14 days — urgency window is 60 days",
+   "needed in 14 days — inside the hot window of 60 days",
    "team of 20 — flexi desk will not cover the visa quota"
   ],
   "reason_links": [
    {
-    "text": "needed in 14 days — urgency window is 60 days",
+    "text": "needed in 14 days — inside the hot window of 60 days",
     "code": "urgent_timeline",
     "quotes": []
    },
@@ -3076,13 +3076,13 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "needed in 21 days — urgency window is 60 days",
+   "needed in 21 days — inside the hot window of 60 days",
    "2 services asked about — this is a package, not a single line item",
    "team of 14 — flexi desk will not cover the visa quota"
   ],
   "reason_links": [
    {
-    "text": "needed in 21 days — urgency window is 60 days",
+    "text": "needed in 21 days — inside the hot window of 60 days",
     "code": "urgent_timeline",
     "quotes": [
      0
@@ -4604,13 +4604,13 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "needed in 14 days — urgency window is 60 days",
+   "needed in 14 days — inside the hot window of 60 days",
    "2 services asked about — this is a package, not a single line item",
    "team of 10 — flexi desk will not cover the visa quota"
   ],
   "reason_links": [
    {
-    "text": "needed in 14 days — urgency window is 60 days",
+    "text": "needed in 14 days — inside the hot window of 60 days",
     "code": "urgent_timeline",
     "quotes": [
      0
