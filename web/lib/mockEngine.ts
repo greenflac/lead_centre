@@ -374,21 +374,26 @@ export function extractFacts(text: string, receivedAt: Date = new Date()): Extra
   }
 
   // budget_hint carries the text itself, not a paraphrase: the rubric looks for a figure
-  // inside it, and a paraphrase would silently swallow that signal.
-  const budgetParts: string[] = [];
+  // inside it, and a paraphrase would silently swallow that signal. It is what the customer
+  // wrote, not the list of markers that fired — a joined list read as debug output on the
+  // card ("150 тысяч; бюджет; AED; дирхам"). A figure, when there is one, displaces
+  // everything else: the figure is what separates a named budget from talk about one.
+  // Mirrors facts_rules.rules_facts; the marker branch stops at the first hit, so the
+  // quotes it leaves behind differ from the figure branch and must not be merged.
+  let budget: string | null = null;
   const money = low.match(MONEY_RE);
   if (money && money.index !== undefined) {
-    const fragment = text.slice(money.index, money.index + money[0].length).trim();
-    budgetParts.push(fragment);
-    quotes.push(fragment);
-  }
-  for (const marker of BUDGET_MARKERS) {
-    if (hit(marker)) {
-      const index = low.indexOf(marker);
-      budgetParts.push(text.slice(index, index + marker.length));
+    budget = text.slice(money.index, money.index + money[0].length).trim();
+    quotes.push(budget);
+  } else {
+    for (const marker of BUDGET_MARKERS) {
+      if (hit(marker)) {
+        const index = low.indexOf(marker);
+        budget = text.slice(index, index + marker.length);
+        break;
+      }
     }
   }
-  const budget = [...new Set(budgetParts)].join("; ") || null;
 
   let isSpam = false;
   for (const marker of SPAM_MARKERS) isSpam = hit(marker) || isSpam;
