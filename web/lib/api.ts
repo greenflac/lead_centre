@@ -9,7 +9,14 @@ import leadsJson from "../mock/leads.json";
 import companiesJson from "../mock/companies.json";
 import statsJson from "../mock/stats.json";
 import { ApiError, type Company, type Lead, type LeadStatus, type Stats } from "./types";
-import { extractFacts, linkReasons, routeForText, scoreInbound } from "./mockEngine";
+import {
+  extractFacts,
+  linkReasons,
+  REASON_UI_LANGUAGE,
+  renderReasons,
+  routeForText,
+  scoreInbound,
+} from "./mockEngine";
 import { draftReply } from "./mockReply";
 import {
   normalizeCard,
@@ -141,8 +148,10 @@ export async function postLead(
       received_at: new Date().toISOString(),
       is_synthetic: true,
       tier: scored.tier,
-      reasons: scored.reasons,
-      reason_links: linkReasons(scored.reasons, quotes, facts),
+      // Причины — на языке интерфейса (английском); текст обращения и черновик остаются
+      // на языке клиента.
+      reasons: renderReasons(scored.reasonItems, REASON_UI_LANGUAGE),
+      reason_links: linkReasons(scored.reasonItems, quotes, facts),
       evidence: scored.evidence,
       violations: scored.violations,
       facts,

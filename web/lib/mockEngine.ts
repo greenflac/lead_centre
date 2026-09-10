@@ -165,6 +165,9 @@ function sentenceAround(text: string, start: number, end: number): string {
 // web/scripts/crosscheck.py сличает отрисовку на ОБОИХ языках.
 export type ReasonLanguage = "ru" | "en";
 
+/** Язык интерфейса дашборда. Причины идут на нём; текст клиента и черновик — нет. */
+export const REASON_UI_LANGUAGE: ReasonLanguage = "en";
+
 export interface ReasonItem {
   code: string;
   params: Record<string, string | number>;
@@ -257,7 +260,7 @@ export function renderReasons(items: ReasonItem[], language: ReasonLanguage): st
   return items.map((item) => renderReason(item, language));
 }
 
-function step(tier: Tier, delta: number): Tier {function step(tier: Tier, delta: number): Tier {
+function step(tier: Tier, delta: number): Tier {
   const index = Math.min(Math.max(LADDER.indexOf(tier) + delta, 0), LADDER.length - 1);
   return LADDER[index];
 }
@@ -407,7 +410,8 @@ export function extractFacts(text: string, receivedAt: Date = new Date()): Extra
 
 export interface ScoreResult {
   tier: Tier;
-  reasons: string[];
+  /** Причины структурно: код плюс параметры. Строки получают отрисовкой (renderReasons). */
+  reasonItems: ReasonItem[];
   evidence: Evidence[];
   violations: string[];
 }
@@ -415,76 +419,80 @@ export interface ScoreResult {
 /**
  * Which quotes prove which reason. Same method as web/scripts/gen_mock.py: the extractor is
  * run over each quote, and a quote counts as proof when the same fact follows from it alone
- * — no second copy of the markers (Е1). Reasons that cannot have a quote (language of the
- * whole text, extraction confidence) get an empty list, and that third outcome is not
- * folded into "no quote found" (Р1).
+ * — no second copy of the markers (Е1). Связь идёт по КОДУ причины, а не по её тексту:
+ * текст двуязычный и переписывается, код — контракт. Reasons that cannot have a quote
+ * (language of the whole text, extraction confidence) get an empty list, and that third
+ * outcome is not folded into "no quote found" (Р1).
  */
 export function linkReasons(
-  reasons: string[],
+  items: ReasonItem[],
   quotes: string[],
   facts: LeadFacts,
   receivedAt: Date = new Date(),
-): { text: string; quotes: number[] }[] {
+): { text: string; code: string; quotes: number[] }[] {
   const perQuote = quotes.map((quote) => extractFacts(quote, receivedAt).facts);
   const pick = (test: (f: LeadFacts) => boolean) =>
     perQuote.map((f, index) => (test(f) ? index : -1)).filter((index) => index >= 0);
-  return reasons.map((text) => {
-    if (text.startsWith("срок ")) return { text, quotes: pick((f) => f.timeline_days === facts.timeline_days) };
-    if (text.startsWith("запрошено услуг")) return { text, quotes: pick((f) => f.request_types.length > 0) };
-    if (text.startsWith("команда ")) return { text, quotes: pick((f) => f.headcount === facts.headcount) };
-    if (text.startsWith("назван бюджет")) return { text, quotes: pick((f) => Boolean(f.budget_hint)) };
-    if (text.startsWith("обращение помечено как спам")) return { text, quotes: pick((f) => f.is_spam) };
-    return { text, quotes: [] };
-  });
+  const byCode: Record<string, (f: LeadFacts) => boolean> = {
+    urgent_timeline: (f) => f.timeline_days === facts.timeline_days,
+    package_request: (f) => f.request_types.length > 0,
+    team_over_flexi_quota: (f) => f.headcount === facts.headcount,
+    budget_named: (f) => Boolean(f.budget_hint),
+    spam_or_off_topic: (f) => f.is_spam,
+  };
+  return items.map((item) => ({
+    text: renderReason(item, REASON_UI_LANGUAGE),
+    code: item.code,
+    quotes: byCode[item.code] ? pick(byCode[item.code]) : [],
+  }));
 }
 
 /** Port of score.score_inbound. Three outcomes: INVALID is never folded into LOW. */
 export function scoreInbound(text: string, facts: LeadFacts, quotes: string[]): ScoreResult {
-  const reasons: string[] = [];
+  const reasons: ReasonItem[] = [];
   const violations: string[] = [];
   const evidence: Evidence[] = quotes.map((value) => ({ kind: "quote", value }));
 
   if (facts.is_spam) {
     return {
       tier: "LOW",
-      reasons: ["обращение помечено как спам или не по теме"],
+      reasonItems: [{ code: "spam_or_off_topic", params: {} }],
       evidence,
       violations: [],
     };
   }
 
   let tier: Tier = facts.request_types.length ? INBOUND_BASE : INBOUND_BASE_NO_REQUEST;
-  if (!facts.request_types.length) reasons.push("из текста не извлечён ни один тип запроса");
+  if (!facts.request_types.length) reasons.push({ code: "no_request_type", params: {} });
 
   let substantive = 0;
   if (facts.timeline_days !== null && facts.timeline_days <= URGENT_TIMELINE_DAYS) {
     substantive += 1;
-    reasons.push(
-      `срок ${pluralRu(facts.timeline_days, "day")} — не больше ${pluralRu(URGENT_TIMELINE_DAYS, "day")}`,
-    );
+    reasons.push({
+      code: "urgent_timeline",
+      params: { days: facts.timeline_days, limit: URGENT_TIMELINE_DAYS },
+    });
   }
   if (facts.request_types.length >= PACKAGE_MIN_REQUEST_TYPES) {
     substantive += 1;
-    reasons.push(`запрошено услуг: ${facts.request_types.length} — нужен пакет`);
+    reasons.push({ code: "package_request", params: { count: facts.request_types.length } });
   }
   if (facts.headcount !== null && facts.headcount >= TEAM_MIN_HEADCOUNT) {
     substantive += 1;
-    reasons.push(
-      `команда ${pluralRu(facts.headcount, "person")} — флекси не закроет визовую квоту`,
-    );
+    reasons.push({ code: "team_over_flexi_quota", params: { headcount: facts.headcount } });
   }
   // Only a figure counts as a budget: "how much does it cost" is a question, not a budget.
   if (facts.budget_hint && /\d/.test(facts.budget_hint)) {
     substantive += 1;
-    reasons.push(`назван бюджет: ${facts.budget_hint.slice(0, 40)}`);
+    reasons.push({ code: "budget_named", params: { budget: facts.budget_hint.slice(0, 40) } });
   }
 
   // Language is a garnish, never a reason on its own.
   if (TARGET_LANGUAGES.includes(facts.language)) {
     if (substantive || !LANGUAGE_NEEDS_ANOTHER_SIGNAL) {
-      reasons.push(`язык обращения ${facts.language} — основная аудитория`);
+      reasons.push({ code: "target_language", params: { language: facts.language } });
     } else {
-      reasons.push(`язык обращения ${facts.language}, но других признаков нет`);
+      reasons.push({ code: "target_language_alone", params: { language: facts.language } });
     }
   }
 
@@ -496,14 +504,15 @@ export function scoreInbound(text: string, facts: LeadFacts, quotes: string[]): 
 
   if (facts.confidence < LOW_CONFIDENCE) {
     if (LADDER.indexOf(tier) > LADDER.indexOf("MEDIUM")) tier = "MEDIUM";
-    reasons.push(
-      `уверенность извлечения ${facts.confidence.toFixed(2)} — ниже порога ${LOW_CONFIDENCE.toFixed(2)}`,
-    );
+    reasons.push({
+      code: "low_confidence",
+      params: { confidence: facts.confidence, threshold: LOW_CONFIDENCE },
+    });
   }
 
   if (tier === "HIGH" && evidence.length === 0) violations.push("HIGH без цитаты из обращения");
   if (tier === "HIGH" && !text.trim()) violations.push("HIGH на пустом тексте обращения");
   if (violations.length) tier = "INVALID";
 
-  return { tier, reasons, evidence, violations };
+  return { tier, reasonItems: reasons, evidence, violations };
 }

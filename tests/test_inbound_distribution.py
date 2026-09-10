@@ -153,7 +153,7 @@ def test_urgency_fires_on_8_of_the_15_extracted_deadlines(scores, facts):
     ИЗМЕРЕНО 2026-09-09 при пороге 60: 15 сроков извлечено, 8 сработали, 7 нет.
     """
     with_deadline = [f for f in facts if f.timeline_days is not None]
-    fired = [s for s in scores if any(r.startswith("срок ") for r in s.reasons)]
+    fired = [s for s in scores if has_reason(s, ReasonCode.URGENT_TIMELINE)]
     assert len(with_deadline) == 15
     assert len(fired) == 8
     assert len(with_deadline) - len(fired) == 7
