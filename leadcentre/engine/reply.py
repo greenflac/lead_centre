@@ -510,7 +510,6 @@ def _questions_draft(language: str, needs_human: bool) -> Reply:
 ARABIC_MODEL = "claude-opus-5"
 ARABIC_MAX_TOKENS = 1200
 ARABIC_EFFORT = "low"
-# ANTHROPIC_API_KEY не задан.
 ARABIC_KEY_ENV = "CLAUDE_KEY"
 
 # Пакет anthropic объявлен в pyproject.toml, но импортируется локально в функции:
@@ -616,7 +615,7 @@ def build_arabic_prompt(
 def call_claude_arabic(prompt: str) -> tuple[str, dict[str, int]]:
     """Единственное место, где движок ходит в сеть. Возвращает текст и расход токенов.
 
-    Ключ берётся из CLAUDE_KEY явно: имени ANTHROPIC_API_KEY в среде нет, а молчаливое
+    Ключ берётся из CLAUDE_KEY одним явным именем, без запасных: молчаливое
     «клиент не нашёл ключ» неотличимо от «модель отказала».
     """
     api_key = os.environ.get(ARABIC_KEY_ENV)
