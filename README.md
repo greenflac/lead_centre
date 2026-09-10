@@ -226,6 +226,37 @@ human on every outgoing action.
 - **The API sends no CORS headers** (measured), so the dashboard proxies live calls through
   its own origin instead. Adding the middleware is a decision for whoever owns the API.
 
+## Next step: risk signals on a company lead
+
+**Not in the code.** No module, no adapter, no route, no test — a direction, not functionality.
+
+Why it is next for SORP: the firm registers companies and opens bank accounts for them, and UAE
+banks and regulators check beneficial owners, licence status and group structure before an
+account exists. A client who fails those checks costs more than a lead nobody worked, so "who is
+this company" belongs next to "what does this customer want" — all the engine reads today.
+
+What it would produce: public signals gathered before a manager invests time — presence on
+sanctions and restrictive-measure lists, licence and registration status, ownership structure and
+links to parent companies, age and activity of the legal entity. GLEIF already carries the group
+links as `direct-parent` / `ultimate-parent` relationships on records this repository fetches; no
+code reads them yet. The output is not "good" or "bad" but a list of signals, each with its
+source and date — the shape priority has now: a reason plus its evidence.
+
+It goes inside the existing construction, not beside it: the same engine and rubric-as-data; each
+list or registry is another implementation of the `SourceAdapter` protocol
+(`leadcentre/sources/base.py`), as GLEIF is; the same three outcomes, `hit` / `no hit` /
+`could not check`, printed as `checked N, hits M, could not K`; the same invariant — no citable
+source and date, no signal, as no quote means no HIGH.
+
+Obstacles first. Open sanctions data differs in coverage and freshness, and some aggregated lists
+are licensed for non-commercial use only, so the licence decides what may be embedded at all.
+Matching by name without a shared identifier produces false hits — Gulf names repeat and
+transliterate several ways — so only a match on LEI or licence number would count as certain and
+the rest stays a candidate for a human. A statement about a company carries legal weight, which
+keeps the output a signal for a manager's decision, never an automatic refusal. No timeline and
+no accuracy figure is claimed here, and no data provider is named: the candidate sources are
+unreachable from this environment (network policy), and an unverified name is an invention.
+
 ## One defect, in full
 
 **Symptom.** On a live run, short price questions were coming out HIGH. `prc-01` — the whole
