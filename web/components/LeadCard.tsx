@@ -195,6 +195,20 @@ export default function LeadCard({
             </dl>
           </div>
 
+          <div className="section">
+            <div className="section-title-row">
+              <span className="section-title">Evidence — quotes from the request</span>
+              {lead.evidence.length > EVIDENCE_SHOWN ? (
+                <button className="btn-text btn" onClick={() => setAllEvidence((v) => !v)}>
+                  {allEvidence ? "show fewer" : `show all ${lead.evidence.length}`}
+                </button>
+              ) : null}
+            </div>
+            <EvidenceList
+              items={allEvidence ? lead.evidence : lead.evidence.slice(0, EVIDENCE_SHOWN)}
+            />
+          </div>
+
           {/* Инженерное — под одно раскрытие (владелец, 2026-09-10): в основном потоке
               остаётся то, по чему менеджер принимает решение по лиду. Данные не выброшены:
               они честные и нужны техническому зрителю, просто в один клик от карточки. */}
@@ -311,20 +325,6 @@ export default function LeadCard({
                 </ul>
               </div>
             ) : null}
-          </div>
-
-          <div className="section">
-            <div className="section-title-row">
-              <span className="section-title">Evidence — quotes from the request</span>
-              {lead.evidence.length > EVIDENCE_SHOWN ? (
-                <button className="btn-text btn" onClick={() => setAllEvidence((v) => !v)}>
-                  {allEvidence ? "show fewer" : `all ${lead.evidence.length}`}
-                </button>
-              ) : null}
-            </div>
-            <EvidenceList
-              items={allEvidence ? lead.evidence : lead.evidence.slice(0, EVIDENCE_SHOWN)}
-            />
           </div>
 
           <div className="section">
