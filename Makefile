@@ -18,10 +18,13 @@ fetch: ## обновить кэш из GLEIF
 test-ci: ## тесты с машинным запретом сети (Т4)
 	PYTHONPATH=ci:. OFFLINE=1 python -m pytest -p no:cacheprovider
 
-test-ci-selfcheck: ## негативный контроль запрета: обращение к сети обязано упасть
+test-ci-selfcheck: ## негативный контроль запрета: сеть обязана упасть ИМЕННО от запрета
 	@PYTHONPATH=ci python -c "import urllib.request as u; u.urlopen('https://api.gleif.org/', timeout=5)" \
-		2>/dev/null && (echo "ПРОВАЛ: сеть прошла, запрет не работает"; exit 1) \
-		|| echo "запрет сети работает"
+		2>&1 | grep -q "NetworkInTests" \
+		&& echo "запрет сети работает" \
+		|| (echo "ПРОВАЛ: сеть либо прошла, либо упала не от запрета"; exit 1)
+	@PYTHONPATH=ci python -c "import ci.sitecustomize" 2>/dev/null \
+		|| (echo "ПРОВАЛ: модуль запрета не импортируется"; exit 1)
 
 mutate: ## прогон мутации без ловушки кэша байт-кода
 	find . -name __pycache__ -type d -exec rm -rf {} + 2>/dev/null || true

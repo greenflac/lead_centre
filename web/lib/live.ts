@@ -116,7 +116,12 @@ export function normalizeCard(value: unknown): Lead {
     tier: scored ? asTier(score.tier) : "INVALID",
     ...(scored ? uiReasons(score) : { reasons: [], reasons_language: "en", reasons_note: "" }),
     evidence: asEvidence(score.evidence),
-    violations: scored ? asStrings(score.violations) : ["карточка без оценки: score отсутствует"],
+    // Служебный текст английского интерфейса пишется здесь по-английски: русская строка
+    // на карточке читается как недоделка, а не как объяснение (та же причина, по которой
+    // движок перевёл Reply.notice).
+    violations: scored
+      ? asStrings(score.violations)
+      : ["not scored: the backend returned this lead without a score"],
     facts,
     facts_source: asString(asObject(score.usage).provider, asString(score.model, "llm")),
     reply: normalizeReply(replyRaw),

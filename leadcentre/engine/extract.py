@@ -5,24 +5,24 @@
 `pollinations` (OpenAI-совместимый шлюз). Демо не должно останавливаться из-за того, у кого
 из провайдеров кончились деньги.
 
-Три исхода вместо двух (Р1):
-  * `LeadFacts` — извлекли, факты годные (в т.ч. `is_spam=True` — это тоже результат);
+Исходы ровно три, и третий не сворачивается в первые два:
+  * `LeadFacts` — извлекли, факты годные (в том числе `is_spam=True` — это тоже результат);
   * `LeadFacts` из режима OFFLINE — детерминированная заглушка, `confidence=0.0`;
-  * исключение — не смогли извлечь; `ProviderBudgetError` («кончились деньги/бюджет»)
+  * исключение — извлечь не смогли; `ProviderBudgetError` («кончились деньги/бюджет»)
     отделён от прочих `ExtractionError`, потому что чинится он не кодом, а кошельком.
 Пустой `LeadFacts` вместо ошибки не возвращается никогда.
 
-Что общее для всех провайдеров и потому лежит в конвейере, а не в провайдере:
+Общее для всех провайдеров лежит в конвейере, а не в провайдере:
   * вырезание телефонов и почты (`scrub_pii`) — свойство конвейера, не провайдера;
-  * валидация ответа и сборка `LeadFacts` (`parse_facts`) — одно знание, одно место (Е1);
-  * `has_contact` считает код по факту вырезанного, а не модель (Е2): модель контактов
+  * валидация ответа и сборка `LeadFacts` (`parse_facts`) — одна на всех провайдеров;
+  * `has_contact` определяет код по факту вырезанного, а не модель: контактов она
     не видит и видеть не должна.
 
 Причина маршрута (`Route.reason`, `Extraction.route_reason`) текстом здесь не собирается:
-модуль называет код и параметры, формулировки на обоих языках живут в `engine/reasons.py`
-(Е1). Строка остаётся русской, как её читают отчёты и хранилище, но помнит свой код,
-поэтому интерфейс берёт английский через `Extraction.route_reason_in(Language.EN)`, а не
-держит собственный перевод.
+модуль называет код и параметры, формулировки на обоих языках живут в `engine/reasons.py`.
+Строка остаётся русской, как её читают отчёты и хранилище, но помнит свой код, поэтому
+интерфейс берёт английский через `Extraction.route_reason_in(Language.EN)`, а не держит
+собственный перевод.
 """
 from __future__ import annotations
 
@@ -49,37 +49,37 @@ from leadcentre.models import InboundMessage, LeadFacts, RequestType
 
 # --- константы-решения ---
 
-DEFAULT_PROVIDER = "anthropic"           # ВЫБРАНО: основной; переопределяется LLM_PROVIDER
-# ВЫБРАНО по замеру времени и цены на лид (см. HANDOFF): извлечение фактов из короткого
-# сообщения — простая работа, чат обещает ответ за секунды. Дорогая модель включается
+DEFAULT_PROVIDER = "anthropic"           # переопределяется LLM_PROVIDER
+# Извлечение фактов из короткого сообщения — простая работа, а чат-канал обещает ответ
+# за секунды: по времени и цене на лид выигрывает младшая модель. Старшая включается
 # переменной LLM_MODEL, а не правкой кода.
 ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
-ANTHROPIC_EFFORT = "low"                 # ВЫБРАНО: задача простая; LLM_EFFORT переопределяет
-ANTHROPIC_THINKING = "off"               # ВЫБРАНО: рассуждать тут не над чем; LLM_THINKING
-# ВЫБРАНО координатором 2026-09-09. Обоснование: медиана длины обращения в
-# data/inbound_seed.csv — 98 символов, а ошибки Haiku на относительных датах («с 20 числа»)
-# наблюдались на длинных простынях (edge-03 — 1332 символа). Длина текста, начиная с
-# которой обращение уходит на дорогую модель; ровно LONG_MESSAGE_CHARS — ещё короткое.
+ANTHROPIC_EFFORT = "low"                 # задача простая; переопределяется LLM_EFFORT
+ANTHROPIC_THINKING = "off"               # рассуждать не над чем; переопределяется LLM_THINKING
+# Длина текста, начиная с которой обращение уходит на старшую модель; ровно
+# LONG_MESSAGE_CHARS — ещё короткое. Медиана длины обращения в наборе — около 100 символов,
+# а младшая модель путается в относительных датах («с 20 числа») именно на длинных
+# простынях, которые начинаются заметно дальше медианы.
 LONG_MESSAGE_CHARS = 600
-LONG_MODEL = "claude-opus-5"             # ВЫБРАНО: ИЗМЕРЕНО стабилен на edge-03 (7,7,7)
-# ИЗМЕРЕНО 2026-09-09 (см. отчёт): `output_config.effort` и adaptive-мышление принимают
-# модели ниже; Haiku 4.5 на них отвечает 400. Список — то, что проверено прогоном.
+LONG_MODEL = "claude-opus-5"             # на длинных обращениях даёт воспроизводимый разбор
+# `output_config.effort` и adaptive-мышление принимают только перечисленные модели,
+# остальные отвечают на эти параметры 400. Список ведётся по факту проверки запросом.
 EFFORT_MODELS = ("claude-opus-5", "claude-opus-4-", "claude-sonnet-5", "claude-sonnet-4-6",
                  "claude-fable-")
-POLLINATIONS_MODEL = "openai"            # ИЗМЕРЕНО: алиас GPT-OSS 20B, GET /models 2026-09-09
+POLLINATIONS_MODEL = "openai"            # алиас GPT-OSS 20B в выдаче GET /models шлюза
 POLLINATIONS_URL = "https://text.pollinations.ai/openai"
 USER_AGENT = "leadcentre/0.1 (+SORP Lead Centre)"
-MAX_TOKENS = 4096                        # ВЫБРАНО: ответ — один JSON-объект, с запасом
-TIMEOUT_S = 60.0                         # ВЫБРАНО: чат-канал, дольше ждать смысла нет
-MAX_RETRIES = 2                          # ВЫБРАНО: столько же, сколько по умолчанию у SDK
-HEADCOUNT_MIN = 1                        # ВЫБРАНО: «ноль человек» — не факт, а мусор в ответе
-TIMELINE_MIN = 0                         # ВЫБРАНО: срок в прошлом модель придумала
-MIN_PHONE_DIGITS = 9                     # ВЫБРАНО: короче — это не телефон, а «8 человек» или дата
-# ВЫБРАНО: доля второго алфавита, ниже которой это не «mixed», а имя собственное
-# латиницей внутри русской фразы (TECOM, IFZA).
+MAX_TOKENS = 4096                        # ответ — один JSON-объект, взято с запасом
+TIMEOUT_S = 60.0                         # чат-канал, дольше ждать смысла нет
+MAX_RETRIES = 2                          # столько же, сколько по умолчанию у SDK
+HEADCOUNT_MIN = 1                        # «ноль человек» — не факт, а мусор в ответе
+TIMELINE_MIN = 0                         # срок в прошлом модель придумала
+MIN_PHONE_DIGITS = 9                     # короче — не телефон, а «8 человек» или дата
+# Доля второго алфавита, ниже которой это не «mixed», а имя собственное латиницей
+# внутри русской фразы (TECOM, IFZA).
 MIXED_SHARE = 0.2
 
-# v3: timeline_days считается от даты обращения. Прежние версии лежат рядом для сравнения.
+# Версия в имени файла: прежние промпты лежат рядом и остаются доступны для сравнения.
 PROMPT_VERSION = "extract_v4"
 PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / f"{PROMPT_VERSION}.md"
 
@@ -93,7 +93,7 @@ FENCE_RE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$")
 
 
 class ExtractionError(RuntimeError):
-    """Третий исход: извлечь не смогли. Не сворачивается в пустой LeadFacts (Р1)."""
+    """Извлечь не смогли. В пустой LeadFacts не сворачивается: это отдельный исход."""
 
 
 class ProviderBudgetError(ExtractionError):
@@ -106,7 +106,7 @@ class ProviderBudgetError(ExtractionError):
 
 @dataclass(frozen=True)
 class Scrubbed:
-    """Текст без персональных данных плюс числа, а не флаг (Е3/Р2)."""
+    """Текст без персональных данных и счётчики вырезанного — числами, а не флагом."""
 
     text: str
     phones: int
@@ -152,16 +152,19 @@ class Extraction:
     def route_reason_in(self, language: Language = DEFAULT_LANGUAGE) -> str:
         """Причина маршрута на нужном языке — это берёт интерфейс.
 
-        Три исхода, а не два (Р1): строка помнит свой код — отрисуем на любом языке;
-        причины нет вовсе (не anthropic) — пусто; строка пришла без кода (поднята из
+        Исходов три: строка помнит свой код — отрисовывается на любом языке; причины нет
+        вовсе (провайдер не anthropic) — пусто; строка пришла без кода (поднята из
         хранилища) — на другой язык её не отрисовать, и это `ReasonRenderError`, а не
         молчаливая подмена русским текстом.
         """
         return text_in(self.route_reason, language)
 
     def served_by(self) -> str:
-        """Одной строкой: чем фактически обслужен лид. Имя модели берётся из ответа,
-        а не из намерения (Е2) — если API подменил модель, видно будет это."""
+        """Одной строкой: чем фактически обслужен лид.
+
+        Имя модели берётся из ответа API, а не из намерения: подмену модели на стороне
+        провайдера видно в отчёте.
+        """
         cache = ""
         if self.cache_read_tokens or self.cache_write_tokens:
             cache = (f", кэш: прочитано {self.cache_read_tokens}, "
@@ -201,11 +204,11 @@ def scrub_pii(text: str) -> Scrubbed:
     return Scrubbed(text=without_phone, phones=phones, emails=emails)
 
 
-# --- схема ответа: поле в поле с LeadFacts (Е1) ---
+# --- схема ответа: поле в поле с LeadFacts ---
 
 
 def _schema() -> dict:
-    """JSON-схема ответа модели. Одно знание — одно место: поля берутся из LeadFacts."""
+    """JSON-схема ответа модели; набор полей повторяет LeadFacts."""
     return {
         "type": "object",
         "properties": {
@@ -214,9 +217,9 @@ def _schema() -> dict:
                 "items": {"type": "string", "enum": [t.value for t in RequestType]},
             },
             "jurisdiction_hint": {"type": ["string", "null"]},
-            # ИЗМЕРЕНО 2026-09-09: `minimum`/`maximum` structured outputs не принимает —
-            # 400 «For 'integer' type, property 'minimum' is not supported». Границы держит
-            # parse_facts после разбора (см. HEADCOUNT_MIN / TIMELINE_MIN), а не схема.
+            # Structured outputs не принимает `minimum`/`maximum` у целых полей и отвечает
+            # на них 400, поэтому границы держит parse_facts после разбора
+            # (HEADCOUNT_MIN / TIMELINE_MIN), а не схема.
             "headcount": {"type": ["integer", "null"]},
             "timeline_days": {"type": ["integer", "null"]},
             "budget_hint": {"type": ["string", "null"]},
@@ -243,7 +246,7 @@ def _schema() -> dict:
 
 
 def load_prompt() -> str:
-    """Промпт живёт файлом с версией в имени; в коде — только загрузка (Е1)."""
+    """Читает промпт: он живёт файлом с версией в имени, в коде — только загрузка."""
     try:
         return PROMPT_PATH.read_text(encoding="utf-8")
     except OSError as exc:
@@ -252,8 +255,8 @@ def load_prompt() -> str:
 
 def user_content(message: InboundMessage, scrubbed: Scrubbed) -> str:
     """Пользовательская часть запроса. Текст сюда попадает только после `scrub_pii`."""
-    # Дата обращения — отдельной явной строкой: без неё модель считала «с 20 числа»
-    # относительно чего придётся, и timeline_days плясал между прогонами (ИЗМЕРЕНО).
+    # Дата обращения идёт явной строкой: без опоры модель отсчитывает «с 20 числа»
+    # от произвольного дня, и timeline_days перестаёт быть воспроизводимым.
     return (
         f"Обращение получено: {message.received_at.isoformat()}\n"
         f"Канал: {message.channel}\n"
@@ -276,7 +279,7 @@ class Route:
 
 
 def _route(model: str, effort: str, thinking: str, item: RouteReason) -> Route:
-    """Собрать маршрут: текст причины отрисовывает каталог, и только он (Е1)."""
+    """Собирает маршрут; текст причины отрисовывает каталог reasons.py, и только он."""
     return Route(model, effort, thinking, rendered(item), item)
 
 
@@ -300,8 +303,11 @@ def route(message: InboundMessage) -> Route:
 
 
 class Provider(Protocol):
-    """Сменный адаптер модели. Тело запроса и разбор ответа — его дело; вырезание ПД,
-    валидация фактов и сборка LeadFacts — дело конвейера, одинаковое для всех."""
+    """Сменный адаптер модели.
+
+    Тело запроса и разбор ответа — дело адаптера; вырезание персональных данных,
+    валидация фактов и сборка LeadFacts — дело конвейера, одинаковое для всех.
+    """
 
     name: str
 
@@ -315,15 +321,15 @@ class Provider(Protocol):
 def anthropic_client():
     """Клиент Anthropic. Ключ — из CLAUDE_KEY, запасной ANTHROPIC_API_KEY.
 
-    Публичная функция, потому что этим же клиентом ходит translit.py: два места,
-    читающие ключ по-своему, — это второй способ узнать известное (Е1).
+    Функция публичная, потому что этим же клиентом ходит translit.py: ключ читается
+    в одном месте, иначе два способа его получить неизбежно разъедутся.
     """
     api_key = os.environ.get("CLAUDE_KEY") or os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise ExtractionError("нет ключа: ни CLAUDE_KEY, ни ANTHROPIC_API_KEY не заданы")
     try:
         import anthropic
-    except ImportError as exc:  # П2: дешёвая проверка раньше сетевой
+    except ImportError as exc:  # отсутствие пакета ловится до похода в сеть
         raise ExtractionError("нет пакета anthropic: pip install anthropic") from exc
     return anthropic.Anthropic(api_key=api_key, timeout=TIMEOUT_S, max_retries=MAX_RETRIES)
 
@@ -368,12 +374,11 @@ class AnthropicProvider:
             "max_tokens": MAX_TOKENS,
             "system": system,
             "messages": [{"role": "user", "content": content}],
-            # Системный промпт и схема одинаковы для каждого лида — кэшируем префикс.
-            # Волатильное (текст обращения, дата) идёт после него, в messages.
-            # ИЗМЕРЕНО 2026-09-09: на Opus 5 префикс кэшируется (3162 токена, второй запрос
-            # $0.0223 → $0.0041); на Haiku 4.5 при промпте ~2.9k токенов кэш молча не
-            # включается — префикс короче порога модели. Параметр оставлен: он безвреден,
-            # а счётчики cache_read/cache_write в Extraction показывают, сработал ли он.
+            # Системный промпт и схема одинаковы для каждого лида, поэтому префикс
+            # кэшируется, а волатильное (текст обращения, дата) идёт после него в messages.
+            # У моделей с высоким порогом кэширования префикс до него не дотягивает и кэш
+            # молча не включается; параметр безвреден, а сработал ли он, видно по счётчикам
+            # cache_read/cache_write в Extraction.
             "cache_control": {"type": "ephemeral"},
             "output_config": {"format": {"type": "json_schema", "schema": _schema()}},
         }
@@ -439,7 +444,7 @@ class OpenAICompatibleProvider:
         return {
             "model": self.model(),
             "max_tokens": MAX_TOKENS,
-            "temperature": 0,     # ВЫБРАНО: извлечение фактов, разнообразие тут вредно
+            "temperature": 0,     # извлечение фактов: разнообразие ответов тут вредно
             "response_format": {"type": "json_object"},
             "messages": [
                 {"role": "system", "content": system + schema_note},
@@ -457,8 +462,8 @@ class OpenAICompatibleProvider:
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
-                # ИЗМЕРЕНО 2026-09-09: без своего User-Agent шлюз за Cloudflare отдаёт
-                # 403 «error code: 1010» на дефолтный python-urllib/*.
+                # Шлюз стоит за Cloudflare и отвечает 403 на дефолтный python-urllib:
+                # собственный User-Agent обязателен.
                 "User-Agent": USER_AGENT,
             },
             method="POST",
@@ -531,11 +536,11 @@ def get_provider(name: str | None = None) -> Provider:
 def build_request_body(
     message: InboundMessage, provider: Provider | None = None
 ) -> tuple[dict, Scrubbed]:
-    """Тело запроса к выбранному провайдеру. Отдельной функцией — чтобы негативный контроль
-    по телефону проверял ровно то, что уходит в сеть, а не его пересказ (И5).
+    """Собирает тело запроса к выбранному провайдеру и возвращает его вместе с Scrubbed.
 
-    Вырезание ПД стоит здесь, а не в провайдере: провайдер физически не может получить
-    неочищенный текст, каким бы он ни был.
+    Вынесено отдельной функцией, чтобы тест проверял ровно то, что уходит в сеть.
+    Вырезание персональных данных стоит здесь, а не в провайдере: неочищенный текст
+    до провайдера физически не доходит.
     """
     provider = provider or get_provider()
     scrubbed = scrub_pii(message.text)
@@ -544,10 +549,11 @@ def build_request_body(
 
 
 def parse_facts(text: str, scrubbed: Scrubbed) -> tuple[LeadFacts, int]:
-    """Текст ответа любого провайдера → `LeadFacts`. Одна валидация на всех (Е1).
+    """Текст ответа любого провайдера → `LeadFacts` плюс число отброшенных цитат.
 
-    Невалидное — `ExtractionError`, а не пустой `LeadFacts` (Р1). Цитаты сличаются с тем
-    текстом, который уходил в модель: чего в нём нет, то модель придумала (Е2).
+    Валидация одна на всех провайдеров. Невалидный ответ — `ExtractionError`, а не пустой
+    `LeadFacts`. Цитаты сличаются с текстом, который уходил в модель: чего в нём нет,
+    то модель придумала, и такая цитата отбрасывается.
     """
     stripped = FENCE_RE.sub("", text.strip())
     try:
@@ -599,7 +605,7 @@ def parse_facts(text: str, scrubbed: Scrubbed) -> tuple[LeadFacts, int]:
         budget_hint=_optional_str(raw.get("budget_hint"), "budget_hint"),
         language=language,
         is_spam=bool(raw.get("is_spam")),
-        # has_contact — по свидетельству вырезанного, а не по слову модели (Е2).
+        # has_contact — по факту вырезанного, а не по слову модели.
         has_contact=scrubbed.has_contact,
         confidence=confidence,
         quotes=tuple(quotes),
@@ -638,10 +644,9 @@ def detect_language(text: str) -> str:
     if not letters:
         return "en"
     cyrillic = sum(1 for c in letters if "Ѐ" <= c <= "ӿ") / len(letters)
-    # Арабица проверялась только на кириллицу, поэтому арабское обращение объявлялось
-    # английским, и черновик уезжал не на том языке (ИЗМЕРЕНО 2026-09-10 на сквозном
-    # прогоне в офлайне: «черновик ar, обращение en»). Диапазоны: основной арабский блок
-    # и дополнительный, включая арабские формы представления.
+    # Арабица считается наравне с кириллицей: без этой ветки арабское обращение
+    # объявляется английским и черновик уходит не на том языке. Диапазоны — основной
+    # арабский блок и дополнительный, включая арабские формы представления.
     arabic = sum(1 for c in letters if "\u0600" <= c <= "\u06ff" or "\ufb50" <= c <= "\ufeff")
     arabic /= len(letters)
     if arabic >= 1.0 - MIXED_SHARE:
@@ -656,8 +661,8 @@ def detect_language(text: str) -> str:
 def _offline_extraction(message: InboundMessage) -> Extraction:
     """Сеть не трогаем: детерминированная заглушка для тестов и CI.
 
-    `confidence=0.0` и `request_types=(OTHER,)` — честная метка «моделью не смотрено»:
-    заглушку нельзя спутать с извлечением (И5).
+    `confidence=0.0` и `request_types=(OTHER,)` — метка «моделью не смотрено»:
+    заглушку нельзя спутать с настоящим извлечением ни в отчёте, ни в хранилище.
     """
     scrubbed = scrub_pii(message.text)
     facts = LeadFacts(
@@ -726,5 +731,5 @@ def extract_detailed(message: InboundMessage, provider: Provider | None = None) 
 
 
 def extract(message: InboundMessage) -> LeadFacts:
-    """Факты из обращения. Не смогли — исключение, а не пустой LeadFacts (Р1)."""
+    """Факты из обращения. Извлечь не смогли — исключение, а не пустой LeadFacts."""
     return extract_detailed(message).facts

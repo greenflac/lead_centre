@@ -2,6 +2,12 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .env
+.env.*
+!.env.example
+secrets.json
+keys.txt
+*.pem
+*.key
 node_modules/
 .next/
 out/
@@ -20,3 +26,6 @@ data/store_offline.json
 
 # Локальная конфигурация MCP: содержит идентификатор проекта.
 .mcp.json
+
+# Рабочие черновики агентов: в репозитории им не место.
+scratchpad/
