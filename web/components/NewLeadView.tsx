@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { isMock, postLead } from "../lib/api";
+import { isMock, postLead, type PipelineStep } from "../lib/api";
 import { ApiError, type Lead } from "../lib/types";
 import LeadCard from "./LeadCard";
 import { ErrorNotice } from "./ui";
@@ -51,12 +51,16 @@ export default function NewLeadView({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [result, setResult] = useState<Lead | null>(null);
+  // Сколько шагов конвейера действительно отработало. Шаг зажигается по факту исполнения,
+  // а не по таймеру: индикатор, который движется сам по себе, измеряет не работу (П1/Е2).
+  const [step, setStep] = useState<number>(-1);
 
   async function submit() {
     setBusy(true);
     setError(null);
+    setStep(-1);
     try {
-      const lead = await postLead(text, channel);
+      const lead = await postLead(text, channel, (done: PipelineStep) => setStep(done));
       setResult(lead);
       onCreated(lead);
     } catch (caught) {
@@ -66,12 +70,19 @@ export default function NewLeadView({
     }
   }
 
+  const STEPS = [
+    ["Mask contacts.", "Phone numbers and e-mail addresses are cut out of the text before anything is sent to the model."],
+    ["Extract facts.", "Services asked for, head count, timeline, jurisdiction, language, plus a confidence figure."],
+    ["Score.", "The model proposes facts, the code decides the priority — a fixed rubric with reasons and invariants, not the model’s opinion."],
+    ["Draft a reply.", "In the customer’s language, with price ranges taken from the demo price list and never invented."],
+  ];
+
   return (
     <div style={{ marginTop: 16 }}>
       <div className="panel">
         <div className="panel-head">
           <span className="panel-title">New request</span>
-          <span className="panel-note">
+          <span className="note">
             Paste any text a customer could send. The card below is built the same way as every card in the inbox.
           </span>
         </div>
@@ -89,7 +100,7 @@ export default function NewLeadView({
                 onChange={(event) => setText(event.target.value)}
               />
               <div className="samples">
-                <span className="panel-note">Start from:</span>
+                <span className="note">Start from:</span>
                 {SAMPLES.map((sample) => (
                   <button
                     key={sample.label}
@@ -121,7 +132,7 @@ export default function NewLeadView({
                 {busy ? <span className="spinner" /> : null} {busy ? "Scoring…" : "Score this request"}
               </button>
               {text.trim().length === 0 ? (
-                <span className="panel-note">Type or pick a sample first.</span>
+                <span className="note">Type or pick a sample first.</span>
               ) : null}
             </div>
           </div>
@@ -129,29 +140,27 @@ export default function NewLeadView({
           <aside className="pipeline">
             <div className="section-title">What happens on submit</div>
             <ol className="pipeline-steps">
-              <li>
-                <strong>Mask contacts.</strong> Phone numbers and e-mail addresses are cut out of the text before
-                anything is sent to the model.
-              </li>
-              <li>
-                <strong>Extract facts.</strong> Services asked for, head count, timeline, jurisdiction, language, plus a
-                confidence figure.
-              </li>
-              <li>
-                <strong>Score.</strong> The model proposes facts, the code decides the priority — a fixed rubric with
-                reasons and invariants, not the model&apos;s opinion.
-              </li>
-              <li>
-                <strong>Draft a reply</strong> in the customer&apos;s language, with price ranges taken from the demo
-                price list and never invented.
-              </li>
+              {STEPS.map(([title, body], index) => {
+                const done = index <= step;
+                const active = busy && index === step + 1;
+                return (
+                  <li key={title} className={done ? "done" : active ? "active" : ""}>
+                    <span className="pipeline-mark">
+                      {done ? "done" : active ? <span className="spinner" /> : index + 1}
+                    </span>
+                    <span>
+                      <strong>{title}</strong> {body}
+                    </span>
+                  </li>
+                );
+              })}
             </ol>
-            <div className="panel-note">
+            <div className="note">
               A request with no evidence quote cannot be raised to HIGH: the engine returns &ldquo;not scored&rdquo;
               instead of guessing.
             </div>
             {isMock ? (
-              <div className="panel-note" style={{ marginTop: 8 }}>
+              <div className="note" style={{ marginTop: 8 }}>
                 <strong>Mock mode:</strong> no backend is attached, so steps 1–4 run in the browser against the same
                 rubric and the same demo price list. Point <code>NEXT_PUBLIC_API_URL</code> at the API and the Python
                 engine does the work instead.
@@ -177,11 +186,11 @@ export default function NewLeadView({
       ) : null}
 
       {busy ? (
-        <div className="notice notice-info" style={{ marginTop: 16 }}>
+        <div className="notice" style={{ marginTop: 16 }}>
           <div className="notice-title">
-            <span className="spinner spinner-dark" /> Working
+            <span className="spinner" /> Working — step {Math.min(step + 2, 4)} of 4
           </div>
-          Extracting facts, applying the priority rubric, drafting a reply in the customer&apos;s language.
+          The pipeline is listed on the right; a step lights up when it has actually finished.
         </div>
       ) : null}
 
@@ -192,7 +201,7 @@ export default function NewLeadView({
       ) : null}
 
       {!result && !busy && !error ? (
-        <div className="notice notice-info" style={{ marginTop: 16 }}>
+        <div className="notice" style={{ marginTop: 16 }}>
           <div className="notice-title">No request scored yet</div>
           Submit a request and its card appears here — priority, reasons, evidence quotes and a draft reply.
         </div>

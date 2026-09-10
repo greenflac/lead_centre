@@ -107,7 +107,7 @@ failing. Redo this whenever the rubric moves.
 
 ## States you can actually see
 
-* **Loading** — shimmering rows, not a blank page.
+* **Loading** — static skeleton rows, not a blank page and not an endless shimmer.
 * **Empty** — "Nothing matches this filter" with what to do about it.
 * **Error** — the provider running out of budget (HTTP 402/429) is reported as *"Model
   provider unavailable — the language-model provider refused the request on budget or rate
@@ -122,13 +122,64 @@ All taken from the running production build (`next start`), Chromium at 1440 px.
 |---|---|
 | `01-inbox.png` | Inbox list and the open card |
 | `02-lead-card.png`, `02b-…-closeup.png` | An urgent HIGH request |
-| `02c-lead-card-low.png` | Emoji-only edge case: LOW, no evidence, questions instead of prices |
+| `02c-lead-card-low.png` | Emoji-only edge case: LOW, extraction confidence **Low 0.00**, no evidence, questions instead of prices — the demo deliberately contains a card where the confidence is not the maximum |
+| `02d-lead-card-arabic.png` | Arabic request with an Arabic draft: right-to-left base, Noto Naskh Arabic, the ranges still read left to right |
 | `03-new-request-form.png` | The form and the pipeline explainer |
 | `04-new-request-result.png` | Card produced from a request typed into the form |
 | `05-discovered.png` | Registry watchlist |
 | `06-error-provider-budget.png` | Backend answering 402: readable error, raw detail, retry |
 | `07-empty-state.png` | Search matching nothing |
 | `08-live-backend.png`, `09-live-new-request.png` | Live mode against `leadcentre/api.py`. That backend ran with `OFFLINE=1`, so its extractor is a stub and the cards show empty facts and confidence 0.00 — that is the backend's offline mode, not the dashboard |
+
+## Design system, and how it is checked
+
+The stylesheet follows `docs/design/01_material.md`: three text sizes (12 / 14 / 16 px,
+plus 15 px for Arabic blocks only), two weights (400 and 500), one spacing scale
+(4 8 12 16 24 48), two corner radii (4 px and 8 px), no shadows at all, and one chromatic
+accent that belongs to actions — priority is achromatic, and `error` is kept for errors.
+
+Two scripts keep that honest, and both print numbers rather than a verdict:
+
+* `python3 scripts/contrast.py` — WCAG contrast of every colour pair in both schemes, with
+  a negative control on the instrument itself (white on white must give 1.00, black on
+  white 21.00). Last run: 38 pairs checked, 0 below threshold.
+* `python3 scripts/css_audit.py` — counts font sizes, weights, spacing values off the 4 px
+  grid, radii, shadows and physical (non-logical) properties. Last run: 4 sizes,
+  2 weights, 0 off-grid spacings, 0 shadows, 0 physical properties.
+
+## The two mock engines are cross-checked against Python
+
+`web/lib/mockEngine.ts` and `web/lib/mockReply.ts` are TypeScript ports of
+`leadcentre/engine/facts_rules.py`, `score.py` and `reply.py` — one piece of knowledge in
+two languages, which is a defect the browser forces on us when no backend is attached.
+`PYTHONPATH=. python3 scripts/crosscheck.py` runs ten seed requests through both paths and
+compares field by field, with two planted mismatches as a negative control. Last run:
+**10 requests, 124 fields, 124 matched, 0 mismatches, 2 of 2 planted mismatches caught.**
+
+## Screenshots are produced by a script
+
+`python3 scripts/shots.py [base_url]` against a running `next start`. It fixes the file
+names, so the pictures in this README and in the root README do not drift apart.
+
+## Right-to-left text
+
+Request texts and drafts carry `dir="auto"`, so an Arabic message lays itself out
+right-to-left while the Russian message next to it in the same list does not; the interface
+chrome stays left-to-right on purpose (`docs/design/03_arabic_rtl.md` §2.5). Every physical
+`border-left` / `padding-left` / `text-align: left` in `globals.css` was replaced with its
+logical twin (`border-inline-start`, `text-align: start`) — measured: 23 physical
+declarations before, 0 after (`python3 scripts/css_audit.py`).
+
+The Arabic face is **Noto Naskh Arabic** (SIL Open Font License, checked before embedding —
+`public/fonts/OFL.txt`), self-hosted in `public/fonts/`: the demo browser has no internet,
+so a Google Fonts link would have silently fallen back to a system face. Arabic blocks are
+set at 15 px / 1.75 against 14 px / 20 px for Latin and Cyrillic, because Naskh reads
+noticeably smaller at the same size.
+
+**Known, not fixed:** in a narrow column the price range can wrap between `AED` and the
+digits (visible in `02d`). The order stays correct — the isolate holds it — but the line
+break is ugly. The fix belongs to `leadcentre/engine/reply.py::price_fragment`: a
+non-breaking space after `AED` instead of a plain one.
 
 ## Language
 

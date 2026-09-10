@@ -9,7 +9,7 @@ import leadsJson from "../mock/leads.json";
 import companiesJson from "../mock/companies.json";
 import statsJson from "../mock/stats.json";
 import { ApiError, type Company, type Lead, type LeadStatus, type Stats } from "./types";
-import { extractFacts, scoreInbound } from "./mockEngine";
+import { extractFacts, linkReasons, routeForText, scoreInbound } from "./mockEngine";
 import { draftReply } from "./mockReply";
 import {
   normalizeCard,
@@ -32,6 +32,10 @@ const BASE = isMock ? "" : "/api/backend";
 // Simulated latency of the demo pipeline, so the form behaves like the real thing
 // (extract + score + draft take seconds against the LLM). ВЫБРАНО: 900 ms.
 const MOCK_LATENCY_MS = 900;
+
+/** Pipeline steps the form reports while it works. Ordered as they actually execute. */
+export type PipelineStep = 0 | 1 | 2 | 3;
+export const PIPELINE_STEPS = 4;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -103,12 +107,31 @@ export async function getStats(): Promise<Stats> {
   return normalizeStats(payload);
 }
 
-export async function postLead(text: string, channel: string): Promise<Lead> {
+/**
+ * `onStep` is called when a stage has actually finished, not on a timer: in mock mode the
+ * four stages run here one after another, so the form reports what executed (Е2). Against
+ * the live backend they happen inside one HTTP call and cannot be observed — the caller is
+ * told so by never receiving a step.
+ */
+export async function postLead(
+  text: string,
+  channel: string,
+  onStep?: (step: PipelineStep) => void,
+): Promise<Lead> {
   if (isMock) {
-    await sleep(MOCK_LATENCY_MS);
+    const stage = MOCK_LATENCY_MS / PIPELINE_STEPS;
+    await sleep(stage);
+    // 1. Контакты вырезаются до всякого разбора — этим занят extractFacts.hasContact.
+    onStep?.(0);
+    await sleep(stage);
     const { facts, quotes } = extractFacts(text);
+    onStep?.(1);
+    await sleep(stage);
     const scored = scoreInbound(text, facts, quotes);
-    const reply = draftReply(facts, scored.tier);
+    onStep?.(2);
+    await sleep(stage);
+    const reply = draftReply(facts, scored.tier, text);
+    onStep?.(3);
     const lead: Lead = {
       id: `new-${Date.now().toString(36)}`,
       channel,
@@ -119,10 +142,21 @@ export async function postLead(text: string, channel: string): Promise<Lead> {
       is_synthetic: true,
       tier: scored.tier,
       reasons: scored.reasons,
+      reason_links: linkReasons(scored.reasons, quotes, facts),
       evidence: scored.evidence,
       violations: scored.violations,
       facts,
       facts_source: "offline_heuristic",
+      serving: {
+        provider: "offline",
+        model: "mockEngine.ts (offline heuristic, port of facts_rules.py)",
+        latency_ms: MOCK_LATENCY_MS,
+        input_tokens: 0,
+        output_tokens: 0,
+        cost_usd: 0,
+        route_model: routeForText(text).model,
+        route_reason: routeForText(text).reason,
+      },
       reply,
       status: "new",
     };

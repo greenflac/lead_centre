@@ -21,7 +21,7 @@
   --on-surface: #17191C;
   --on-surface-variant: #5A6069;
   --medium-text: #2C3138;
-  --outline: #8B9099;
+  --outline: #848992;
   --outline-variant: #DDE0E4;
   --primary: #1F4B7A;
   --on-primary: #FFFFFF;
@@ -58,7 +58,8 @@
   /* --- сетка, радиусы, шрифты --- */
   --r-small: 4px;
   --r-panel: 8px;
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+          "Noto Naskh Arabic", sans-serif;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   --track: 0.05em;               /* единственный трекинг верхнего регистра (§6.6) */
   --state: 100ms;                /* short2 — hover/focus (§2.6) */
@@ -109,6 +110,17 @@
     --error-container: var(--dk-error-container);
     --on-error-container: var(--dk-on-error-container);
   }
+}
+
+/* Арабская гарнитура. Noto Naskh Arabic, лицензия OFL (проверено до встраивания, Ц5:
+   METADATA.pb репозитория google/fonts, license: "OFL"; текст лицензии лежит рядом —
+   public/fonts/OFL.txt). Файл self-hosted: у браузера демонстрации нет сети, ссылка на
+   fonts.googleapis.com не загрузилась бы и молча дала бы системный фолбэк. */
+@font-face {
+  font-family: "Noto Naskh Arabic";
+  src: url("/fonts/NotoNaskhArabic-variable.ttf") format("truetype-variations");
+  font-weight: 400 700;
+  font-display: swap;
 }
 
 * { box-sizing: border-box; }
@@ -207,8 +219,8 @@ table.grid th {
   overflow: hidden;
 }
 @media (max-width: 600px) { .stats { grid-template-columns: 1fr; } }
-.stat { padding: 16px; border-right: 1px solid var(--outline-variant); }
-.stat:last-child { border-right: none; }
+.stat { padding: 16px; border-inline-end: 1px solid var(--outline-variant); }
+.stat:last-child { border-inline-end: none; }
 .stat-value {
   font-size: 16px;
   line-height: 24px;
@@ -294,11 +306,11 @@ table.grid th {
   display: block;
   width: 100%;
   min-height: 64px;
-  text-align: left;
+  text-align: start;
   background: none;
   border: none;
   border-bottom: 1px solid var(--outline-variant);
-  border-left: 3px solid transparent;
+  border-inline-start: 3px solid transparent;
   padding: 12px 16px;
   cursor: pointer;
   transition: background var(--state);
@@ -306,7 +318,7 @@ table.grid th {
 .lead-row:hover { background: var(--surface-container-high); }
 .lead-row[aria-current="true"] { background: var(--primary-container); }
 /* Линейка только у HIGH: тогда её наличие само несёт смысл, а цвет не обязан (§3.2). */
-.lead-row.tier-HIGH { border-left-color: var(--inverse-surface); }
+.lead-row.tier-HIGH { border-inline-start-color: var(--inverse-surface); }
 
 .lead-row-top {
   display: flex;
@@ -332,7 +344,7 @@ table.grid th {
   white-space: nowrap;
 }
 .lead-row-meta {
-  margin-left: auto;
+  margin-inline-start: auto;
   font-size: 12px;
   line-height: 16px;
   color: var(--on-surface-variant);
@@ -391,9 +403,9 @@ table.grid th {
 .card-body { display: grid; grid-template-columns: 1fr 1fr; }
 @media (max-width: 900px) { .card-body { grid-template-columns: 1fr; } }
 .card-col { padding: 16px; min-width: 0; }
-.card-col + .card-col { border-left: 1px solid var(--outline-variant); }
+.card-col + .card-col { border-inline-start: 1px solid var(--outline-variant); }
 @media (max-width: 900px) {
-  .card-col + .card-col { border-left: none; border-top: 1px solid var(--outline-variant); }
+  .card-col + .card-col { border-inline-start: none; border-top: 1px solid var(--outline-variant); }
 }
 
 .section + .section { margin-top: 24px; }
@@ -441,12 +453,12 @@ table.grid th {
 .reason-btn {
   display: block;
   width: 100%;
-  text-align: left;
+  text-align: start;
   background: none;
   border: 1px solid transparent;
   border-radius: var(--r-small);
   padding: 4px 8px;
-  margin-left: -8px;
+  margin-inline-start: -8px;
   cursor: pointer;
   color: var(--on-surface);
   transition: background var(--state);
@@ -470,8 +482,8 @@ table.grid th {
 }
 
 .quote {
-  border-left: 2px solid var(--outline);
-  padding-left: 12px;
+  border-inline-start: 2px solid var(--outline);
+  padding-inline-start: 12px;
   margin: 0 0 8px;
   color: var(--medium-text);
 }
@@ -614,16 +626,17 @@ input:focus, textarea:focus, select:focus, .btn:focus-visible, .tab:focus-visibl
 
 .table-wrap { overflow-x: auto; }
 table.grid { width: 100%; border-collapse: collapse; }
+/* Ширины подобраны так, чтобы содержательные колонки не резались: «why» несёт число дней
+   просрочки, «evidence» — сам идентификатор записи и дату, ради которой строка тут. */
 table.grid-fixed { table-layout: fixed; min-width: 1180px; }
-table.grid-fixed col.c-priority { width: 96px; }
-table.grid-fixed col.c-company { width: 260px; }
+table.grid-fixed col.c-priority { width: 88px; }
+table.grid-fixed col.c-company { width: 240px; }
 table.grid-fixed col.c-flag { width: 96px; }
-table.grid-fixed col.c-city { width: 96px; }
-table.grid-fixed col.c-licence { width: 160px; }
-table.grid-fixed col.c-why { width: 200px; }
-table.grid-fixed col.c-evidence { width: 240px; }
+table.grid-fixed col.c-city { width: 120px; }
+table.grid-fixed col.c-why { width: 280px; }
+table.grid-fixed col.c-evidence { width: 356px; }
 table.grid th {
-  text-align: left;
+  text-align: start;
   padding: 16px;
   border-bottom: 1px solid var(--outline-variant);
   background: var(--surface-container);
@@ -647,7 +660,7 @@ table.grid tr:hover td { background: var(--surface-container-high); }
 
 .notice {
   border: 1px solid var(--outline-variant);
-  border-left: 3px solid var(--outline);
+  border-inline-start: 3px solid var(--outline);
   background: var(--surface);
   border-radius: var(--r-small);
   padding: 12px 16px;
@@ -656,7 +669,7 @@ table.grid tr:hover td { background: var(--surface-container-high); }
 .notice-title { font-weight: 500; color: var(--on-surface); margin-bottom: 4px; }
 .notice-error {
   border-color: var(--error);
-  border-left-color: var(--error);
+  border-inline-start-color: var(--error);
   background: var(--error-container);
   color: var(--on-error-container);
 }
@@ -721,11 +734,11 @@ table.grid tr:hover td { background: var(--surface-container-high); }
 .new-request-body > .form-grid { padding: 16px; max-width: none; }
 .pipeline {
   padding: 16px;
-  border-left: 1px solid var(--outline-variant);
+  border-inline-start: 1px solid var(--outline-variant);
   background: var(--surface-container);
 }
 @media (max-width: 900px) {
-  .pipeline { border-left: none; border-top: 1px solid var(--outline-variant); }
+  .pipeline { border-inline-start: none; border-top: 1px solid var(--outline-variant); }
 }
 /* Загрузка = четыре шага конвейера, а не спиннер (02_references §6.10). */
 .pipeline-steps { list-style: none; margin: 0 0 16px; padding: 0; }
@@ -777,3 +790,20 @@ table.grid tr:hover td { background: var(--surface-container-high); }
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
+
+/* --- двунаправленный текст (docs/design/03_arabic_rtl.md §2.5, §3.2) ---
+   Направление задаётся содержимым блока (dir="auto" в разметке), а не страницей:
+   инбокс смешанный — русские, английские и арабские обращения в одном списке, и
+   глобальный dir="rtl" сломал бы большинство строк. Арабский набирается крупнее и
+   с бо́льшим интерлиньяжем: при равном кегле насх мельче латиницы (§3.2). */
+/* Класс ставится разметкой по первому сильному символу текста (ui.tsx isRtlText), тем же
+   правилом, по которому направление вычисляет dir="auto". Селектор :dir(rtl) не годится:
+   сборщик CSS выбрасывает его молча (ИЗМЕРЕНО: правила нет в собранном чанке), а
+   [dir="rtl"] не срабатывает, потому что в атрибуте стоит строка "auto". */
+.rtl-block {
+  font-size: 15px;
+  line-height: 1.75;
+}
+/* Латинские острова внутри арабского блока: идентификаторы, суммы и коды не
+   переворачиваются и изолируются от окружения (§2.1). */
+bdi, .card-id, .cell-mono, .served dd { unicode-bidi: isolate; }

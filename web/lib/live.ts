@@ -56,6 +56,7 @@ function normalizeReply(value: unknown): Reply {
     outcome: asString(reply.outcome, asString(reply.status, "draft")),
     needs_human: asBool(reply.needs_human),
     used_prices: asStrings(reply.used_prices),
+    notice: asString(reply.notice),
   };
 }
 
@@ -113,6 +114,23 @@ export function normalizePostedLead(value: unknown, text: string, channel: strin
     violations: asStrings(score.violations),
     facts,
     facts_source: asString(extraction.provider, "llm"),
+    // Чем обслужен лид — из ответа API, а не из намерения (Е2): имя модели то, которое
+    // вернул провайдер. Стоимость бэкенд не считает, поэтому её здесь нет, а не ноль:
+    // выдуманный ноль хуже отсутствующего поля (Р1).
+    serving: Object.keys(extraction).length
+      ? {
+          provider: asString(extraction.provider, "llm"),
+          model: asString(extraction.model, "unknown"),
+          latency_ms: asNumber(extraction.latency_ms) ?? 0,
+          input_tokens: asNumber(extraction.input_tokens) ?? 0,
+          output_tokens: asNumber(extraction.output_tokens) ?? 0,
+          cost_usd: 0,
+          route_model: asString(extraction.model, "unknown"),
+          route_reason: asBool(extraction.offline)
+            ? "OFFLINE=1: модель не вызывалась, факты дал встроенный заменитель"
+            : "выбрана маршрутизатором бэкенда по длине обращения",
+        }
+      : undefined,
     reply: normalizeReply(body.reply),
     status: "new",
   };

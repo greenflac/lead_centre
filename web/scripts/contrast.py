@@ -75,8 +75,16 @@ PAIRS: tuple[tuple[str, str, float | None], ...] = (
 )
 
 
-def check(name: str, block: str, css_text: str) -> tuple[int, int, int]:
-    table = tokens(css_text, block)
+def check(name: str, block: str, css_text: str, prefix: str = "") -> tuple[int, int, int]:
+    """prefix — префикс имени токена в блоке: тёмная палитра объявлена как --dk-* внутри
+    :root, потому что роли ей назначаются двумя селекторами, а значение обязано быть
+    записано один раз (Е1)."""
+    raw = tokens(css_text, block)
+    table = {("--" + key[len(prefix):]) if prefix and key.startswith(prefix) else key: value
+             for key, value in raw.items()}
+    if prefix:
+        table = {key: value for key, value in table.items()
+                 if not key.startswith("--dk-")}
     good = bad = unknown = 0
     print(f"\n=== {name} ({block}) ===")
     print(f"{'пара':<48}{'ratio':>8}{'порог':>8}  вердикт")
@@ -112,9 +120,9 @@ def main() -> int:
             return 2
 
     total_good = total_bad = total_unknown = 0
-    for name, block in (("светлая схема", ":root {"),
-                        ("тёмная схема", ':root[data-theme="dark"] {')):
-        good, bad, unknown = check(name, block, css_text)
+    for name, block, prefix in (("светлая схема", ":root {", ""),
+                                ("тёмная схема (токены --dk-*)", ":root {", "--dk-")):
+        good, bad, unknown = check(name, block, css_text, prefix)
         total_good += good
         total_bad += bad
         total_unknown += unknown

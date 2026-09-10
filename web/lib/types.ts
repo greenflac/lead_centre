@@ -26,10 +26,34 @@ export interface LeadFacts {
 export interface Reply {
   body: string;
   language: string;
-  /** draft | questions | spam_skipped — three outcomes, not two. */
+  /** draft | questions | spam_skipped | no_draft_needs_human — more than two outcomes. */
   outcome: string;
   needs_human: boolean;
   used_prices: string[];
+  /** What the manager must know before sending (e.g. Arabic not read by a native). */
+  notice?: string;
+}
+
+/** A reason together with the quotes it is derived from. Empty list = not quotable. */
+export interface ReasonLink {
+  text: string;
+  quotes: number[];
+}
+
+/** What actually served the lead: model, latency, cost — plus the routing decision. */
+export interface Serving {
+  provider: string;
+  model: string;
+  latency_ms: number;
+  input_tokens: number;
+  output_tokens: number;
+  cost_usd: number;
+  /** Model the live router picks for this text, and the rule that picked it. */
+  route_model: string;
+  route_reason: string;
+  /** Measured on the whole seed against the live pipeline, not on this request. */
+  live_cost_usd_per_lead?: number;
+  live_latency_s?: number;
 }
 
 export type LeadStatus = "new" | "approved" | "rejected";
@@ -44,11 +68,14 @@ export interface Lead {
   is_synthetic: boolean;
   tier: Tier;
   reasons: string[];
+  /** reasons[i] with the indices of evidence[] that prove it. */
+  reason_links?: ReasonLink[];
   evidence: Evidence[];
   violations: string[];
   facts: LeadFacts;
   /** "offline_heuristic" in mock mode, "llm" when the backend extracted the facts. */
   facts_source: string;
+  serving?: Serving;
   reply: Reply;
   status: LeadStatus;
   decision_reason?: string | null;
@@ -70,6 +97,8 @@ export interface Company {
   address_type: string;
   event: string;
   reasons: string[];
+  /** reasons[i] with the indices of evidence[] that prove it. */
+  reason_links?: ReasonLink[];
   evidence: Evidence[];
   violations: string[];
   source: string;

@@ -2,9 +2,17 @@
 
 import { useMemo, useState } from "react";
 import type { ApiError, Company, Tier } from "../lib/types";
-import { EmptyState, ErrorNotice, LoadingRows, RealDataTag, SyntheticTag, TierChip } from "./ui";
+import { EmptyState, ErrorNotice, LoadingRows, TierChip } from "./ui";
 
 const TIERS: Tier[] = ["HIGH", "MEDIUM", "LOW", "INVALID"];
+
+/** Короткая метка-флаг для колонки: длинная формулировка живёт в title. */
+const ADDRESS_SHORT: Record<string, string> = {
+  A1_registrar: "registrar",
+  A2_business_centre: "centre",
+  A3_own: "own",
+  A0_unknown: "unknown",
+};
 
 const ADDRESS_LABEL: Record<string, string> = {
   A1_registrar: "registrar address (flexi/virtual)",
@@ -57,7 +65,7 @@ export default function DiscoveredView({
       <div className="panel">
         <div className="panel-head">
           <span className="panel-title">Discovered — LEI registry watchlist</span>
-          <span className="panel-note">{loading ? "loading…" : `${rows.length} of ${companies.length} companies`}</span>
+          <span className="note">{loading ? "loading…" : `${rows.length} of ${companies.length} companies`}</span>
           <div className="filters" style={{ marginLeft: "auto" }}>
             <button className="filter-btn" aria-pressed={tierFilter === null} onClick={() => setTierFilter(null)}>
               all
@@ -82,6 +90,10 @@ export default function DiscoveredView({
             No phone numbers, no email addresses, no contact person — deliberately. A manager decides whether a company
             is worth approaching; the tool never hands over a way to cold-contact it.
           </span>
+          <span>
+            Every row is a <strong>real public registry record</strong> (GLEIF LEI, UAE slice, cached 2026-09-09); the
+            priority, the reason and the evidence are ours.
+          </span>
         </div>
 
         {loading ? (
@@ -97,23 +109,19 @@ export default function DiscoveredView({
               <colgroup>
                 <col className="c-priority" />
                 <col className="c-company" />
+                <col className="c-flag" />
                 <col className="c-city" />
-                <col className="c-auth" />
-                <col className="c-licence" />
                 <col className="c-why" />
                 <col className="c-evidence" />
-                <col className="c-prov" />
               </colgroup>
               <thead>
                 <tr>
                   <th>Priority</th>
                   <th>Company</th>
+                  <th>Address</th>
                   <th>City</th>
-                  <th>Registration authority</th>
-                  <th>Licence no.</th>
                   <th>Why it is here</th>
                   <th>Evidence</th>
-                  <th>Provenance</th>
                 </tr>
               </thead>
               <tbody>
@@ -122,32 +130,24 @@ export default function DiscoveredView({
                     <td>
                       <TierChip tier={company.tier} />
                     </td>
-                    <td className="cell-name">
+                    {/* Одна строка на ячейку: три источника высоты давали строку 61px
+                        вместо 44 (01_material.md §5.2и). Полный текст — в title. */}
+                    <td className="cell-name clip" title={company.name}>
                       {company.name}
-                      <div className="panel-note">{ADDRESS_LABEL[company.address_type] ?? company.address_type}</div>
                     </td>
-                    <td>{company.city || <span className="panel-note">unknown</span>}</td>
-                    <td className="cell-mono">{company.registrar_id ?? "—"}</td>
-                    <td className="cell-mono">{company.license_no ?? "—"}</td>
-                    <td className="cell-reason">
-                      {company.reasons.length ? company.reasons.join("; ") : <span className="panel-note">no trigger event</span>}
+                    <td className="clip" title={ADDRESS_LABEL[company.address_type] ?? company.address_type}>
+                      {ADDRESS_SHORT[company.address_type] ?? company.address_type}
                     </td>
-                    <td>
+                    <td className="clip">{company.city || <span className="note">unknown</span>}</td>
+                    <td className="cell-reason clip" title={company.reasons.join("; ")}>
+                      {company.reasons.length ? company.reasons.join("; ") : <span className="note">no trigger event</span>}
+                    </td>
+                    <td className="clip" title={evidenceRows(company).map((i) => `${i.kind}=${i.value}`).join("  ")}>
                       {evidenceRows(company).map((item) => (
-                        <div key={item.kind} className="evidence-line">
-                          {item.kind}={item.value}
-                        </div>
+                        <span key={item.kind} className="cell-mono">
+                          {item.kind}={item.value}{" "}
+                        </span>
                       ))}
-                    </td>
-                    <td>
-                      {company.is_synthetic ? (
-                        <SyntheticTag />
-                      ) : (
-                        <RealDataTag
-                          what="public registry record"
-                          title="Real GLEIF LEI record, cached sample of 2026-09-09. The priority and the reason are ours; the fields are the registry's."
-                        />
-                      )}
                     </td>
                   </tr>
                 ))}
