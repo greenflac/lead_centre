@@ -36,6 +36,13 @@ CASES = (
     ),
     ("e2e-2", "jivo", "скок стоит фриз зона?"),
     ("e2e-3", "telegram", "Здравствуйте! Продвигаем сайты в топ Google, 30% скидка."),
+    # Арабское обращение: черновик на арабском пишет модель в рамках, а не шаблон.
+    (
+        "e2e-4",
+        "whatsapp",
+        "مرحبا، نحتاج مكتبًا في دبي لفريق من ٦ أشخاص مع تأشيرات عمل. "
+        "ما هي التكلفة التقريبية وكم تستغرق الإجراءات؟",
+    ),
 )
 
 
@@ -94,7 +101,12 @@ def run_case(external_id: str, channel: str, text: str, today: date) -> list[Che
     )
 
     reply = draft(message, facts, score.tier.value)
-    if reply.outcome == "spam_skipped":
+    if reply.outcome == "no_draft_needs_human":
+        # Заявленный исход, а не сбой: модель недоступна или её текст не прошёл линтер.
+        checks.append(
+            check("черновик не выдуман, когда нельзя", bool(reply.notice), reply.notice[:70])
+        )
+    elif reply.outcome == "spam_skipped":
         checks.append(check("на спам черновик не пишется", not reply.body.strip(), reply.outcome))
     else:
         checks.append(
