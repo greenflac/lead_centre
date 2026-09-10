@@ -1,6 +1,0 @@
-CLAUDE_KEY                 real=200  bogus=401  OK
-SERPER_KEY                 real=200  bogus=403  OK
-HUBSPOT_PERSONAL_KEY       real=401  bogus=401  FAIL (не отличается от неверного)
-SUPABASE_PUBLISHABLE_KEY   real=404  bogus=401  OK
-SUPABASE_SECRET_KEY        real=404  bogus=401  OK
-SUPABASE_JWKS_URL          http=200 (негативного контроля нет: эндпоинт публичный)

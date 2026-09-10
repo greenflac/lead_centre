@@ -132,7 +132,7 @@ def resolve_scorer():
 
 
 def call_scorer(fn, facts: LeadFacts, message: InboundMessage) -> Tier:
-    """Порядок аргументов выводится из подписи движка, а не из нашего представления о ней."""
+    """Порядок аргументов выводится из подписи движка, а не из предположения о ней."""
     names = [
         p.name
         for p in inspect.signature(fn).parameters.values()
