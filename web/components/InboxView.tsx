@@ -29,7 +29,7 @@ function preview(text: string): string {
 
 /**
  * The reason without its threshold half:
- * "needed in 14 days — urgency window is 60 days" → "needed in 14 days".
+ * "needed in 14 days — inside the hot window of 60 days" → "needed in 14 days".
  * Both dashes are the catalogue's own separators, in either language.
  */
 function shortReason(reason: string): string {

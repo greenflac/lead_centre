@@ -480,9 +480,9 @@ def test_score_renders_russian_from_the_items_it_was_given():
         event=Event.NONE,
         reason_items=(R.reason(R.ReasonCode.URGENT_TIMELINE, days=2, limit=60),),
     )
-    assert card.reasons == ("срок 2 дня — не больше 60 дней",)
+    assert card.reasons == ("срок 2 дня — внутри горячего окна в 60 дней",)
     assert card.reasons_in(RU) == card.reasons
-    assert card.reasons_in(EN) == ("needed in 2 days — urgency window is 60 days",)
+    assert card.reasons_in(EN) == ("needed in 2 days — inside the hot window of 60 days",)
 
 
 # --- прогон движка: причины обоих языков на живых входах ---------------------------

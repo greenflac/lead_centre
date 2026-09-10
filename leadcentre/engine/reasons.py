@@ -354,9 +354,10 @@ CATALOGUE: dict[ReasonCode, ReasonSpec] = {
     ReasonCode.URGENT_TIMELINE: ReasonSpec(
         params=("days", "limit"),
         texts={
-            Language.RU: "срок {days:plural:day} — не больше {limit:plural:day}",
-            Language.EN: "needed in {days:plural:day} — urgency window is "
-                         "{limit:plural:day}",
+            Language.RU: "срок {days:plural:day} — внутри горячего окна "
+                         "в {limit:plural:day}",
+            Language.EN: "needed in {days:plural:day} — inside the hot window "
+                         "of {limit:plural:day}",
         },
     ),
     ReasonCode.PACKAGE_REQUEST: ReasonSpec(
