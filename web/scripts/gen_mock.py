@@ -34,7 +34,7 @@ sys.path.insert(0, str(REPO))
 from leadcentre.engine import reply as reply_mod
 from leadcentre.engine.facts_rules import rules_facts
 from leadcentre.engine.score import score, score_inbound
-from leadcentre.models import InboundMessage, RequestType, Tier
+from leadcentre.models import InboundMessage, Tier
 from leadcentre.sources.gleif import GleifAdapter
 
 SEED_CSV = REPO / "data" / "inbound_seed.csv"
@@ -47,18 +47,6 @@ NOW = datetime(2026, 9, 9, 18, 0, tzinfo=UTC)
 
 # --- эвристика извлечения (только для mock, см. докстринг) ---
 
-REQUEST_MARKERS: dict[RequestType, tuple[str, ...]] = {
-    RequestType.OFFICE: ("офис", "офиc", "рабочих мест", "рабочие места", "флекси", "flexi",
-                         "office", "desk", "коворкинг", "помещени", "аренд"),
-    RequestType.SETUP: ("лицензи", "регистрац", "открыт", "компани", "фризон", "фриз зон",
-                        "freezone", "free zone", "mainland", "майнленд", "setup", "licen",
-                        "оформ", "юрлиц"),
-    RequestType.VISA: ("виз", "visa", "резидент", "emirates id", "golden", "квота"),
-    RequestType.ACCOUNTING: ("бухгалтер", "бухучет", "бухучёт", "accounting", "vat", "ндс",
-                             "corporate tax", "налог", "аудит", "audit", "отчётност"),
-    RequestType.BANK: ("банк", "bank", "счет", "счёт", "account", "payment gateway",
-                       "платёжн", "платежн"),
-}
 
 JURISDICTION_MARKERS = (
     ("mainland", ("mainland", "майнленд", "материк", "det", "дед")),
@@ -98,7 +86,6 @@ HEADCOUNT_RE = re.compile(
     re.IGNORECASE,
 )
 HEADCOUNT_RE_TEAM = re.compile(r"(?:команд\w*|team)\D{0,12}(\d{1,3})", re.IGNORECASE)
-BUDGET_MARKERS = ("бюджет", "budget", "готовы подписать", "ready to sign", "aed", "дирхам")
 PHONE_RE = re.compile(r"\+?\d[\d\-\s()]{8,}\d")
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
 

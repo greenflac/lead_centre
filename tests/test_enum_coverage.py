@@ -262,14 +262,15 @@ def test_mock_generator_uses_the_shared_facts_rules():
     assert "rules_facts(" in source
 
 
-def test_mock_generator_has_a_stale_marker_dict_recorded():
-    """ИЗМЕРЕНО 2026-09-09: в gen_mock.py остался НЕИСПОЛЬЗУЕМЫЙ словарь REQUEST_MARKERS.
+def test_mock_generator_keeps_no_private_copy_of_the_rules():
+    """Генератор демонстрационных данных не заводит свою копию правил.
 
-    Это остаток прежней копии правил: он объявлен, но нигде не вызывается (единственное
-    упоминание — сама строка объявления), поэтому на данные не влияет. В нём нет RENEWAL
-    и OTHER — 5 членов из 7. Тест фиксирует остаток, чтобы его удаление было осознанным
-    действием владельца файла, а не прошло незамеченным (Ц8/И6).
+    Раньше в gen_mock.py лежал словарь REQUEST_MARKERS — остаток прежней копии эвристики,
+    из-за которой дашборд показывал 13/37/20, а измерительный стенд считал 12/41/17.
+    Словарь удалён вместе с самой копией; тест сторожит от повторного форка: генератор
+    обязан звать общую rules_facts и не должен заводить своих словарей маркеров.
     """
     source = GEN_MOCK.read_text(encoding="utf-8")
-    mentions = source.count("REQUEST_MARKERS")
-    assert mentions == 1, f"REQUEST_MARKERS упоминается {mentions} раз — словарь ожил?"
+    assert "rules_facts" in source, "генератор перестал звать общую реализацию правил"
+    for forked in ("REQUEST_MARKERS", "TYPE_MARKERS", "BUDGET_MARKERS", "SPAM_MARKERS"):
+        assert forked not in source, f"в генераторе снова заведён свой словарь {forked}"
