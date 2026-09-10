@@ -377,12 +377,41 @@ def load_prices(path: Path | str = DEFAULT_PRICELIST) -> dict[str, PriceItem]:
 # --- сборка черновика ---
 
 
+#: Какую долю опознанных по письменности букв должен занимать язык, чтобы считаться
+#: языком обращения. ВЫБРАНО (автор): одна фраза на чужом языке в конце длинного письма —
+#: это вежливость, а не смена языка разговора, и отвечать на ней целиком нельзя. Порог
+#: заметно выше половины, чтобы «почти пополам» уходило в третий исход, а не угадывалось.
+DOMINANT_SCRIPT_SHARE = 0.8
+
+
+def script_letter_counts(text: str) -> dict[str, int]:
+    """Сколько букв каждой письменности в тексте. Латиница языка не называет и не считается."""
+    counts = {language: 0 for language, _ in SCRIPT_RANGES}
+    for ch in text:
+        for language, ranges in SCRIPT_RANGES:
+            if any(low <= ch <= high for low, high in ranges):
+                counts[language] += 1
+                break
+    return counts
+
+
 def detect_script_language(text: str) -> str | None:
-    """Язык по письменности текста. None — письменность ничего не сказала (латиница)."""
-    for language, ranges in SCRIPT_RANGES:
-        if any(low <= ch <= high for ch in text for low, high in ranges):
-            return language
-    return None
+    """Язык по преобладающей письменности. None — письменность ничего не сказала.
+
+    Три исхода, а не два: письменность назвала язык; письменности нет вовсе (латиница);
+    письменности две и ни одна не преобладает — тогда решать по ней нельзя, и ответ
+    возвращает None, а решение уходит выше, к флагу языка.
+
+    Живой дефект, ради которого правило переписано: в обращении edge-03 на 893 кириллических
+    буквы приходится 23 арабских (одна фраза «увидимся в Дубае в конце октября»), и прежнее
+    правило «есть хоть один символ» отдавало весь черновик на арабском.
+    """
+    counts = script_letter_counts(text)
+    total = sum(counts.values())
+    if total == 0:
+        return None
+    language, best = max(counts.items(), key=lambda item: item[1])
+    return language if best / total >= DOMINANT_SCRIPT_SHARE else None
 
 
 def resolve_language(message: InboundMessage, facts: LeadFacts) -> str:

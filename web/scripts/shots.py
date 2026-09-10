@@ -76,14 +76,14 @@ def main() -> int:
             open_lead(page, "gen-19")
             taken.append(shoot(page, "02d-lead-card-arabic.png", page.locator(".panel").nth(1)))
 
-            # edge-03 — три языка на одном экране: интерфейс и причины английские,
-            # обращение русское, черновик арабский. Нажата причина про бюджет, чтобы
-            # на кадре было видно, что она читается цитатой клиента, а не склейкой
-            # маркеров, и что за ней стоит подсвеченный фрагмент обращения.
+            # edge-03 — самое длинное обращение набора: семь вопросов подряд, пять
+            # запрошенных услуг. Нажата причина про бюджет, чтобы на кадре было видно,
+            # что она читается цитатой клиента, а не склейкой маркеров, и что за ней
+            # стоит подсвеченный фрагмент текста.
             open_lead(page, "edge-03")
             page.locator("button.reason-btn").nth(1).click()
             page.wait_for_timeout(150)
-            taken.append(shoot(page, "02e-lead-card-three-languages.png",
+            taken.append(shoot(page, "02e-lead-card-long-request.png",
                                page.locator(".panel").nth(1)))
 
         if want("07"):

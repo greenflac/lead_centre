@@ -89,11 +89,13 @@ NUM_WEEKS_RE = re.compile(r"(?:через|in|within)\s+(\d+)\s*(?:недел|wee
 EXPIRES_RE = re.compile(
     r"(?:expires?|истека\w*|заканчива\w*|слетает)\D{0,25}(\d+)\s*(дн|day|week|недел)", re.IGNORECASE
 )
-# Одно необязательное слово между числом и единицей: «12 рабочих мест», «6 employment
-# visas» пишут именно так.
+# До двух необязательных слов между числом и единицей: «12 рабочих мест», «3 рабочие визы
+# для сотрудников», «6 employment visas» пишут именно так. Виза и партнёр в списке единиц
+# потому, что размер команды в обращении чаще называют через них, чем словом «человек».
 HEADCOUNT_RE = re.compile(
-    r"(\d+)\s*(?:[а-яёa-z]+\s+)?"
-    r"(?:человек|чел\b|людей|people|ppl|persons|seats|мест\b|сотрудник\w*|staff)",
+    r"(\d+)\s*(?:[а-яёa-z]+\s+){0,2}?"
+    r"(?:человек|чел\b|людей|people|ppl|persons|seats|мест\b|сотрудник\w*|staff"
+    r"|партнёр\w*|партнер\w*|виз\w*|visas?)",
     re.IGNORECASE,
 )
 MONEY_RE = re.compile(r"\d[\d\s.,]*\s*(?:aed|дирхам|тысяч|k\b)", re.IGNORECASE)
@@ -225,9 +227,16 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
         if matched:
             types.append(kind)
     types = _drop_setup_inside_renewal(low, types, fired)
+    # Третий исход для факта: если в тексте названо несколько разных количеств людей
+    # («3 партнёрские + 2 сотрудника, потом ещё 4»), размер команды из него не следует.
+    # Первое совпадение в таком тексте — не размер команды, а одно из слагаемых, и на
+    # карточке оно противоречит тексту, который читатель видит рядом. Ничего не знаем —
+    # так и говорим, а не берём удобное число.
     headcount = None
-    found = HEADCOUNT_RE.search(low)
-    if found:
+    matches = list(HEADCOUNT_RE.finditer(low))
+    distinct = {int(m.group(1)) for m in matches}
+    if len(distinct) == 1:
+        found = matches[0]
         headcount = int(found.group(1))
         quotes.append(message.text[found.start(): found.end()])
     # budget_hint — фрагмент обращения, а не пересказ: скоринг читает содержимое поля и
