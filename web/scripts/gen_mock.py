@@ -35,7 +35,7 @@ sys.path.insert(0, str(REPO))
 from leadcentre.engine import extract as extract_mod
 from leadcentre.engine import reply as reply_mod
 from leadcentre.engine.facts_rules import rules_facts
-from leadcentre.engine.reasons import ReasonCode
+from leadcentre.engine.reasons import Language, ReasonCode
 from leadcentre.engine.score import score, score_inbound
 from leadcentre.models import InboundMessage, Tier
 from leadcentre.sources.gleif import GleifAdapter
@@ -49,6 +49,10 @@ from leadcentre.sources.gleif import GleifAdapter
 # обращения, до всякой сети, поэтому его можно показать честно и назвать «маршрут», а не
 # «обслужено».
 OFFLINE_MODEL = "rules_facts (offline heuristic)"
+
+# Язык интерфейса дашборда. Причины движка отрисовываются на нём (каталог
+# engine/reasons.py двуязычный), текст обращения и черновик — на языке клиента.
+UI_LANGUAGE = Language.EN
 
 # ИЗМЕРЕНО, прогон набора на живом контуре, записан в README §«Measured»:
 # $0.0033 за обращение при холодном кэше; задержка извлечения — 35.1 с на 8 обращений.
@@ -178,7 +182,8 @@ def link_reasons(result, quotes, facts, received_on: date) -> list[dict]:
         ReasonCode.SPAM_OR_OFF_TOPIC: lambda f: f.is_spam,
     }
     linked: list[dict] = []
-    for item, text in zip(result.reason_items, result.reasons, strict=True):
+    texts = result.reasons_in(UI_LANGUAGE)
+    for item, text in zip(result.reason_items, texts, strict=True):
         test = by_code.get(item.code)
         linked.append({"text": text, "code": item.code.value,
                        "quotes": pick(test) if test else []})
@@ -237,7 +242,9 @@ def build_leads() -> list[dict]:
             "received_at": received_at.isoformat().replace("+00:00", "Z"),
             "is_synthetic": message.is_synthetic,
             "tier": result.tier.value,
-            "reasons": list(result.reasons),
+            # Причины — на языке интерфейса. Текст обращения и черновик остаются на языке
+            # клиента: язык интерфейса и язык переписки — разные вещи.
+            "reasons": list(result.reasons_in(UI_LANGUAGE)),
             "reason_links": link_reasons(result, quotes, facts, received_on),
             "evidence": [{"kind": e.kind, "value": e.value} for e in result.evidence],
             "violations": list(result.violations),
@@ -303,7 +310,7 @@ def build_companies() -> list[dict]:
             "tier": result.tier.value,
             "address_type": result.address_type.value,
             "event": result.event.value,
-            "reasons": list(result.reasons),
+            "reasons": list(result.reasons_in(UI_LANGUAGE)),
             "evidence": [{"kind": e.kind, "value": e.value} for e in result.evidence],
             "violations": list(result.violations),
             "source": company.source,

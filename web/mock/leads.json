@@ -9,12 +9,12 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "запрошено услуг: 2 — нужен пакет",
-   "язык обращения ru — основная аудитория"
+   "2 services asked about — this is a package, not a single line item",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 2 — нужен пакет",
+    "text": "2 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0,
@@ -22,7 +22,7 @@
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -56,7 +56,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.11,
+   "latency_ms": 0.28,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -87,28 +87,28 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "срок 14 дней — не больше 60 дней",
-   "запрошено услуг: 2 — нужен пакет",
-   "команда 8 человек — флекси не закроет визовую квоту",
-   "язык обращения ru — основная аудитория"
+   "needed in 14 days — urgency window is 60 days",
+   "2 services asked about — this is a package, not a single line item",
+   "team of 8 — flexi desk will not cover the visa quota",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "срок 14 дней — не больше 60 дней",
+    "text": "needed in 14 days — urgency window is 60 days",
     "code": "urgent_timeline",
     "quotes": [
      0
     ]
    },
    {
-    "text": "запрошено услуг: 2 — нужен пакет",
+    "text": "2 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0
     ]
    },
    {
-    "text": "команда 8 человек — флекси не закроет визовую квоту",
+    "text": "team of 8 — flexi desk will not cover the visa quota",
     "code": "team_over_flexi_quota",
     "quotes": [
      0,
@@ -116,7 +116,7 @@
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -150,7 +150,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.17,
+   "latency_ms": 0.16,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -207,7 +207,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.16,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -238,11 +238,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -271,7 +271,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.25,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -302,11 +302,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -335,7 +335,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -367,17 +367,17 @@
   "is_synthetic": true,
   "tier": "LOW",
   "reasons": [
-   "из текста не извлечён ни один тип запроса",
-   "уверенность извлечения 0.00 — ниже порога 0.50"
+   "no request type could be extracted from the text",
+   "extraction confidence 0.00 — below the 0.50 threshold"
   ],
   "reason_links": [
    {
-    "text": "из текста не извлечён ни один тип запроса",
+    "text": "no request type could be extracted from the text",
     "code": "no_request_type",
     "quotes": []
    },
    {
-    "text": "уверенность извлечения 0.00 — ниже порога 0.50",
+    "text": "extraction confidence 0.00 — below the 0.50 threshold",
     "code": "low_confidence",
     "quotes": []
    }
@@ -399,7 +399,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.03,
+   "latency_ms": 0.05,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -428,19 +428,19 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "срок 14 дней — не больше 60 дней",
-   "запрошено услуг: 2 — нужен пакет",
-   "команда 15 человек — флекси не закроет визовую квоту",
-   "язык обращения ru — основная аудитория"
+   "needed in 14 days — urgency window is 60 days",
+   "2 services asked about — this is a package, not a single line item",
+   "team of 15 — flexi desk will not cover the visa quota",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "срок 14 дней — не больше 60 дней",
+    "text": "needed in 14 days — urgency window is 60 days",
     "code": "urgent_timeline",
     "quotes": []
    },
    {
-    "text": "запрошено услуг: 2 — нужен пакет",
+    "text": "2 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0,
@@ -449,7 +449,7 @@
     ]
    },
    {
-    "text": "команда 15 человек — флекси не закроет визовую квоту",
+    "text": "team of 15 — flexi desk will not cover the visa quota",
     "code": "team_over_flexi_quota",
     "quotes": [
      0,
@@ -457,7 +457,7 @@
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -499,7 +499,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.13,
+   "latency_ms": 0.15,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -560,7 +560,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.19,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -591,17 +591,17 @@
   "is_synthetic": true,
   "tier": "LOW",
   "reasons": [
-   "из текста не извлечён ни один тип запроса",
-   "уверенность извлечения 0.00 — ниже порога 0.50"
+   "no request type could be extracted from the text",
+   "extraction confidence 0.00 — below the 0.50 threshold"
   ],
   "reason_links": [
    {
-    "text": "из текста не извлечён ни один тип запроса",
+    "text": "no request type could be extracted from the text",
     "code": "no_request_type",
     "quotes": []
    },
    {
-    "text": "уверенность извлечения 0.00 — ниже порога 0.50",
+    "text": "extraction confidence 0.00 — below the 0.50 threshold",
     "code": "low_confidence",
     "quotes": []
    }
@@ -623,7 +623,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.05,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -677,7 +677,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.15,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -709,11 +709,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -742,7 +742,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -774,13 +774,13 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "срок 14 дней — не больше 60 дней",
-   "команда 5 человек — флекси не закроет визовую квоту",
-   "язык обращения ru — основная аудитория"
+   "needed in 14 days — urgency window is 60 days",
+   "team of 5 — flexi desk will not cover the visa quota",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "срок 14 дней — не больше 60 дней",
+    "text": "needed in 14 days — urgency window is 60 days",
     "code": "urgent_timeline",
     "quotes": [
      0,
@@ -788,7 +788,7 @@
     ]
    },
    {
-    "text": "команда 5 человек — флекси не закроет визовую квоту",
+    "text": "team of 5 — flexi desk will not cover the visa quota",
     "code": "team_over_flexi_quota",
     "quotes": [
      0,
@@ -796,7 +796,7 @@
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -865,11 +865,11 @@
   "is_synthetic": true,
   "tier": "LOW",
   "reasons": [
-   "обращение помечено как спам или не по теме"
+   "message flagged as spam or off topic"
   ],
   "reason_links": [
    {
-    "text": "обращение помечено как спам или не по теме",
+    "text": "message flagged as spam or off topic",
     "code": "spam_or_off_topic",
     "quotes": [
      0,
@@ -903,7 +903,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.14,
+   "latency_ms": 0.36,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -932,19 +932,19 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "запрошено услуг: 2 — нужен пакет",
-   "язык обращения ru — основная аудитория"
+   "2 services asked about — this is a package, not a single line item",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 2 — нужен пакет",
+    "text": "2 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -974,7 +974,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.18,
+   "latency_ms": 0.29,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1006,11 +1006,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -1039,7 +1039,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.13,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1071,11 +1071,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -1136,13 +1136,13 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "запрошено услуг: 4 — нужен пакет",
-   "команда 12 человек — флекси не закроет визовую квоту",
-   "язык обращения ru — основная аудитория"
+   "4 services asked about — this is a package, not a single line item",
+   "team of 12 — flexi desk will not cover the visa quota",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 4 — нужен пакет",
+    "text": "4 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0,
@@ -1150,7 +1150,7 @@
     ]
    },
    {
-    "text": "команда 12 человек — флекси не закроет визовую квоту",
+    "text": "team of 12 — flexi desk will not cover the visa quota",
     "code": "team_over_flexi_quota",
     "quotes": [
      0,
@@ -1158,7 +1158,7 @@
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -1198,7 +1198,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.19,
+   "latency_ms": 0.2,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1230,11 +1230,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -1263,7 +1263,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.21,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1294,11 +1294,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -1327,7 +1327,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.18,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1358,11 +1358,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -1395,7 +1395,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.13,
+   "latency_ms": 0.12,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1427,11 +1427,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -1460,7 +1460,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.11,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1492,19 +1492,19 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "запрошено услуг: 3 — нужен пакет",
-   "язык обращения ru — основная аудитория"
+   "3 services asked about — this is a package, not a single line item",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 3 — нужен пакет",
+    "text": "3 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -1535,7 +1535,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.15,
+   "latency_ms": 0.14,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1567,11 +1567,11 @@
   "is_synthetic": true,
   "tier": "LOW",
   "reasons": [
-   "обращение помечено как спам или не по теме"
+   "message flagged as spam or off topic"
   ],
   "reason_links": [
    {
-    "text": "обращение помечено как спам или не по теме",
+    "text": "message flagged as spam or off topic",
     "code": "spam_or_off_topic",
     "quotes": [
      0,
@@ -1605,7 +1605,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.25,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1634,11 +1634,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -1667,7 +1667,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.18,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1698,23 +1698,23 @@
   "is_synthetic": true,
   "tier": "LOW",
   "reasons": [
-   "из текста не извлечён ни один тип запроса",
-   "язык обращения ru, но других признаков нет",
-   "уверенность извлечения 0.00 — ниже порога 0.50"
+   "no request type could be extracted from the text",
+   "written in ru, but no other signal backs it up",
+   "extraction confidence 0.00 — below the 0.50 threshold"
   ],
   "reason_links": [
    {
-    "text": "из текста не извлечён ни один тип запроса",
+    "text": "no request type could be extracted from the text",
     "code": "no_request_type",
     "quotes": []
    },
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    },
    {
-    "text": "уверенность извлечения 0.00 — ниже порога 0.50",
+    "text": "extraction confidence 0.00 — below the 0.50 threshold",
     "code": "low_confidence",
     "quotes": []
    }
@@ -1736,7 +1736,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.04,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1790,7 +1790,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1822,20 +1822,20 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "срок 14 дней — не больше 60 дней",
-   "команда 25 человек — флекси не закроет визовую квоту",
-   "язык обращения ru — основная аудитория"
+   "needed in 14 days — urgency window is 60 days",
+   "team of 25 — flexi desk will not cover the visa quota",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "срок 14 дней — не больше 60 дней",
+    "text": "needed in 14 days — urgency window is 60 days",
     "code": "urgent_timeline",
     "quotes": [
      0
     ]
    },
    {
-    "text": "команда 25 человек — флекси не закроет визовую квоту",
+    "text": "team of 25 — flexi desk will not cover the visa quota",
     "code": "team_over_flexi_quota",
     "quotes": [
      0,
@@ -1843,7 +1843,7 @@
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -1876,7 +1876,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.16,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1908,11 +1908,11 @@
   "is_synthetic": true,
   "tier": "LOW",
   "reasons": [
-   "обращение помечено как спам или не по теме"
+   "message flagged as spam or off topic"
   ],
   "reason_links": [
    {
-    "text": "обращение помечено как спам или не по теме",
+    "text": "message flagged as spam or off topic",
     "code": "spam_or_off_topic",
     "quotes": [
      0,
@@ -1946,7 +1946,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.22,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1975,20 +1975,20 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "срок 45 дней — не больше 60 дней",
-   "команда 12 человек — флекси не закроет визовую квоту",
-   "язык обращения ru — основная аудитория"
+   "needed in 45 days — urgency window is 60 days",
+   "team of 12 — flexi desk will not cover the visa quota",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "срок 45 дней — не больше 60 дней",
+    "text": "needed in 45 days — urgency window is 60 days",
     "code": "urgent_timeline",
     "quotes": [
      0
     ]
    },
    {
-    "text": "команда 12 человек — флекси не закроет визовую квоту",
+    "text": "team of 12 — flexi desk will not cover the visa quota",
     "code": "team_over_flexi_quota",
     "quotes": [
      0,
@@ -1996,7 +1996,7 @@
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -2033,7 +2033,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.17,
+   "latency_ms": 0.16,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2065,19 +2065,19 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "запрошено услуг: 2 — нужен пакет",
-   "язык обращения ru — основная аудитория"
+   "2 services asked about — this is a package, not a single line item",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 2 — нужен пакет",
+    "text": "2 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -2107,7 +2107,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.16,
+   "latency_ms": 0.24,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2139,11 +2139,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -2172,7 +2172,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.11,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2204,17 +2204,17 @@
   "is_synthetic": true,
   "tier": "LOW",
   "reasons": [
-   "из текста не извлечён ни один тип запроса",
-   "уверенность извлечения 0.00 — ниже порога 0.50"
+   "no request type could be extracted from the text",
+   "extraction confidence 0.00 — below the 0.50 threshold"
   ],
   "reason_links": [
    {
-    "text": "из текста не извлечён ни один тип запроса",
+    "text": "no request type could be extracted from the text",
     "code": "no_request_type",
     "quotes": []
    },
    {
-    "text": "уверенность извлечения 0.00 — ниже порога 0.50",
+    "text": "extraction confidence 0.00 — below the 0.50 threshold",
     "code": "low_confidence",
     "quotes": []
    }
@@ -2236,7 +2236,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.06,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2265,13 +2265,13 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "запрошено услуг: 5 — нужен пакет",
-   "назван бюджет: 150 тысяч; бюджет; AED; дирхам",
-   "язык обращения ru — основная аудитория"
+   "5 services asked about — this is a package, not a single line item",
+   "budget named: 150 тысяч; бюджет; AED; дирхам",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 5 — нужен пакет",
+    "text": "5 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0,
@@ -2289,7 +2289,7 @@
     ]
    },
    {
-    "text": "назван бюджет: 150 тысяч; бюджет; AED; дирхам",
+    "text": "budget named: 150 тысяч; бюджет; AED; дирхам",
     "code": "budget_named",
     "quotes": [
      8,
@@ -2301,7 +2301,7 @@
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -2390,7 +2390,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.94,
+   "latency_ms": 1.78,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2400,7 +2400,7 @@
    "live_latency_s": 4.4
   },
   "reply": {
-   "body": "‏تحية طيبة سيرغي، بخصوص أسئلتك: تجارة الإلكترونيات بالجملة وخدمات تطوير البرمجيات يمكن دمجهما ضمن رخصة واحدة في عدد من الجهات، أما نشاط التوظيف فيخضع لاشتراطات خاصة وغالباً يتطلب رخصة منفصلة، والاختيار بين المِنطقة الحرة والـ mainland يتحدد بطبيعة عملائك في السعودية وأوروبا وبحاجتك إلى التعامل المباشر داخل السوق المحلي.\n‏بالنسبة للمكتب، فإن عدد التأشيرات المطلوب لديك يجعل المكتب الفعلي أنسب من المكتب المرن، ومع حجم أعمال قريب من الحد الذي ذكرته تدخل ضمن نطاق ضريبة الشركات ويُستحسن إعداد حسابات مدققة لأغراض البنك والامتثال.\n‏أما فتح الحساب البنكي لغير المقيمين فهو ممكن، لكنه يعتمد على ملف النشاط ومصادر الأموال، ونعمل على تجهيز الملف قبل تقديمه لتقليل احتمال الرفض مرة أخرى.\n‏كمؤشر أولي: تأسيس شركة mainland مع الرخصة والرسوم الحكومية في حدود ⁦AED 15 000–35 000⁩، ومكتب خاص صغير في مركز أعمال في حدود ⁦AED 35 000–60 000⁩ سنوياً، ورسوم التأشيرات والمحاسبة تُحدد وفق العدد وحجم العمليات.\n‏هذه أرقام إرشادية فقط، والكلفة النهائية للسنة الأولى والثانية تُحتسب بعد مكالمة نوضح فيها الأنشطة والجهة المناسبة وعدد التأشيرات، دون أي مفاجآت لاحقة.\n‏يسعدنا لقاؤك في مكتبنا بدبي بعد العشرين من الشهر أو مكالمة قبل وصولك، بالعربية أو الإنجليزية كما يناسبك.",
+   "body": "‏تحية طيبة سيرغي، بخصوص أسئلتك: يمكن دمج تجارة الإلكترونيات بالجملة مع خدمات تطوير البرمجيات تحت رخصة واحدة في عدة حالات، أما نشاط التوظيف فيخضع لاشتراطات منفصلة وغالبًا يحتاج رخصة مستقلة، ومع عملاء في السعودية وأوروبا يبقى الـmainland أنسب للتوريد والتعامل المباشر، بينما تناسب المنطقة الحرة النشاط الخدمي.\n‏بالنسبة للمقر، فإن عدد التأشيرات المطلوب (ثلاث للشركاء واثنتان للموظفين ثم أربع لاحقًا) يفرض عمليًا مكتبًا فعليًا لا مكتبًا مرنًا، ولدينا مكاتب مناسبة في مركزنا التجاري.\n‏أما البنك فنعمل معك على ملف يوضح النشاط ومصدر الأموال وسجل الشركة في جورجيا، لأن الرفض السابق عادةً سببه ضعف الملف لا صفة الإقامة؛ ومع دورة تقارب أربعة ملايين درهم يلزم تسجيل ضريبة الشركات ومسك حسابات منتظم، ويتحدد وجوب التدقيق حسب الشكل القانوني والجهة المُصدِّرة للرخصة.\n‏للتقدير الأولي: تأسيس شركة mainland مع الرخصة والرسوم الحكومية في حدود ⁦AED 15 000–35 000⁩، والمكتب الخاص الصغير سنويًا في حدود ⁦AED 35 000–60 000⁩.\n‏هذه أرقام إرشادية فقط، والكلفة النهائية للسنة الأولى والثانية تُحسب بعد مكالمة نحدد فيها الأنشطة وعدد التأشيرات ونوع المقر، دون مبالغ مفاجئة لاحقًا.\n‏هل يناسبك لقاء في مكتبنا أو مكالمة يوم 20 أو 21 أكتوبر بعد وصولك إلى دبي؟",
    "language": "ar",
    "outcome": "draft",
    "needs_human": true,
@@ -2422,12 +2422,12 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "запрошено услуг: 2 — нужен пакет",
-   "язык обращения ru — основная аудитория"
+   "2 services asked about — this is a package, not a single line item",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 2 — нужен пакет",
+    "text": "2 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0,
@@ -2436,7 +2436,7 @@
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -2474,7 +2474,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.23,
+   "latency_ms": 0.17,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2506,11 +2506,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -2539,7 +2539,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.23,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2570,11 +2570,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -2603,7 +2603,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.05,
+   "latency_ms": 0.12,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2635,11 +2635,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -2668,7 +2668,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2725,7 +2725,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.11,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2757,11 +2757,11 @@
   "is_synthetic": true,
   "tier": "LOW",
   "reasons": [
-   "обращение помечено как спам или не по теме"
+   "message flagged as spam or off topic"
   ],
   "reason_links": [
    {
-    "text": "обращение помечено как спам или не по теме",
+    "text": "message flagged as spam or off topic",
     "code": "spam_or_off_topic",
     "quotes": [
      0
@@ -2790,7 +2790,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.21,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2819,17 +2819,17 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "срок 14 дней — не больше 60 дней",
-   "команда 20 человек — флекси не закроет визовую квоту"
+   "needed in 14 days — urgency window is 60 days",
+   "team of 20 — flexi desk will not cover the visa quota"
   ],
   "reason_links": [
    {
-    "text": "срок 14 дней — не больше 60 дней",
+    "text": "needed in 14 days — urgency window is 60 days",
     "code": "urgent_timeline",
     "quotes": []
    },
    {
-    "text": "команда 20 человек — флекси не закроет визовую квоту",
+    "text": "team of 20 — flexi desk will not cover the visa quota",
     "code": "team_over_flexi_quota",
     "quotes": [
      0,
@@ -2874,7 +2874,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.15,
+   "latency_ms": 0.16,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2931,7 +2931,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.19,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2962,17 +2962,17 @@
   "is_synthetic": true,
   "tier": "LOW",
   "reasons": [
-   "из текста не извлечён ни один тип запроса",
-   "уверенность извлечения 0.00 — ниже порога 0.50"
+   "no request type could be extracted from the text",
+   "extraction confidence 0.00 — below the 0.50 threshold"
   ],
   "reason_links": [
    {
-    "text": "из текста не извлечён ни один тип запроса",
+    "text": "no request type could be extracted from the text",
     "code": "no_request_type",
     "quotes": []
    },
    {
-    "text": "уверенность извлечения 0.00 — ниже порога 0.50",
+    "text": "extraction confidence 0.00 — below the 0.50 threshold",
     "code": "low_confidence",
     "quotes": []
    }
@@ -2994,7 +2994,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.05,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3023,23 +3023,23 @@
   "is_synthetic": true,
   "tier": "LOW",
   "reasons": [
-   "из текста не извлечён ни один тип запроса",
-   "язык обращения ru, но других признаков нет",
-   "уверенность извлечения 0.00 — ниже порога 0.50"
+   "no request type could be extracted from the text",
+   "written in ru, but no other signal backs it up",
+   "extraction confidence 0.00 — below the 0.50 threshold"
   ],
   "reason_links": [
    {
-    "text": "из текста не извлечён ни один тип запроса",
+    "text": "no request type could be extracted from the text",
     "code": "no_request_type",
     "quotes": []
    },
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    },
    {
-    "text": "уверенность извлечения 0.00 — ниже порога 0.50",
+    "text": "extraction confidence 0.00 — below the 0.50 threshold",
     "code": "low_confidence",
     "quotes": []
    }
@@ -3061,7 +3061,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.11,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3090,27 +3090,27 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "срок 21 день — не больше 60 дней",
-   "запрошено услуг: 2 — нужен пакет",
-   "команда 14 человек — флекси не закроет визовую квоту"
+   "needed in 21 days — urgency window is 60 days",
+   "2 services asked about — this is a package, not a single line item",
+   "team of 14 — flexi desk will not cover the visa quota"
   ],
   "reason_links": [
    {
-    "text": "срок 21 день — не больше 60 дней",
+    "text": "needed in 21 days — urgency window is 60 days",
     "code": "urgent_timeline",
     "quotes": [
      0
     ]
    },
    {
-    "text": "запрошено услуг: 2 — нужен пакет",
+    "text": "2 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0
     ]
    },
    {
-    "text": "команда 14 человек — флекси не закроет визовую квоту",
+    "text": "team of 14 — flexi desk will not cover the visa quota",
     "code": "team_over_flexi_quota",
     "quotes": [
      1
@@ -3178,11 +3178,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "запрошено услуг: 2 — нужен пакет"
+   "2 services asked about — this is a package, not a single line item"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 2 — нужен пакет",
+    "text": "2 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0
@@ -3214,7 +3214,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.13,
+   "latency_ms": 0.19,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3245,11 +3245,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -3278,7 +3278,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.2,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3334,7 +3334,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3344,7 +3344,7 @@
    "live_latency_s": 4.4
   },
   "reply": {
-   "body": "‏وعليكم السلام ورحمة الله، شكرًا لتواصلكم بشأن تأسيس شركة لتجارة المواد الغذائية في دبي.\n‏الخطوات تبدأ بتحديد الشكل القانوني والجهة المرخِّصة (المنطقة الحرة أو داخل الدولة)، ثم حجز الاسم التجاري والموافقة المبدئية، وإعداد عقد التأسيس وعنوان المنشأة، وبعدها إصدار الرخصة التجارية وفتح ملف المنشأة والتقدّم للتأشيرات، مع مراعاة أن نشاط المواد الغذائية يتطلب موافقة الجهة المعنية بسلامة الأغذية على المستودع أو المحل.\n‏أما المدة فهي مرتبطة بإجراءات الجهات الحكومية وموافقاتها، ولا يمكننا تحديدها من جانبنا.\n‏كمؤشر أولي: التأسيس داخل الدولة يقع ضمن ⁦AED 15 000–35 000⁩، والتأسيس في المنطقة الحرة ضمن ⁦AED 12 500–27 000⁩.\n‏تبقى هذه أرقامًا استرشادية، ويُحتسب المبلغ النهائي بعد مكالمة نوضح فيها النشاط والعدد المطلوب من التأشيرات ونوع المقر.\n‏هل تفضّلون أن نحدد موعدًا لمكالمة قصيرة هذا الأسبوع لمراجعة التفاصيل؟",
+   "body": "‏وعليكم السلام ورحمة الله، شكرًا لتواصلكم بشأن تأسيس شركة لتجارة المواد الغذائية في دبي.\n‏تبدأ الخطوات باختيار الشكل القانوني والجهة المرخِّصة، ثم حجز الاسم التجاري واعتماد النشاط، وبعدها تحرير عقد التأسيس واستخراج الرخصة، مع مراعاة أن تجارة المواد الغذائية تتطلب موافقة الجهة المختصة بسلامة الغذاء وعنوانًا تجاريًا مطابقًا للنشاط.\n‏أما المدة فهي مرتبطة بإجراءات الجهات الحكومية ولا نستطيع تحديدها من جانبنا، إذ يتوقف الأمر على وتيرة الموافقات.\n‏للتأسيس في البر الرئيسي يتراوح النطاق التقديري بين ⁦AED 15 000–35 000⁩، وفي المناطق الحرة بين ⁦AED 12 500–27 000⁩.\n‏هذه أرقام استرشادية فقط، ويُحدَّد المبلغ النهائي بعد مناقشة تفاصيل نشاطكم وعدد التأشيرات ومتطلبات المقر.\n‏هل تفضّلون أن يكون النشاط تجارة جملة أم تجزئة مع استيراد؟",
    "language": "ar",
    "outcome": "draft",
    "needs_human": true,
@@ -3366,11 +3366,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -3399,7 +3399,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3431,17 +3431,17 @@
   "is_synthetic": true,
   "tier": "LOW",
   "reasons": [
-   "из текста не извлечён ни один тип запроса",
-   "уверенность извлечения 0.00 — ниже порога 0.50"
+   "no request type could be extracted from the text",
+   "extraction confidence 0.00 — below the 0.50 threshold"
   ],
   "reason_links": [
    {
-    "text": "из текста не извлечён ни один тип запроса",
+    "text": "no request type could be extracted from the text",
     "code": "no_request_type",
     "quotes": []
    },
    {
-    "text": "уверенность извлечения 0.00 — ниже порога 0.50",
+    "text": "extraction confidence 0.00 — below the 0.50 threshold",
     "code": "low_confidence",
     "quotes": []
    }
@@ -3463,7 +3463,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.03,
+   "latency_ms": 0.06,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3492,11 +3492,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "запрошено услуг: 3 — нужен пакет"
+   "3 services asked about — this is a package, not a single line item"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 3 — нужен пакет",
+    "text": "3 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0,
@@ -3570,11 +3570,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -3603,7 +3603,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.18,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3632,23 +3632,23 @@
   "is_synthetic": true,
   "tier": "LOW",
   "reasons": [
-   "из текста не извлечён ни один тип запроса",
-   "язык обращения ru, но других признаков нет",
-   "уверенность извлечения 0.00 — ниже порога 0.50"
+   "no request type could be extracted from the text",
+   "written in ru, but no other signal backs it up",
+   "extraction confidence 0.00 — below the 0.50 threshold"
   ],
   "reason_links": [
    {
-    "text": "из текста не извлечён ни один тип запроса",
+    "text": "no request type could be extracted from the text",
     "code": "no_request_type",
     "quotes": []
    },
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    },
    {
-    "text": "уверенность извлечения 0.00 — ниже порога 0.50",
+    "text": "extraction confidence 0.00 — below the 0.50 threshold",
     "code": "low_confidence",
     "quotes": []
    }
@@ -3670,7 +3670,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.19,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3699,19 +3699,19 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "запрошено услуг: 2 — нужен пакет",
-   "язык обращения ru — основная аудитория"
+   "2 services asked about — this is a package, not a single line item",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 2 — нужен пакет",
+    "text": "2 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -3741,7 +3741,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.16,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3773,11 +3773,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -3806,7 +3806,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.11,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3838,11 +3838,11 @@
   "is_synthetic": true,
   "tier": "LOW",
   "reasons": [
-   "обращение помечено как спам или не по теме"
+   "message flagged as spam or off topic"
   ],
   "reason_links": [
    {
-    "text": "обращение помечено как спам или не по теме",
+    "text": "message flagged as spam or off topic",
     "code": "spam_or_off_topic",
     "quotes": [
      0
@@ -3871,7 +3871,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.25,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3900,19 +3900,19 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "запрошено услуг: 3 — нужен пакет",
-   "команда 6 человек — флекси не закроет визовую квоту"
+   "3 services asked about — this is a package, not a single line item",
+   "team of 6 — flexi desk will not cover the visa quota"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 3 — нужен пакет",
+    "text": "3 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0
     ]
    },
    {
-    "text": "команда 6 человек — флекси не закроет визовую квоту",
+    "text": "team of 6 — flexi desk will not cover the visa quota",
     "code": "team_over_flexi_quota",
     "quotes": [
      1
@@ -3949,7 +3949,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.14,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3981,11 +3981,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "запрошено услуг: 2 — нужен пакет"
+   "2 services asked about — this is a package, not a single line item"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 2 — нужен пакет",
+    "text": "2 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0
@@ -4017,7 +4017,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.27,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4049,23 +4049,23 @@
   "is_synthetic": true,
   "tier": "LOW",
   "reasons": [
-   "из текста не извлечён ни один тип запроса",
-   "язык обращения ru, но других признаков нет",
-   "уверенность извлечения 0.00 — ниже порога 0.50"
+   "no request type could be extracted from the text",
+   "written in ru, but no other signal backs it up",
+   "extraction confidence 0.00 — below the 0.50 threshold"
   ],
   "reason_links": [
    {
-    "text": "из текста не извлечён ни один тип запроса",
+    "text": "no request type could be extracted from the text",
     "code": "no_request_type",
     "quotes": []
    },
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    },
    {
-    "text": "уверенность извлечения 0.00 — ниже порога 0.50",
+    "text": "extraction confidence 0.00 — below the 0.50 threshold",
     "code": "low_confidence",
     "quotes": []
    }
@@ -4087,7 +4087,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.04,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4116,12 +4116,12 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "запрошено услуг: 2 — нужен пакет",
-   "язык обращения ru — основная аудитория"
+   "2 services asked about — this is a package, not a single line item",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 2 — нужен пакет",
+    "text": "2 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0,
@@ -4129,7 +4129,7 @@
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -4163,7 +4163,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.11,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4195,13 +4195,13 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "запрошено услуг: 3 — нужен пакет",
-   "команда 9 человек — флекси не закроет визовую квоту",
-   "назван бюджет: 180k; бюджет; AED"
+   "3 services asked about — this is a package, not a single line item",
+   "team of 9 — flexi desk will not cover the visa quota",
+   "budget named: 180k; бюджет; AED"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 3 — нужен пакет",
+    "text": "3 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0,
@@ -4209,7 +4209,7 @@
     ]
    },
    {
-    "text": "команда 9 человек — флекси не закроет визовую квоту",
+    "text": "team of 9 — flexi desk will not cover the visa quota",
     "code": "team_over_flexi_quota",
     "quotes": [
      1,
@@ -4217,7 +4217,7 @@
     ]
    },
    {
-    "text": "назван бюджет: 180k; бюджет; AED",
+    "text": "budget named: 180k; бюджет; AED",
     "code": "budget_named",
     "quotes": [
      0,
@@ -4263,7 +4263,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.18,
+   "latency_ms": 0.13,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4295,19 +4295,19 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "запрошено услуг: 2 — нужен пакет",
-   "язык обращения ru — основная аудитория"
+   "2 services asked about — this is a package, not a single line item",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 2 — нужен пакет",
+    "text": "2 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -4337,7 +4337,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.22,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4394,7 +4394,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.18,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4425,11 +4425,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -4487,11 +4487,11 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "язык обращения ru, но других признаков нет"
+   "written in ru, but no other signal backs it up"
   ],
   "reason_links": [
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    }
@@ -4552,11 +4552,11 @@
   "is_synthetic": true,
   "tier": "LOW",
   "reasons": [
-   "обращение помечено как спам или не по теме"
+   "message flagged as spam or off topic"
   ],
   "reason_links": [
    {
-    "text": "обращение помечено как спам или не по теме",
+    "text": "message flagged as spam or off topic",
     "code": "spam_or_off_topic",
     "quotes": [
      1
@@ -4589,7 +4589,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.27,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4618,20 +4618,20 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "срок 14 дней — не больше 60 дней",
-   "запрошено услуг: 2 — нужен пакет",
-   "команда 10 человек — флекси не закроет визовую квоту"
+   "needed in 14 days — urgency window is 60 days",
+   "2 services asked about — this is a package, not a single line item",
+   "team of 10 — flexi desk will not cover the visa quota"
   ],
   "reason_links": [
    {
-    "text": "срок 14 дней — не больше 60 дней",
+    "text": "needed in 14 days — urgency window is 60 days",
     "code": "urgent_timeline",
     "quotes": [
      0
     ]
    },
    {
-    "text": "запрошено услуг: 2 — нужен пакет",
+    "text": "2 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0,
@@ -4639,7 +4639,7 @@
     ]
    },
    {
-    "text": "команда 10 человек — флекси не закроет визовую квоту",
+    "text": "team of 10 — flexi desk will not cover the visa quota",
     "code": "team_over_flexi_quota",
     "quotes": [
      0,
@@ -4676,7 +4676,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.16,
+   "latency_ms": 0.14,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4708,12 +4708,12 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "запрошено услуг: 3 — нужен пакет",
-   "язык обращения ru — основная аудитория"
+   "3 services asked about — this is a package, not a single line item",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 3 — нужен пакет",
+    "text": "3 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0,
@@ -4721,7 +4721,7 @@
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -4756,7 +4756,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.21,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4788,23 +4788,23 @@
   "is_synthetic": true,
   "tier": "LOW",
   "reasons": [
-   "из текста не извлечён ни один тип запроса",
-   "язык обращения ru, но других признаков нет",
-   "уверенность извлечения 0.00 — ниже порога 0.50"
+   "no request type could be extracted from the text",
+   "written in ru, but no other signal backs it up",
+   "extraction confidence 0.00 — below the 0.50 threshold"
   ],
   "reason_links": [
    {
-    "text": "из текста не извлечён ни один тип запроса",
+    "text": "no request type could be extracted from the text",
     "code": "no_request_type",
     "quotes": []
    },
    {
-    "text": "язык обращения ru, но других признаков нет",
+    "text": "written in ru, but no other signal backs it up",
     "code": "target_language_alone",
     "quotes": []
    },
    {
-    "text": "уверенность извлечения 0.00 — ниже порога 0.50",
+    "text": "extraction confidence 0.00 — below the 0.50 threshold",
     "code": "low_confidence",
     "quotes": []
    }
@@ -4826,7 +4826,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4855,19 +4855,19 @@
   "is_synthetic": true,
   "tier": "MEDIUM",
   "reasons": [
-   "запрошено услуг: 2 — нужен пакет",
-   "язык обращения ru — основная аудитория"
+   "2 services asked about — this is a package, not a single line item",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 2 — нужен пакет",
+    "text": "2 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -4897,7 +4897,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.12,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4929,13 +4929,13 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "запрошено услуг: 3 — нужен пакет",
-   "команда 8 человек — флекси не закроет визовую квоту",
-   "язык обращения ru — основная аудитория"
+   "3 services asked about — this is a package, not a single line item",
+   "team of 8 — flexi desk will not cover the visa quota",
+   "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "запрошено услуг: 3 — нужен пакет",
+    "text": "3 services asked about — this is a package, not a single line item",
     "code": "package_request",
     "quotes": [
      0,
@@ -4943,7 +4943,7 @@
     ]
    },
    {
-    "text": "команда 8 человек — флекси не закроет визовую квоту",
+    "text": "team of 8 — flexi desk will not cover the visa quota",
     "code": "team_over_flexi_quota",
     "quotes": [
      0,
@@ -4951,7 +4951,7 @@
     ]
    },
    {
-    "text": "язык обращения ru — основная аудитория",
+    "text": "written in ru — core audience",
     "code": "target_language",
     "quotes": []
    }
@@ -4990,7 +4990,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.2,
+   "latency_ms": 0.16,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,

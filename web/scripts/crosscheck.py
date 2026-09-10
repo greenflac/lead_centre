@@ -45,12 +45,15 @@ const path = require("path");
 const { extractFacts, scoreInbound } = require(path.join(process.argv[2], "mockEngine.js"));
 const { draftReply } = require(path.join(process.argv[2], "mockReply.js"));
 const rows = JSON.parse(require("fs").readFileSync(process.argv[3], "utf8"));
+const { renderReasons } = require(path.join(process.argv[2], "mockEngine.js"));
 const out = rows.map((row) => {
   const received = new Date(row.received_at + "T00:00:00Z");
   const { facts, quotes } = extractFacts(row.text, received);
   const scored = scoreInbound(row.text, facts, quotes);
   const reply = draftReply(facts, scored.tier, row.text);
-  return { id: row.id, facts, quotes, tier: scored.tier, reasons: scored.reasons,
+  return { id: row.id, facts, quotes, tier: scored.tier,
+           reasons_ru: renderReasons(scored.reasonItems, "ru"),
+           reasons_en: renderReasons(scored.reasonItems, "en"),
            violations: scored.violations, reply };
 });
 process.stdout.write(JSON.stringify(out));
@@ -98,7 +101,10 @@ def python_side(row: dict) -> dict:
         "confidence": facts.confidence,
         "quotes": list(facts.quotes),
         "tier": result.tier.value,
-        "reasons": list(result.reasons),
+        # Причины сверяются на ОБОИХ языках: карточка идёт по-английски, а измерительный
+        # стенд и логи — по-русски, и разъехаться они не имеют права (Е1).
+        "reasons_ru": list(result.reasons_in(Language.RU)),
+        "reasons_en": list(result.reasons_in(Language.EN)),
         "reply_language": drafted.language,
         "reply_outcome": drafted.outcome,
         "used_prices": list(drafted.used_prices),
@@ -118,7 +124,8 @@ def ts_side(item: dict) -> dict:
         "confidence": facts["confidence"],
         "quotes": item["quotes"],
         "tier": item["tier"],
-        "reasons": item["reasons"],
+        "reasons_ru": item["reasons_ru"],
+        "reasons_en": item["reasons_en"],
         "reply_language": item["reply"]["language"],
         "reply_outcome": item["reply"]["outcome"],
         "used_prices": item["reply"]["used_prices"],
@@ -127,8 +134,8 @@ def ts_side(item: dict) -> dict:
 
 
 FIELDS = ("request_types", "headcount", "timeline_days", "budget_hint", "is_spam",
-          "confidence", "quotes", "tier", "reasons", "reply_language", "reply_outcome",
-          "used_prices", "reply_body")
+          "confidence", "quotes", "tier", "reasons_ru", "reasons_en", "reply_language",
+          "reply_outcome", "used_prices", "reply_body")
 
 # Арабский черновик пишет модель, и в браузере её нет — это заявленное различие путей,
 # а не расхождение реализации. Сравниваются все поля, кроме тела и исхода черновика.
@@ -164,9 +171,10 @@ def main() -> int:
     py_items = {row["id"]: python_side(row) for row in rows}
 
     # Негативный контроль: две подложные строки (И5).
-    controls = []
+    controls: list[tuple[str, dict, dict, str]] = []
     for probe, field, value in (("контроль-приоритет", "tier", "LOW"),
-                                ("контроль-черновик", "reply_body", "подменённый текст")):
+                                ("контроль-черновик", "reply_body", "подменённый текст"),
+                                ("контроль-причины-en", "reasons_en", ["подменено"])):
         victim = dict(py_items[rows[0]["id"]])
         victim[field] = value
         controls.append((probe, victim, ts_items[rows[0]["id"]], field))
@@ -206,10 +214,10 @@ def main() -> int:
             caught += 1
         else:
             print(f"негативный контроль {probe} НЕ сработал — прибор не сравнивает {field}")
-    print(f"\nнегативный контроль (И5): подложек 2, поймано {caught}")
+    print(f"\nнегативный контроль (И5): подложек {len(controls)}, поймано {caught}")
     print(f"сверено обращений {len(rows)}, полей {total_same + total_diff}, "
           f"сошлось {total_same}, расхождений {total_diff}, не смогли 0")
-    return 1 if total_diff or caught != 2 else 0
+    return 1 if total_diff or caught != len(controls) else 0
 
 
 if __name__ == "__main__":
