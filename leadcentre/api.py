@@ -1,8 +1,8 @@
 """HTTP-слой: FastAPI поверх того же движка, что и CLI. Логика — в функциях, не в
-обработчиках (Т5): `handle_lead`, `handle_discover`, `handle_stats` вызываются тестом
+обработчиках: `handle_lead`, `handle_discover`, `handle_stats` вызываются тестом
 напрямую, без сети и без сервера.
 
-Три исхода вместо двух (Р1) — сквозной принцип этого файла:
+Три исхода вместо двух — сквозной принцип этого файла:
   * `POST /leads` возвращает `outcome`: `ok` (карточка построена) либо ошибку с кодом,
     по которому видно, что чинить: `provider_budget` (кончились деньги у провайдера
     модели — 503, а не 500 со стектрейсом), `extraction_failed` (модель ответила не тем),
@@ -10,12 +10,12 @@
   * запись в хранилище — отдельный блок `storage` с исходом `ok`/`rejected`/`unavailable`.
     Карточка при неудачной записи всё равно возвращается: считать её заново дороже, чем
     показать со словами «не сохранено». Но выдавать несохранённое за сохранённое нельзя.
-  * `GET /stats` печатает три числа рядом — проверено / нарушений / не смогли (Р2).
+  * `GET /stats` печатает три числа рядом — проверено / нарушений / не смогли.
   * причины карточки отдаются блоком `reasons_by_language` плюс `reasons_outcome`:
     язык выбирает интерфейс, а «причины не восстановились» — отдельный исход, а не
     русский текст в поле английского (см. `_reasons_block`).
 
-Ключи и режимы берутся из среды и нигде не дублируются (Е1): `OFFLINE=1` выключает сеть
+Ключи и режимы берутся из среды и нигде не дублируются: `OFFLINE=1` выключает сеть
 и для модели (extract), и для источника (GLEIF), и для хранилища (LocalStore).
 """
 from __future__ import annotations
@@ -65,8 +65,8 @@ from leadcentre.store import (
 
 logger = logging.getLogger("leadcentre.api")
 
-DEFAULT_DISCOVER_LIMIT = 30   # ВЫБРАНО: столько же, сколько у CLI по умолчанию (Е1)
-MAX_DISCOVER_LIMIT = 200      # ВЫБРАНО: предел страницы GLEIF
+DEFAULT_DISCOVER_LIMIT = 30   # столько же, сколько у CLI по умолчанию
+MAX_DISCOVER_LIMIT = 200      # предел страницы GLEIF
 DEFAULT_LIST_LIMIT = 50
 
 OUTCOME_OK = "ok"
@@ -138,7 +138,7 @@ async def _budget_handler(_: Request, exc: ProviderBudgetError) -> JSONResponse:
     бессмысленно, и стектрейс заставил бы клиента искать баг в коде, которого там нет.
     402 выбран ещё и потому, что ровно его ждёт дашборд (`web/lib/api.ts`: 402/429 →
     «провайдер без бюджета»); один и тот же смысл в двух местах должен читаться
-    одинаково (Е1). Машиночитаемый признак — поле `code`, а не только номер.
+    одинаково. Машиночитаемый признак — поле `code`, а не только номер.
     """
     return _error(
         402, "provider_budget", str(exc),
@@ -164,7 +164,7 @@ async def _store_rejected_handler(_: Request, exc: StoreRejected) -> JSONRespons
     )
 
 
-# --- конвейер: вся работа здесь, обработчики только разбирают запрос (Т5) ---
+# --- конвейер: вся работа здесь, обработчики только разбирают запрос ---
 
 
 def _reasons_block(restored: RestoredReasons) -> dict[str, Any]:
@@ -174,7 +174,7 @@ def _reasons_block(restored: RestoredReasons) -> dict[str, Any]:
 
     1. Язык выбирает интерфейс, а не сервер. Дашборд переключает RU/EN на клиенте, без
        похода на бэкенд; попросить `?lang=en` значило бы перерисовывать карточку
-       запросом и держать язык ещё и в состоянии сервера (второе место знания, Е1).
+       запросом и держать язык ещё и в состоянии сервера — вторым местом знания.
     2. `reasons_by_language` содержит ровно те языки, которые ДЕЙСТВИТЕЛЬНО собраны.
        Для старой записи без кодов там только `ru`, и отсутствие ключа `en` — машинный
        признак: подставить русский текст в английскую карточку клиент уже не может
@@ -199,7 +199,7 @@ def _live_reasons(score_obj) -> RestoredReasons:
 
     Прогон через сериализацию и разбор нарочно: то, что API показывает сейчас, обязано
     совпадать с тем, что поднимется из хранилища потом. Иначе живой и демонстрационный
-    режимы разъедутся ровно там, где их никто не сравнивает (Е1).
+    режимы разъедутся ровно там, где их никто не сравнивает.
     """
     return restore_reasons(
         {
@@ -249,7 +249,7 @@ def _facts_payload(facts) -> dict[str, Any]:
 
 
 def _lint_ok(status: str) -> bool | None:
-    """Три исхода линтера → колонка. UNVERIFIABLE — это `None`, а не `False` (Р1)."""
+    """Три исхода линтера → колонка. UNVERIFIABLE — это `None`, а не `False`."""
     if status == lint_module.STATUS_OK:
         return True
     if status == lint_module.STATUS_VIOLATIONS:
@@ -272,7 +272,7 @@ def handle_lead(payload: LeadIn, today: date | None = None) -> dict[str, Any]:
         is_synthetic=payload.is_synthetic,
     )
 
-    extraction = extract_detailed(message)           # может бросить ProviderBudgetError (Р1)
+    extraction = extract_detailed(message)           # может бросить ProviderBudgetError
     facts = extraction.facts
     inbound_score = score_inbound(message, facts)
     draft = reply_module.draft(message, facts, inbound_score.tier)
@@ -320,7 +320,7 @@ def handle_lead(payload: LeadIn, today: date | None = None) -> dict[str, Any]:
                 tier=inbound_score.tier.value,
                 address_type=inbound_score.address_type.value,
                 event=inbound_score.event.value,
-                # Коды, а не строки: строки соберёт отрисовка (Е1), и английский
+                # Коды, а не строки: строки соберёт отрисовка, и английский
                 # у карточки, поднятой из базы, останется восстановимым.
                 reason_items=inbound_score.reason_items,
                 evidence=tuple(
@@ -446,7 +446,7 @@ def handle_discover(payload: DiscoverIn, today: date | None = None) -> dict[str,
 
 
 def handle_stats() -> dict[str, Any]:
-    """Числа для отчёта. Хранилище недоступно — это «не смогли», а не нули (Р2)."""
+    """Числа для отчёта. Хранилище недоступно — это «не смогли», а не нули."""
     health = store().health()
     base = {
         "store": store().name,

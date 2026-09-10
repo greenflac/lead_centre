@@ -1,8 +1,8 @@
 """Измерительный стенд: каппа, матрица ошибок, стабильность, негативные контроли.
 
-Стенд принимает готовый движок и не знает, как он устроен (И1): он читает разметку,
+Стенд принимает готовый движок и не знает, как он устроен: он читает разметку,
 гоняет скоринг и печатает числа. Всё, что он умеет сказать, — это три исхода на каждый
-блок (Р1): `годно`, `не годно`, `не смогли проверить`; третий не сворачивается в первые два.
+блок: `годно`, `не годно`, `не смогли проверить`; третий не сворачивается в первые два.
 
 Два режима по деньгам (бюджет Anthropic ограничен, ответ Opus — десятки секунд):
   * `--engine=rules` (по умолчанию) — факты добываются детерминированно из текста CSV,
@@ -35,15 +35,16 @@ if str(ROOT) not in sys.path:
 from leadcentre.engine import extract as extract_mod
 from leadcentre.models import InboundMessage, LeadFacts, RequestType, Tier
 
-# --- константы-решения (И4) ---
+# --- пороги приёмки ---
 
-# ВЫБРАНО: разметка человека тремя значениями; INVALID — исход движка, а не суждение
-# человека (docs/data/inbound_seed.md, раздел «Правила разметки для владельца»).
+# Человек размечает лид одним из трёх уровней; INVALID сюда не входит — это исход движка,
+# а не суждение человека (docs/data/inbound_seed.md, «Правила разметки для владельца»).
 TIERS = ("HIGH", "MEDIUM", "LOW")
-STABILITY_RUNS = 3         # РАСЧЁТ по docs/BLUEPRINT.md §10: «3 прогона»
-KAPPA_TARGET = 0.6         # РАСЧЁТ по docs/BLUEPRINT.md §10: каппа >= 0.6
-STABILITY_TARGET = 0.9     # РАСЧЁТ по docs/BLUEPRINT.md §10: >= 90%
-CONTROLS_EXPECTED = 6      # РАСЧЁТ по docs/BLUEPRINT.md §10: 6 обращений, 6 из 6
+# Пороги приёмки заданы в docs/BLUEPRINT.md §10 и меняются вместе с ним.
+STABILITY_RUNS = 3
+KAPPA_TARGET = 0.6
+STABILITY_TARGET = 0.9
+CONTROLS_EXPECTED = 6
 
 SEED_PATH = ROOT / "data" / "inbound_seed.csv"
 LABELS_PATH = ROOT / "eval" / "labels.csv"
@@ -56,7 +57,7 @@ EXIT_UNMEASURABLE = 2  # не смогли проверить: мерить бы
 
 
 class CannotMeasure(RuntimeError):
-    """Третий исход на одном обращении: приоритет получить не смогли (Р1)."""
+    """Третий исход на одном обращении: приоритет получить не смогли."""
 
 
 # --- вход ---
@@ -79,7 +80,7 @@ def load_messages(path: Path) -> list[InboundMessage]:
 
 
 def load_labels(path: Path) -> tuple[dict[str, str], list[str]]:
-    """Разметка человека: external_id -> tier. Второй элемент — брак разметки числами (Е3)."""
+    """Разметка человека: external_id -> tier. Второй элемент — брак разметки числами."""
     labels: dict[str, str] = {}
     bad: list[str] = []
     with path.open(encoding="utf-8", newline="") as fh:
@@ -100,9 +101,9 @@ def load_controls(path: Path) -> list[dict[str, str]]:
         return [row for row in csv.DictReader(fh) if (row.get("external_id") or "").strip()]
 
 
-# --- факты без модели: общий модуль движка (Е1) ---
-# Раньше эта логика жила здесь и, отдельной копией, в генераторе данных дашборда.
-# Копии разошлись на одном и том же наборе, поэтому реализация одна на всех.
+# --- факты без модели: общий модуль движка ---
+# Импорт, а не своя копия: стенд обязан мерить ровно тот режим `rules`, который работает
+# в продукте, иначе замер и продукт расходятся незаметно.
 from leadcentre.engine.facts_rules import rules_facts
 
 # --- приоритет: сперва движок, и только если его нет — заглушка стенда ---
@@ -111,10 +112,10 @@ LEAD_SCORER_NAMES = ("score_lead", "score_inbound", "lead_tier", "score_facts")
 
 
 def resolve_scorer():
-    """Кто считает приоритет — выводится из того, что действительно нашлось (Е2).
+    """Кто считает приоритет — выводится из того, что действительно нашлось.
 
-    Своей копии рубрики у стенда нет и быть не должно (Е1): прибор, считающий приоритет
-    сам, меряет себя. Нет функции в движке — третий исход, а не подмена (Р1).
+    Своей копии рубрики у стенда нет и быть не должно: прибор, считающий приоритет
+    сам, меряет себя. Нет функции в движке — третий исход, а не подмена.
     """
     from leadcentre.engine import score as score_mod
 
@@ -131,7 +132,7 @@ def resolve_scorer():
 
 
 def call_scorer(fn, facts: LeadFacts, message: InboundMessage) -> Tier:
-    """Порядок аргументов выводится из подписи движка, а не из нашего представления о ней (Е2)."""
+    """Порядок аргументов выводится из подписи движка, а не из нашего представления о ней."""
     names = [
         p.name
         for p in inspect.signature(fn).parameters.values()
@@ -208,7 +209,7 @@ def facts_from_dict(raw: dict) -> LeadFacts:
 
 @dataclass
 class Engine:
-    """Движок глазами стенда: обращение -> приоритет либо «не смогли» (Р1)."""
+    """Движок глазами стенда: обращение -> приоритет либо «не смогли»."""
 
     mode: str
     scorer: object
@@ -252,7 +253,7 @@ class Engine:
 
 
 def cohen_kappa(pairs: list[tuple[str, str]]) -> tuple[float | None, str]:
-    """Каппа по парам (разметка человека, приоритет движка). Вырождение — третий исход (Р1).
+    """Каппа по парам (разметка человека, приоритет движка). Вырождение — третий исход.
 
     Возвращает (значение или None, пояснение). None означает «не смогли измерить», а не 0.0:
     ноль — это «согласия не больше случайного», вырождение — «мерить нечем».
@@ -274,7 +275,7 @@ def cohen_kappa(pairs: list[tuple[str, str]]) -> tuple[float | None, str]:
 
 
 def degeneracy_notes(pairs: list[tuple[str, str]]) -> list[str]:
-    """Негативный контроль самого прибора (И5): одноклассовая сторона — не «отличный результат»."""
+    """Негативный контроль самого прибора: одноклассовая сторона — не «отличный результат»."""
     notes: list[str] = []
     sides = (("разметка", [a for a, _ in pairs]), ("движок", [b for _, b in pairs]))
     for who, values in sides:
@@ -311,7 +312,7 @@ def print_confusion(matrix: dict[tuple[str, str], int]) -> None:
 
 @dataclass
 class Block:
-    """Итог блока числами и одним из трёх исходов (Р1/Р2)."""
+    """Итог блока числами и одним из трёх исходов."""
 
     name: str
     checked: int = 0
@@ -433,7 +434,7 @@ def measure_controls(engine: Engine, messages: dict[str, InboundMessage], path: 
         f"(ожидается {CONTROLS_EXPECTED} из {CONTROLS_EXPECTED})"
     )
     # Три исхода и здесь: провал контроля — «не годно», а недоехавший контроль
-    # (обращения нет в выборке, извлечение упало) — «не смогли», а не провал (Р1).
+    # (обращения нет в выборке, извлечение упало) — «не смогли», а не провал.
     if block.mismatched:
         block.verdict = "не годно"
     elif block.unmeasured or block.checked < CONTROLS_EXPECTED:

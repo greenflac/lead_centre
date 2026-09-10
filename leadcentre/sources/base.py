@@ -10,7 +10,7 @@ from leadcentre.models import Company
 
 @dataclass(frozen=True)
 class FetchResult:
-    """Числами, а не флагом (Р2/Е3): сколько получили, сколько пропустили и почему."""
+    """Числами, а не флагом: сколько получили, сколько пропустили и почему."""
 
     companies: tuple[Company, ...]
     fetched: int

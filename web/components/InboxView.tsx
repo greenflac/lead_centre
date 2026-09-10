@@ -27,16 +27,36 @@ function preview(text: string): string {
   return `${cut}${"\u2069".repeat(Math.max(0, unclosed))}…`;
 }
 
-/** The reason without its threshold half: "срок 14 дн. — не больше 60" → "срок 14 дн." */
+/**
+ * The reason without its threshold half:
+ * "needed in 14 days — urgency window is 60 days" → "needed in 14 days".
+ * Both dashes are the catalogue's own separators, in either language.
+ */
 function shortReason(reason: string): string {
-  return reason.split(" — ")[0].split(", но ")[0];
+  return reason.split(" — ")[0].split(", но ")[0].split(", but ")[0];
 }
+
+/**
+ * Reasons that say nothing in a one-line preview: the language of the request is already
+ * shown as its own chip on the row.
+ *
+ * Matched by CODE, never by the text of the reason (Е1). The text is bilingual and gets
+ * rewritten; a filter reading `startsWith("язык обращения")` silently stopped working the
+ * day the interface switched to English, and "written in ru — core audience" started
+ * taking one of the three preview slots.
+ */
+const PREVIEW_SKIPPED_CODES = new Set(["target_language", "target_language_alone"]);
 
 /** One line of "why", so the manager decides what to open without opening it (Einstein). */
 function whyLine(lead: Lead): string {
-  const parts = lead.reasons.filter((item) => !item.startsWith("язык обращения")).map(shortReason);
-  const line = (parts.length ? parts : lead.reasons.map(shortReason)).slice(0, 3).join(" · ");
-  return line;
+  const links = lead.reason_links;
+  // Без кодов (старая строка из хранилища) отбросить нечего — берём всё, а не наугад по
+  // тексту: третий исход «не знаем кодов» не притворяется отбором (Р1).
+  const kept = links
+    ? links.filter((item) => !PREVIEW_SKIPPED_CODES.has(item.code ?? "")).map((item) => item.text)
+    : lead.reasons;
+  const parts = (kept.length ? kept : lead.reasons).map(shortReason);
+  return parts.slice(0, 3).join(" · ");
 }
 
 export default function InboxView({

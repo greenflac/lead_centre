@@ -5,7 +5,7 @@
 `Authorization: Bearer`. Секретный ключ обходит RLS, поэтому он живёт только здесь, на
 сервере, и никогда не уезжает в браузер.
 
-Три исхода вместо двух (Р1) — это половина смысла модуля:
+Три исхода вместо двух — это половина смысла модуля:
   * 2xx — успех;
   * 400/409/422 — `StoreRejected`: данные не приняты, чинится кодом;
   * сеть, таймаут, 401/403, 404 «схема не применена», 5xx — `StoreUnavailable`: «не смогли».
@@ -49,11 +49,11 @@ SCHEMA_PATH = Path(__file__).resolve().parent / "schema.sql"
 `psql "$SUPABASE_DB_URL" -f leadcentre/store/schema.sql`. Ключами из среды DDL сделать
 нельзя — у PostgREST нет такого эндпоинта, а строки подключения к Postgres в среде нет."""
 
-TIMEOUT_S = 20.0          # ВЫБРАНО: HTTP-запрос из обработчика; дольше держать клиента нельзя
+TIMEOUT_S = 20.0          # запрос идёт из обработчика; дольше держать клиента нельзя
 USER_AGENT = "leadcentre/0.1 (+SORP Lead Centre)"
-DEFAULT_LIMIT = 50        # ВЫБРАНО: столько строк помещается в один экран инбокса
+DEFAULT_LIMIT = 50        # столько строк помещается в один экран инбокса
 
-# Коды PostgREST, означающие «схема не применена». Отдельно от прочих 404 (Е2).
+# Коды PostgREST, означающие «схема не применена». Отделены от прочих 404.
 # PGRST204/42703 — «нет такой колонки»: это НЕ отказ по данным, а недокаченная миграция,
 # и лечится она средой, а не кодом. Свернуть её в StoreRejected значило бы отправить
 # владельца искать баг в payload вместо того, чтобы накатить schema.sql.
@@ -153,7 +153,7 @@ class SupabaseStore:
     # --- контракт Store ---
 
     def health(self) -> StoreHealth:
-        """Три исхода (Р1): таблицы есть; данные отвергнуты; не смогли (сеть/схема/доступ)."""
+        """Три исхода: таблицы есть; данные отвергнуты; не смогли (сеть/схема/доступ)."""
         try:
             self._request("GET", "leads", params={"select": "id", "limit": "1"}, write=False)
         except StoreUnavailable as exc:
@@ -263,7 +263,7 @@ class SupabaseStore:
         self._request("POST", "disagreements", body=[row.payload()], prefer="return=minimal")
 
     def counters(self) -> dict[str, Any]:
-        """Те же числа, что у офлайна, и считаются той же функцией (Е1)."""
+        """Те же числа, что у офлайна, и считаются той же функцией."""
         leads = self._request("GET", "leads", params={"select": "*"}, write=False) or []
         scores = self._request("GET", "scores", params={"select": "*"}, write=False) or []
         replies = self._request("GET", "replies", params={"select": "*"}, write=False) or []

@@ -246,9 +246,13 @@ export function draftReply(facts: LeadFacts, tier: string, text = ""): Reply {
       outcome: "no_draft_needs_human",
       needs_human: true,
       used_prices: [],
+      // Служебный текст английского интерфейса — по-английски. Русская пометка на
+      // английской карточке читается как недоделка; движок по той же причине перевёл
+      // NATIVE_REVIEW_NOTICE.
       notice:
-        "Арабский черновик пишет модель в рамках, заданных кодом, и он обязателен к вычитке носителем. " +
-        "В демо-режиме без бэкенда модель недоступна, поэтому черновика нет — карточку берёт человек.",
+        "The Arabic draft is written by the model inside limits set by the code, and a native " +
+        "speaker must read it before sending. In demo mode there is no backend and no model, " +
+        "so there is no draft — a human takes this card.",
     };
   }
 
@@ -291,8 +295,9 @@ export function draftReply(facts: LeadFacts, tier: string, text = ""): Reply {
     outcome: "draft",
     needs_human: needsHuman || skipped.length > 0,
     used_prices: keys,
+    // То же самое: пометка адресована менеджеру, читающему английский экран.
     notice: skipped.length
-      ? `в черновике не отражены типы запроса без шаблона: ${skipped.join(", ")}`
+      ? `not covered by the draft — request types with no template: ${skipped.join(", ")}`
       : "",
   };
 }
