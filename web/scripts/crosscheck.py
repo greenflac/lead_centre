@@ -30,10 +30,10 @@ REPO = Path(__file__).resolve().parents[2]
 WEB = REPO / "web"
 sys.path.insert(0, str(REPO))
 
-from leadcentre.engine import reply as reply_mod          # noqa: E402
-from leadcentre.engine.facts_rules import rules_facts     # noqa: E402
-from leadcentre.engine.score import score_inbound         # noqa: E402
-from leadcentre.models import InboundMessage              # noqa: E402
+from leadcentre.engine import reply as reply_mod
+from leadcentre.engine.facts_rules import rules_facts
+from leadcentre.engine.score import score_inbound
+from leadcentre.models import InboundMessage
 
 # Выборка: по одному обращению каждого вида плюс те, на которых движок менялся
 # (renewal — gen-20, продление лицензии — urg-13, длинное — edge-03, спам — spam-01).
@@ -66,7 +66,9 @@ def build_ts(workdir: Path) -> Path:
     cmd = [str(tsc), "--module", "commonjs", "--target", "es2020", "--outDir", str(out),
            "--skipLibCheck", "--lib", "es2020",
            str(WEB / "lib" / "mockEngine.ts"), str(WEB / "lib" / "mockReply.ts")]
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    # check=False намеренно: tsc может ругаться на типы и всё же собрать модули —
+    # успех проверяется наличием файла, а не кодом возврата.
+    result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if not (out / "mockEngine.js").exists():
         raise RuntimeError(f"tsc не собрал модули: {result.stdout}{result.stderr}")
     return out
@@ -145,8 +147,10 @@ def main() -> int:
         payload.write_text(json.dumps(rows, ensure_ascii=False), encoding="utf-8")
         driver = workdir / "driver.js"
         driver.write_text(DRIVER, encoding="utf-8")
+        # check=False намеренно: ненулевой код — это исход «не смогли сверить», который
+        # печатается числом, а не исключение, обрывающее прогон.
         proc = subprocess.run(["node", str(driver), str(js_dir), str(payload)],
-                              capture_output=True, text=True)
+                              capture_output=True, text=True, check=False)
         if proc.returncode != 0:
             print(f"НЕ СМОГЛИ СВЕРИТЬ: node вернул {proc.returncode}\n{proc.stderr[:800]}")
             return 2

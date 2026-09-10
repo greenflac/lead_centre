@@ -605,12 +605,20 @@ def detect_language(text: str) -> str:
     letters = [c for c in text if c.isalpha()]
     if not letters:
         return "en"
-    share = sum(1 for c in letters if "Ѐ" <= c <= "ӿ") / len(letters)
-    if share >= 1.0 - MIXED_SHARE:
+    cyrillic = sum(1 for c in letters if "Ѐ" <= c <= "ӿ") / len(letters)
+    # Арабица проверялась только на кириллицу, поэтому арабское обращение объявлялось
+    # английским, и черновик уезжал не на том языке (ИЗМЕРЕНО 2026-09-10 на сквозном
+    # прогоне в офлайне: «черновик ar, обращение en»). Диапазоны: основной арабский блок
+    # и дополнительный, включая арабские формы представления.
+    arabic = sum(1 for c in letters if "\u0600" <= c <= "\u06ff" or "\ufb50" <= c <= "\ufeff")
+    arabic /= len(letters)
+    if arabic >= 1.0 - MIXED_SHARE:
+        return "ar"
+    if cyrillic >= 1.0 - MIXED_SHARE:
         return "ru"
-    if share <= MIXED_SHARE:
-        return "en"
-    return "mixed"
+    if arabic > MIXED_SHARE or cyrillic > MIXED_SHARE:
+        return "mixed"
+    return "en"
 
 
 def _offline_extraction(message: InboundMessage) -> Extraction:

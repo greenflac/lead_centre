@@ -47,7 +47,7 @@ def main() -> int:
         print(f"НЕ СМОГЛИ ПРОВЕРИТЬ: {exc}")
         return 2
     # Комментарии выкидываем: числа в пояснениях — не объявления.
-    text = re.sub(r"/\*.*?\*/", "", text, flags=re.S)
+    text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
 
     sizes = sorted({float(v[:-2]) for v, _ in numbers(text, "font-size")
                     if v.endswith("px")})
