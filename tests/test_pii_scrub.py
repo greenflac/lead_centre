@@ -333,7 +333,7 @@ def test_openai_compatible_provider_puts_no_pii_on_the_wire(_online, monkeypatch
     """Самый строгий срез: перехвачен `urlopen`, проверено тело HTTP-запроса как есть."""
     sent: list[bytes] = []
 
-    def fake_urlopen(request, timeout=None):   # noqa: ARG001 — таймаут тут не проверяется
+    def fake_urlopen(request, timeout=None):
         sent.append(request.data)
         return _FakeHttpResponse()
 

@@ -46,11 +46,23 @@ def test_default_sink_without_env_is_the_stub(_no_crm_env):
     assert not isinstance(sink, HubspotSink)
 
 
-@pytest.mark.parametrize("value", ["", "   "])
-def test_empty_env_value_is_still_the_stub(_no_crm_env, monkeypatch, value):
+def test_empty_env_value_is_still_the_stub(_no_crm_env, monkeypatch):
     """Пустая переменная — это «не задано», а не «задано что-то живое»."""
-    monkeypatch.setenv("CRM_SINK", value)
+    monkeypatch.setenv("CRM_SINK", "")
     assert get_sink().name == "null"
+
+
+def test_whitespace_env_value_is_an_error_not_a_live_sink(_no_crm_env, monkeypatch):
+    """ИЗМЕРЕНО 2026-09-10: `CRM_SINK="   "` — не «не задано», а неизвестное имя.
+
+    Пустая строка отсекается `or` до `strip()`, пробельная — уже нет, и падает в ветку
+    неизвестного имени. Асимметрия зафиксирована как есть: обе стороны безопасны (никуда
+    ничего не уходит), и ни одна из них не даёт живого приёмника. Меняется поведение —
+    красит этот тест, а не проезжает молча.
+    """
+    monkeypatch.setenv("CRM_SINK", "   ")
+    with pytest.raises(CrmConfigError):
+        get_sink()
 
 
 # --- 2. заглушка не выдаёт себя за отправку -------------------------------------------
