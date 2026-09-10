@@ -14,13 +14,12 @@ README обещает ровно это: сырой текст обращени�
 from __future__ import annotations
 
 import argparse
-import sys
 import time
 from dataclasses import dataclass
-from datetime import date
+from datetime import UTC, date, datetime
 
-from leadcentre.engine import lint as lint_mod
 from leadcentre.engine import extract as extract_mod
+from leadcentre.engine import lint as lint_mod
 from leadcentre.engine.reply import draft
 from leadcentre.engine.score import score_inbound
 from leadcentre.models import InboundMessage
@@ -31,8 +30,10 @@ CASES = (
     (
         "e2e-1",
         "whatsapp",
-        "добрый день! переезжаем командой 8 человек, нужен офис в TECOM с 1 октября, "
-        "плюс визы на всех. бюджет до 150 тысяч дирхам в год. когда можем обсудить?",
+        (
+            "добрый день! переезжаем командой 8 человек, нужен офис в TECOM с 1 октября, "
+            "плюс визы на всех. бюджет до 150 тысяч дирхам в год. когда можем обсудить?"
+        ),
     ),
     ("e2e-2", "jivo", "скок стоит фриз зона?"),
     ("e2e-3", "telegram", "Здравствуйте! Продвигаем сайты в топ Google, 30% скидка."),
@@ -40,8 +41,10 @@ CASES = (
     (
         "e2e-4",
         "whatsapp",
-        "مرحبا، نحتاج مكتبًا في دبي لفريق من ٦ أشخاص مع تأشيرات عمل. "
-        "ما هي التكلفة التقريبية وكم تستغرق الإجراءات؟",
+        (
+            "مرحبا، نحتاج مكتبًا في دبي لفريق من ٦ أشخاص مع تأشيرات عمل. "
+            "ما هي التكلفة التقريبية وكم تستغرق الإجراءات؟"
+        ),
     ),
 )
 
@@ -124,7 +127,7 @@ def run_case(external_id: str, channel: str, text: str, today: date) -> list[Che
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--today", default=date.today().isoformat())
+    parser.add_argument("--today", default=datetime.now(UTC).date().isoformat())
     args = parser.parse_args(argv)
     today = date.fromisoformat(args.today)
 
