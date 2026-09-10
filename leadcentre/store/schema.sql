@@ -1,8 +1,8 @@
 -- SORP Lead Centre — схема хранилища (Supabase / Postgres).
 --
 -- НАКАЧЕНО: 2026-09-09 `lead_centre_initial_schema`, 2026-09-10 `scores_reason_items`
--- (колонка причин-кодов) — обе через MCP-сервер Supabase
--- (проект uskpnltyicbjlgmhskvv). Проверено после накатывания: 5 таблиц на месте, RLS
+-- (колонка причин-кодов) — обе через MCP-сервер Supabase. Идентификатор проекта здесь
+-- не приводится намеренно. Проверено после накатывания: 5 таблиц на месте, RLS
 -- включён на всех, security advisors — ноль замечаний; запись и чтение живыми ключами
 -- прошли (запрошено 5, записано 5, прочитано обратно 5).
 --
@@ -136,6 +136,11 @@ create index if not exists disagreements_lead_id_idx on public.disagreements (le
 
 -- RLS: пишет только сервер (secret key обходит RLS), публикуемому ключу — чтение.
 -- Без включённого RLS публикуемый ключ пишет в таблицы из браузера кто угодно.
+--
+-- Чтение открыто всем держателям публикуемого ключа, и это допустимо ровно потому, что
+-- в демонстрационной базе лежат выдуманные обращения. Перед любым живым использованием
+-- политику ниже надо сузить: дашборд ходит не в Postgres, а в наше API, поэтому чтение
+-- под ключом anon в этом репозитории не нужно никому — оно осталось от ручной проверки.
 alter table public.leads          enable row level security;
 alter table public.scores         enable row level security;
 alter table public.replies        enable row level security;
