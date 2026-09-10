@@ -3,15 +3,26 @@
 Три исхода вместо двух (Р1): годный tier, LOW и INVALID — «не смогли оценить». INVALID
 не сворачивается в LOW: это разные вещи для отчёта и для менеджера.
 
-Текста причин здесь нет и быть не должно: модуль называет код причины и её параметры,
-формулировки на русском и английском живут в `engine/reasons.py` (Е1).
+Текста здесь нет и быть не должно — ни у причин, ни у нарушений инвариантов: модуль
+называет код и параметры, формулировки на русском и английском живут в
+`engine/reasons.py` (Е1). `Score.violations` остаётся кортежем строк на русском, но
+строки эти собирает отрисовка каталога, а не этот модуль; на английский те же нарушения
+отдаёт `reasons.texts_in(score.violations, Language.EN)`.
 """
 from __future__ import annotations
 
 from datetime import date
 
 from leadcentre.engine import rubric
-from leadcentre.engine.reasons import Reason, ReasonCode, reason
+from leadcentre.engine.reasons import (
+    Reason,
+    ReasonCode,
+    Violation,
+    ViolationCode,
+    reason,
+    rendered_all,
+    violation,
+)
 from leadcentre.models import (
     AddressType,
     Company,
@@ -78,7 +89,7 @@ def score(company: Company, today: date) -> Score:
     event, event_reasons = classify_event(company, today)
     tier = rubric.MATRIX[(address_type, event)]
     reasons: list[Reason] = list(event_reasons)
-    violations: list[str] = []
+    violations: list[Violation] = []
 
     # Модификаторы
     if tier is Tier.HIGH and company.city.strip().lower() not in rubric.TARGET_CITIES:
@@ -89,18 +100,18 @@ def score(company: Company, today: date) -> Score:
             else reason(ReasonCode.CITY_NOT_SET)
         )
 
-    # Инварианты. Нарушение — не LOW, а INVALID (Р1).
-    # DEBT(2026-09-10): `violations` — по-прежнему русские строки, кодов у них нет.
-    # Карточку INVALID интерфейс не показывает, поэтому на английский экран этот текст
-    # не попадает; двуязычными их стоит сделать той же машинкой отдельной задачей.
+    # Инварианты. Нарушение — не LOW, а INVALID (Р1). Нарушение — такой же код с
+    # параметрами, как причина: текст ему собирает каталог, оба языка сразу.
     if not company.entity_active:
         tier = Tier.LOW
         reasons.append(reason(ReasonCode.ENTITY_INACTIVE))
     evidence = collect_evidence(company)
     if tier is Tier.HIGH and not evidence:
-        violations.append("HIGH без доказательства")
+        violations.append(violation(ViolationCode.HIGH_WITHOUT_EVIDENCE))
     if company.country != "AE":
-        violations.append(f"компания вне ОАЭ: {company.country}")
+        violations.append(
+            violation(ViolationCode.COMPANY_OUTSIDE_UAE, country=company.country)
+        )
     if violations:
         tier = Tier.INVALID
 
@@ -110,7 +121,7 @@ def score(company: Company, today: date) -> Score:
         event=event,
         reason_items=tuple(reasons),
         evidence=evidence,
-        violations=tuple(violations),
+        violations=rendered_all(tuple(violations)),
     )
 
 
@@ -133,7 +144,7 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
     Нарушение инварианта — INVALID, отдельный третий исход (Р1).
     """
     reasons: list[Reason] = []
-    violations: list[str] = []
+    violations: list[Violation] = []
 
     if facts.is_spam:
         return Score(
@@ -201,9 +212,9 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
 
     evidence = tuple(Evidence("quote", q) for q in facts.quotes)
     if tier is Tier.HIGH and not evidence:
-        violations.append("HIGH без цитаты из обращения")
+        violations.append(violation(ViolationCode.HIGH_WITHOUT_QUOTE))
     if tier is Tier.HIGH and not message.text.strip():
-        violations.append("HIGH на пустом тексте обращения")
+        violations.append(violation(ViolationCode.HIGH_ON_EMPTY_TEXT))
     if violations:
         tier = Tier.INVALID
 
@@ -213,5 +224,5 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
         event=Event.NONE,
         reason_items=tuple(reasons),
         evidence=evidence,
-        violations=tuple(violations),
+        violations=rendered_all(tuple(violations)),
     )

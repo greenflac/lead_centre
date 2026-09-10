@@ -442,7 +442,10 @@ export function linkReasons(
     urgent_timeline: (f) => f.timeline_days === facts.timeline_days,
     package_request: (f) => f.request_types.length > 0,
     team_over_flexi_quota: (f) => f.headcount === facts.headcount,
-    budget_named: (f) => Boolean(f.budget_hint),
+    // A quote proves the budget only when the SAME budget follows from it: "any money
+    // in the quote" put a sentence about a 4 млн AED turnover under the reason
+    // "budget named: 150 тысяч" — proof naming a different figure than the reason.
+    budget_named: (f) => f.budget_hint === facts.budget_hint,
     spam_or_off_topic: (f) => f.is_spam,
   };
   return items.map((item) => ({

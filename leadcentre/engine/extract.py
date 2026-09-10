@@ -17,6 +17,12 @@
   * валидация ответа и сборка `LeadFacts` (`parse_facts`) — одно знание, одно место (Е1);
   * `has_contact` считает код по факту вырезанного, а не модель (Е2): модель контактов
     не видит и видеть не должна.
+
+Причина маршрута (`Route.reason`, `Extraction.route_reason`) текстом здесь не собирается:
+модуль называет код и параметры, формулировки на обоих языках живут в `engine/reasons.py`
+(Е1). Строка остаётся русской, как её читают отчёты и хранилище, но помнит свой код,
+поэтому интерфейс берёт английский через `Extraction.route_reason_in(Language.EN)`, а не
+держит собственный перевод.
 """
 from __future__ import annotations
 
@@ -30,6 +36,15 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
+from leadcentre.engine.reasons import (
+    DEFAULT_LANGUAGE,
+    Language,
+    RouteReason,
+    RouteReasonCode,
+    rendered,
+    route_reason,
+    text_in,
+)
 from leadcentre.models import InboundMessage, LeadFacts, RequestType
 
 # --- константы-решения ---
@@ -133,6 +148,16 @@ class Extraction:
     scrubbed: Scrubbed
     dropped_quotes: int      # цитат, которых в обращении нет: модель их придумала
     route_reason: str = ""   # почему выбрана эта модель — в карточку, для демонстрации
+
+    def route_reason_in(self, language: Language = DEFAULT_LANGUAGE) -> str:
+        """Причина маршрута на нужном языке — это берёт интерфейс.
+
+        Три исхода, а не два (Р1): строка помнит свой код — отрисуем на любом языке;
+        причины нет вовсе (не anthropic) — пусто; строка пришла без кода (поднята из
+        хранилища) — на другой язык её не отрисовать, и это `ReasonRenderError`, а не
+        молчаливая подмена русским текстом.
+        """
+        return text_in(self.route_reason, language)
 
     def served_by(self) -> str:
         """Одной строкой: чем фактически обслужен лид. Имя модели берётся из ответа,
@@ -246,7 +271,13 @@ class Route:
     model: str
     effort: str          # "" — не слать параметр
     thinking: str        # "" — не слать параметр
-    reason: str
+    reason: str          # русский текст из каталога, помнящий свой код (RenderedText)
+    reason_item: RouteReason | None = None   # тот же код с параметрами, без текста
+
+
+def _route(model: str, effort: str, thinking: str, item: RouteReason) -> Route:
+    """Собрать маршрут: текст причины отрисовывает каталог, и только он (Е1)."""
+    return Route(model, effort, thinking, rendered(item), item)
 
 
 def route(message: InboundMessage) -> Route:
@@ -257,14 +288,15 @@ def route(message: InboundMessage) -> Route:
     """
     forced = os.environ.get("LLM_MODEL")
     if forced:
-        return Route(forced, os.environ.get("LLM_EFFORT", ""),
-                     os.environ.get("LLM_THINKING", ""), "LLM_MODEL задан вручную")
+        return _route(forced, os.environ.get("LLM_EFFORT", ""),
+                      os.environ.get("LLM_THINKING", ""),
+                      route_reason(RouteReasonCode.MODEL_FORCED))
     length = len(message.text)
     if length > LONG_MESSAGE_CHARS:
-        return Route(LONG_MODEL, "low", "off",
-                     f"длинное обращение: {length} символов > {LONG_MESSAGE_CHARS}")
-    return Route(ANTHROPIC_MODEL, ANTHROPIC_EFFORT, ANTHROPIC_THINKING,
-                 f"короткое обращение: {length} символов <= {LONG_MESSAGE_CHARS}")
+        return _route(LONG_MODEL, "low", "off", route_reason(
+            RouteReasonCode.LONG_MESSAGE, length=length, limit=LONG_MESSAGE_CHARS))
+    return _route(ANTHROPIC_MODEL, ANTHROPIC_EFFORT, ANTHROPIC_THINKING, route_reason(
+        RouteReasonCode.SHORT_MESSAGE, length=length, limit=LONG_MESSAGE_CHARS))
 
 
 class Provider(Protocol):
@@ -646,7 +678,7 @@ def _offline_extraction(message: InboundMessage) -> Extraction:
         offline=True,
         scrubbed=scrubbed,
         dropped_quotes=0,
-        route_reason="OFFLINE: модель не вызывалась",
+        route_reason=rendered(route_reason(RouteReasonCode.OFFLINE_NO_CALL)),
     )
 
 
