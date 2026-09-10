@@ -40,7 +40,15 @@ export default function Page() {
     try {
       const data = await getLeads();
       setLeads(data);
-      setSelectedId((current) => current ?? data[0]?.id ?? null);
+      // По умолчанию открыт самый горячий, а не самый свежий: список отсортирован по
+      // приоритету, и открытая карточка обязана быть той, что стоит первой строкой.
+      const order: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2, INVALID: 3 };
+      const first = [...data].sort(
+        (a, b) =>
+          (order[a.tier] ?? 9) - (order[b.tier] ?? 9) ||
+          new Date(b.received_at).getTime() - new Date(a.received_at).getTime(),
+      )[0];
+      setSelectedId((current) => current ?? first?.id ?? null);
     } catch (caught) {
       setLeadsError(toApiError(caught));
     } finally {
