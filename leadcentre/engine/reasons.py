@@ -30,17 +30,34 @@ from enum import Enum
 
 __all__ = [
     "CATALOGUE",
+    "CATALOGUES",
     "DEFAULT_LANGUAGE",
     "Language",
+    "Phrase",
+    "ROUTE_REASON_CATALOGUE",
     "Reason",
     "ReasonCatalogueError",
     "ReasonCode",
     "ReasonError",
     "ReasonRenderError",
+    "ReasonSpec",
+    "RenderedText",
+    "RouteReason",
+    "RouteReasonCode",
+    "VIOLATION_CATALOGUE",
+    "Violation",
+    "ViolationCode",
     "reason",
     "render",
     "render_all",
+    "rendered",
+    "rendered_all",
+    "route_reason",
+    "text_in",
+    "texts_in",
+    "validate_all_catalogues",
     "validate_catalogue",
+    "violation",
 ]
 
 
@@ -94,6 +111,33 @@ class ReasonCode(str, Enum):
     LOW_CONFIDENCE = "low_confidence"
 
 
+class ViolationCode(str, Enum):
+    """Код нарушения инварианта: почему карточка получила INVALID.
+
+    Отдельное перечисление, а не продолжение `ReasonCode`: причина объясняет ступень,
+    нарушение её отменяет (третий исход, Р1). Слить их в одно — значит потерять
+    возможность спросить «а нарушения-то были?» иначе как по тексту.
+    """
+
+    HIGH_WITHOUT_EVIDENCE = "high_without_evidence"
+    COMPANY_OUTSIDE_UAE = "company_outside_uae"
+    HIGH_WITHOUT_QUOTE = "high_without_quote"
+    HIGH_ON_EMPTY_TEXT = "high_on_empty_text"
+
+
+class RouteReasonCode(str, Enum):
+    """Код причины маршрута модели: почему лид ушёл именно на эту модель.
+
+    Виден в интерфейсе («How this was scored»), поэтому обязан существовать на обоих
+    языках здесь, а не переводом на стороне дашборда.
+    """
+
+    LONG_MESSAGE = "long_message"
+    SHORT_MESSAGE = "short_message"
+    MODEL_FORCED = "model_forced"
+    OFFLINE_NO_CALL = "offline_no_call"
+
+
 # --- числительные -----------------------------------------------------------------
 
 #: Префикс спецификатора формата, включающий согласование числа с существительным:
@@ -127,11 +171,13 @@ PLURAL_FORM_COUNTS: dict[Language, int] = {Language.RU: 3, Language.EN: 2}
 
 PLURAL_FORMS: dict[Language, dict[str, tuple[str, ...]]] = {
     Language.RU: {
+        "char": ("символ", "символа", "символов"),
         "day": ("день", "дня", "дней"),
         "person": ("человек", "человека", "человек"),
         "service": ("услуга", "услуги", "услуг"),
     },
     Language.EN: {
+        "char": ("char", "chars"),
         "day": ("day", "days"),
         "person": ("person", "people"),
         "service": ("service", "services"),
@@ -156,21 +202,22 @@ def plural_phrase(language: Language, value: object, noun: str) -> str:
 
 
 class _ReasonFormatter(string.Formatter):
-    """Формат причин: обычные спецификаторы плюс `plural:<единица>`.
+    """Формат записи каталога: обычные спецификаторы плюс `plural:<единица>`.
 
     Отсутствующий и лишний параметр — явные ошибки (негативный контроль модуля).
     """
 
-    def __init__(self, language: Language, code: ReasonCode) -> None:
+    def __init__(self, language: Language, code: Enum) -> None:
         self.language = language
         self.code = code
+        self.kind = _kind(code)
 
     def get_value(self, key, args, kwargs):
         try:
             return super().get_value(key, args, kwargs)
         except (KeyError, IndexError) as exc:
             raise ReasonRenderError(
-                f"причина {self.code.value}: не передан параметр {key!r} "
+                f"{self.kind} {self.code.value}: не передан параметр {key!r} "
                 f"(язык {self.language.value})"
             ) from exc
 
@@ -183,7 +230,7 @@ class _ReasonFormatter(string.Formatter):
         extra = sorted(set(kwargs) - set(used_args))
         if extra:
             raise ReasonRenderError(
-                f"причина {self.code.value}: параметры не используются текстом "
+                f"{self.kind} {self.code.value}: параметры не используются текстом "
                 f"({', '.join(extra)}); язык {self.language.value}"
             )
 
