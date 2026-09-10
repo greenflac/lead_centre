@@ -1,6 +1,7 @@
 -- SORP Lead Centre — схема хранилища (Supabase / Postgres).
 --
--- НАКАЧЕНО 2026-09-09 миграцией `lead_centre_initial_schema` через MCP-сервер Supabase
+-- НАКАЧЕНО: 2026-09-09 `lead_centre_initial_schema`, 2026-09-10 `scores_reason_items`
+-- (колонка причин-кодов) — обе через MCP-сервер Supabase
 -- (проект uskpnltyicbjlgmhskvv). Проверено после накатывания: 5 таблиц на месте, RLS
 -- включён на всех, security advisors — ноль замечаний; запись и чтение живыми ключами
 -- прошли (запрошено 5, записано 5, прочитано обратно 5).

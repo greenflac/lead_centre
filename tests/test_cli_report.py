@@ -8,6 +8,7 @@ import pytest
 
 from leadcentre import report
 from leadcentre.cli import discover, main
+from leadcentre.engine.reasons import ReasonCode, reason
 from leadcentre.engine.score import score
 from leadcentre.models import AddressType, Event, Evidence, Score, Tier
 from leadcentre.sources.base import FetchResult
@@ -59,21 +60,29 @@ def test_empty_run_is_not_a_success():
 
 
 def test_format_row_contains_tier_city_name_and_evidence():
+    """Строка отчёта не теряет причин.
+
+    Карточка собирается кодом причины, а не готовой строкой: формулировку отрисует
+    каталог, а тест сверяет, что отрисованное доехало до строки отчёта целиком.
+    Текст причины здесь не выписывается — за него отвечает tests/test_reasons.py,
+    и подгонять `format_row` под формулировку больше не за что.
+    """
     company = make_company(city="Dubai", name="Test Trading LLC")
-    row = report.format_row(
-        company,
-        Score(
-            Tier.HIGH,
-            AddressType.REGISTRAR,
-            Event.LAPSED,
-            reasons=("регистрация LEI просрочена 10 дн.",),
-            evidence=(Evidence("lei", "TESTLEI0000000000001"), Evidence("license_no", "LIC-1")),
-        ),
+    card = Score(
+        Tier.HIGH,
+        AddressType.REGISTRAR,
+        Event.LAPSED,
+        reason_items=(reason(ReasonCode.LEI_LAPSED_FRESH, days=10),),
+        evidence=(Evidence("lei", "TESTLEI0000000000001"), Evidence("license_no", "LIC-1")),
     )
+    row = report.format_row(company, card)
     assert row.startswith("HIGH   ")
     assert "Dubai" in row
     assert "Test Trading LLC" in row
-    assert "регистрация LEI просрочена 10 дн." in row
+    assert card.reasons, "карточка осталась без причин — сверять нечего (Р2)"
+    for text in card.reasons:
+        assert text in row, f"причина потерялась в строке отчёта: {text!r}"
+    assert "10" in row, "число из параметра причины до строки отчёта не доехало"
     assert row.endswith("lei=TESTLEI0000000000001, license_no=LIC-1")
 
 
