@@ -451,8 +451,13 @@ def price_fragment(item: PriceItem) -> str:
     разрывал вставку, и валюта оставалась в конце одной строки, а сумма уезжала в начало
     следующей (замечено осмотром скриншота 02d). Разряды внутри числа неразрывны по той же
     причине — иначе «35 000» разъезжается на две строки.
+
+    Тире между границами диапазона обёрнуто склейками слов (U+2060): после тире браузер
+    тоже имеет право перенести строку, и в узкой колонке «AED 15 000–» оставалось наверху,
+    а «35 000» уезжало вниз. Диапазон, разорванный пополам, читается как одна цена.
     """
-    return ltr_run(f"AED\u00a0{format_amount(item.min)}–{format_amount(item.max)}")
+    low, high = format_amount(item.min), format_amount(item.max)
+    return ltr_run(f"AED\u00a0{low}\u2060–\u2060{high}")
 
 
 def price_line(item: PriceItem, language: str) -> str:
@@ -679,9 +684,25 @@ def call_claude_arabic(prompt: str) -> tuple[str, dict[str, int]]:
     return text, usage
 
 
+#: Разметка, которую модель дописывает по привычке к markdown. В письме клиенту её быть
+#: не может: заголовков и цитат в деловом письме нет, а звёздочки клиент видит как мусор.
+#: Живой дефект: арабский черновик gen-19 начинался с «# وعليكم السلام» — решётка доехала
+#: до карточки и попала на скриншот, а линтер её не проверял.
+# Пробел после маркера обязателен: «#hashtag» — слово, а не заголовок.
+MARKUP_PREFIX_RE = re.compile(r"^(?:#{1,6}|>+)(?:\s+|$)")
+MARKUP_WRAP_RE = re.compile(r"^(\*{1,3}|_{1,3})(.+?)\1$")
+
+
+def strip_markup(line: str) -> str:
+    """Строка письма без markdown-разметки. Смысл не трогаем, снимаем только обёртку."""
+    cleaned = MARKUP_PREFIX_RE.sub("", line.strip())
+    wrapped = MARKUP_WRAP_RE.match(cleaned)
+    return wrapped.group(2).strip() if wrapped else cleaned
+
+
 def _clean_model_lines(text: str, language: str) -> str:
     """Обрезка того, что модель могла добавить сверх договора, и разметка направления."""
-    lines = [line.strip() for line in text.splitlines() if line.strip()]
+    lines = [stripped for line in text.splitlines() if (stripped := strip_markup(line))]
     if language in RTL_LANGUAGES:
         lines = [line if line.startswith(RLM) else RLM + line for line in lines]
     return "\n".join(lines)
