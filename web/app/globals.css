@@ -427,7 +427,7 @@ table.grid th {
   max-height: 240px;
   overflow-y: auto;
 }
-/* Подсветка цитаты, на которой построена причина (02_references §6.3). */
+/* Подсветка цитаты, на которой построена причина. */
 .message-text mark {
   background: var(--primary-container);
   color: var(--on-primary-container);
@@ -435,9 +435,11 @@ table.grid th {
   padding: 0 4px;
   margin: 0 -4px;
 }
+/* Нажатая причина: цитата усиливается тем же синим, а не инверсией в чёрное —
+   чёрный прямоугольник в тексте читается как замазанный фрагмент, а не как выделение. */
 .message-text mark.on {
-  background: var(--inverse-surface);
-  color: var(--inverse-on-surface);
+  background: var(--primary);
+  color: var(--on-primary);
 }
 
 .facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; margin: 0; }
