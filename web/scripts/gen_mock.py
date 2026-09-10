@@ -178,7 +178,11 @@ def link_reasons(result, quotes, facts, received_on: date) -> list[dict]:
         ReasonCode.URGENT_TIMELINE: lambda f: f.timeline_days == facts.timeline_days,
         ReasonCode.PACKAGE_REQUEST: lambda f: bool(f.request_types),
         ReasonCode.TEAM_OVER_FLEXI_QUOTA: lambda f: f.headcount == facts.headcount,
-        ReasonCode.BUDGET_NAMED: lambda f: bool(f.budget_hint),
+        # Цитата доказывает бюджет, только если из неё следует ТОТ ЖЕ бюджет. Просто
+        # «в цитате нашлось хоть что-то денежное» подсовывало под причину
+        # «budget named: 150 тысяч» предложение про оборот «около 4 млн AED» (edge-03):
+        # доказательство называло другое число, чем причина.
+        ReasonCode.BUDGET_NAMED: lambda f: f.budget_hint == facts.budget_hint,
         ReasonCode.SPAM_OR_OFF_TOPIC: lambda f: f.is_spam,
     }
     linked: list[dict] = []
