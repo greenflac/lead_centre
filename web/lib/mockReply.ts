@@ -109,7 +109,7 @@ function amount(value: number): string {
 
 // Изоляты направления вокруг латинско-цифровой вставки (reply.ltr_run): без них сумма
 // внутри арабской строки визуально распадается. В ru/en они невидимы — одна ветка на все
-// языки, как в Python (Е1).
+// языки, как в Python.
 const LRI = "\u2066";
 const PDI = "\u2069";
 
@@ -212,7 +212,7 @@ function pickPriceKeys(facts: LeadFacts): string[] {
   return keys.slice(0, 2);
 }
 
-/** Port of reply.detect_script_language: the script of the text outweighs the flag (Е2). */
+/** Port of reply.detect_script_language: the script of the text outweighs the flag. */
 function scriptLanguage(text: string): "ar" | "ru" | null {
   for (const ch of text) {
     if ((ch >= "\u0600" && ch <= "\u06ff") || (ch >= "\u0750" && ch <= "\u077f") ||

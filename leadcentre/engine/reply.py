@@ -510,7 +510,7 @@ def _questions_draft(language: str, needs_human: bool) -> Reply:
 ARABIC_MODEL = "claude-opus-5"
 ARABIC_MAX_TOKENS = 1200
 ARABIC_EFFORT = "low"
-# ANTHROPIC_API_KEY в этой среде не задан, см. docs/ops/env_status.md.
+# ANTHROPIC_API_KEY не задан.
 ARABIC_KEY_ENV = "CLAUDE_KEY"
 
 # Пакет anthropic объявлен в pyproject.toml, но импортируется локально в функции:

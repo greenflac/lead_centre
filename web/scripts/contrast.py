@@ -1,13 +1,13 @@
 """Контраст пар цветов по формуле WCAG. Прибор для проверки палитры дашборда.
 
 Считает по sRGB relative luminance, (L1+0.05)/(L2+0.05) — та же формула, что в §3.4
-docs/design/01_material.md, но числа здесь считаются заново, а не переписываются.
+нормативы Material Design, но числа здесь считаются заново, а не переписываются.
 
-Негативный контроль прибора (И5): белое на белом обязано дать 1.00, чёрное на белом —
+Негативный контроль прибора: белое на белом обязано дать 1.00, чёрное на белом —
 21.00, эталон M3 (#1d1b20 на #fef7ff) — 16.23. Если контроли не сошлись, прибор врёт
 и остальным числам верить нельзя — прогон завершается кодом 2.
 
-Три исхода (Р1): ГОДНО / НЕ ГОДНО / НЕ СМОГЛИ ПРОВЕРИТЬ (пара без порога).
+Три исхода: ГОДНО / НЕ ГОДНО / НЕ СМОГЛИ ПРОВЕРИТЬ (пара без порога).
 Запуск: python3 web/scripts/contrast.py [путь_к_globals.css]
 """
 from __future__ import annotations
@@ -50,7 +50,7 @@ def tokens(css_text: str, block: str) -> dict[str, str]:
     return dict(re.findall(r"(--[a-z0-9-]+)\s*:\s*(#[0-9A-Fa-f]{3,8})\s*;", body))
 
 
-# Пары: (что, на чём, порог). Порог None — пара без норматива (Р1: третий исход).
+# Пары: (что, на чём, порог). Порог None — пара без норматива (третий исход).
 PAIRS: tuple[tuple[str, str, float | None], ...] = (
     ("--on-surface", "--surface", TEXT),
     ("--on-surface", "--surface-container", TEXT),
@@ -78,7 +78,7 @@ PAIRS: tuple[tuple[str, str, float | None], ...] = (
 def check(name: str, block: str, css_text: str, prefix: str = "") -> tuple[int, int, int]:
     """prefix — префикс имени токена в блоке: тёмная палитра объявлена как --dk-* внутри
     :root, потому что роли ей назначаются двумя селекторами, а значение обязано быть
-    записано один раз (Е1)."""
+    записано один раз."""
     raw = tokens(css_text, block)
     table = {("--" + key[len(prefix):]) if prefix and key.startswith(prefix) else key: value
              for key, value in raw.items()}
@@ -111,7 +111,7 @@ def main() -> int:
 
     controls = (("#ffffff", "#ffffff", 1.00), ("#000000", "#ffffff", 21.00),
                 ("#1d1b20", "#fef7ff", 16.23))
-    print("негативный контроль прибора (И5):")
+    print("негативный контроль прибора:")
     for fg, bg, expected in controls:
         got = ratio(fg, bg)
         print(f"  {fg} на {bg}: {got:.2f} (ожидалось {expected:.2f})")

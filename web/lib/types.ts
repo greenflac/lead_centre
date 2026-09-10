@@ -76,7 +76,7 @@ export interface Lead {
   reasons: string[];
   /**
    * Language the strings in `reasons` are actually in — what happened, not what was meant
-   * (Е2). The interface is English, so anything but "en" has to be visible on the card:
+   *. The interface is English, so anything but "en" has to be visible on the card:
    * a lead scored before the engine kept reason codes can only be shown as stored (RU).
    */
   reasons_language?: string;

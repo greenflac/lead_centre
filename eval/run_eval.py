@@ -40,7 +40,7 @@ from leadcentre.models import InboundMessage, LeadFacts, RequestType, Tier
 # Человек размечает лид одним из трёх уровней; INVALID сюда не входит — это исход движка,
 # а не суждение человека (docs/data/inbound_seed.md, «Правила разметки для владельца»).
 TIERS = ("HIGH", "MEDIUM", "LOW")
-# Пороги приёмки заданы в docs/BLUEPRINT.md §10 и меняются вместе с ним.
+# Пороги приёмки — ВЫБРАНО автором до первого прогона, чтобы число не подгонялось под результат.
 STABILITY_RUNS = 3
 KAPPA_TARGET = 0.6
 STABILITY_TARGET = 0.9

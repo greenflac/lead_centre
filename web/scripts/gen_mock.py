@@ -1,6 +1,6 @@
 """Генератор mock-данных для дашборда: настоящие файлы репозитория → web/mock/*.json.
 
-Почему генератор, а не рукописный JSON (Е1): и приоритеты, и причины, и evidence, и
+Почему генератор, а не рукописный JSON: и приоритеты, и причины, и evidence, и
 черновики ответов должны быть теми же, что выдаст живой бэкенд. Поэтому скрипт
 импортирует настоящий движок — `leadcentre.engine.score.score_inbound`, `score.score`,
 `leadcentre.engine.reply.draft`, `leadcentre.sources.gleif.GleifAdapter` — и не
@@ -35,7 +35,8 @@ sys.path.insert(0, str(REPO))
 from leadcentre.engine import extract as extract_mod
 from leadcentre.engine import reply as reply_mod
 from leadcentre.engine.facts_rules import rules_facts
-from leadcentre.engine.reasons import Language, ReasonCode, render as render_reason
+from leadcentre.engine.reasons import Language, ReasonCode
+from leadcentre.engine.reasons import render as render_reason
 from leadcentre.engine.score import score, score_inbound
 from leadcentre.models import InboundMessage, Tier
 from leadcentre.sources.gleif import GleifAdapter
@@ -43,7 +44,7 @@ from leadcentre.sources.gleif import GleifAdapter
 # --- чем обслужен лид (README обещает это в карточке) ---
 #
 # В mock-режиме модель НЕ вызывается: факты даёт офлайн-эвристика rules_facts. Поэтому в
-# карточку идёт то, что действительно исполнилось (Е2): имя эвристики, её замеренное время
+# карточку идёт то, что действительно исполнилось: имя эвристики, её замеренное время
 # и нулевая стоимость. Отдельной строкой — решение маршрутизатора: какую модель выбрал бы
 # живой контур для этого текста. Решение настоящее, его принимает extract.route() по длине
 # обращения, до всякой сети, поэтому его можно показать честно и назвать «маршрут», а не
@@ -153,9 +154,9 @@ CATEGORY_BY_PREFIX = {
 #
 # Связь не выводится из формулировки причины руками: по каждой цитате прогоняется тот же
 # извлекатель rules_facts, что дал факты, и цитата признаётся доказательством, если из неё
-# самой следует тот же факт (Е1 — никаких копий маркеров). Причины, у которых цитаты быть
+# самой следует тот же факт (никаких копий маркеров). Причины, у которых цитаты быть
 # не может (язык обращения, уверенность извлечения), получают пустой список: третий исход
-# «не цитируется» не сворачивается в «цитата не нашлась» (Р1).
+# «не цитируется» не сворачивается в «цитата не нашлась».
 
 def _facts_of(fragment: str, received_on: date) -> object:
     return rules_facts(InboundMessage(
@@ -215,7 +216,7 @@ def build_leads() -> list[dict]:
             received_at=received_on,
             is_synthetic=row["is_synthetic"].strip().lower() == "true",
         )
-        # Общая с измерительным стендом эвристика (Е1): своя копия расходилась.
+        # Общая с измерительным стендом эвристика: своя копия расходилась.
         started = time.perf_counter()
         facts = rules_facts(
             InboundMessage(
@@ -230,7 +231,7 @@ def build_leads() -> list[dict]:
         drafted = reply_mod.draft(message, facts, result.tier, prices)
         chosen = extract_mod.route(message)
         # Подпись маршрута берётся из каталога движка на языке интерфейса, а не собирается
-        # здесь (Е1): своя английская формулировка была вторым источником текста и разошлась
+        # здесь: своя английская формулировка была вторым источником текста и разошлась
         # бы с русской при первой же правке. `Route.reason` остаётся русской строкой для
         # отчётов, но помнит свой код — из кода и отрисовывается английский.
         route_reason = render_reason(chosen.reason_item, UI_LANGUAGE)
@@ -366,7 +367,7 @@ def main() -> int:
                         encoding="utf-8")
         print(f"{path.relative_to(REPO)}: "
               f"{len(payload) if isinstance(payload, list) else 'object'}")
-    # Числами, а не флагом (Р2/Е3).
+    # Числами, а не флагом.
     print(f"leads: checked {len(leads)}, tiers {stats['leads']['by_tier']}, "
           f"violations {stats['leads']['violations']}")
     print(f"companies: checked {len(companies)}, tiers {stats['companies']['by_tier']}, "

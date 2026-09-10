@@ -15,7 +15,7 @@ const ISOLATE_CLOSE = /\u2069/g;
 /**
  * Превью строки списка. Обрезка по кодовым единицам может разрезать текст внутри изолята
  * направления, а непарный LRI/RLI действует до конца абзаца и утаскивает в свой ран весь
- * следующий текст — измерено в docs/design/03_arabic_rtl.md §2.6. Поэтому после обрезки
+ * следующий текст — так ведут себя двунаправленные строки в браузере. Поэтому после обрезки
  * недостающие PDI дописываются.
  */
 function preview(text: string): string {
@@ -40,7 +40,7 @@ function shortReason(reason: string): string {
  * Reasons that say nothing in a one-line preview: the language of the request is already
  * shown as its own chip on the row.
  *
- * Matched by CODE, never by the text of the reason (Е1). The text is bilingual and gets
+ * Matched by CODE, never by the text of the reason. The text is bilingual and gets
  * rewritten; a filter reading `startsWith("язык обращения")` silently stopped working the
  * day the interface switched to English, and "written in ru — core audience" started
  * taking one of the three preview slots.
@@ -51,7 +51,7 @@ const PREVIEW_SKIPPED_CODES = new Set(["target_language", "target_language_alone
 function whyLine(lead: Lead): string {
   const links = lead.reason_links;
   // Без кодов (старая строка из хранилища) отбросить нечего — берём всё, а не наугад по
-  // тексту: третий исход «не знаем кодов» не притворяется отбором (Р1).
+  // тексту: третий исход «не знаем кодов» не притворяется отбором.
   const kept = links
     ? links.filter((item) => !PREVIEW_SKIPPED_CODES.has(item.code ?? "")).map((item) => item.text)
     : lead.reasons;
@@ -204,7 +204,7 @@ export default function InboxView({
                   <span className="lead-row-meta">{now ? timeAgo(lead.received_at, now) : ""}</span>
                 </div>
                 {/* dir="auto": арабская строка обязана начинаться справа, соседняя русская —
-                    слева (docs/design/03_arabic_rtl.md §2.5). */}
+                    слева. */}
                 <div
                   className={`lead-row-preview${isRtlText(lead.text) ? " rtl-block" : ""}`}
                   dir="auto"
