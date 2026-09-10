@@ -8,9 +8,9 @@
 Как: TS-модули собираются одноразовым скриптом через node (esbuild не нужен — файлы
 переписываются в CommonJS штатным tsc из web/node_modules).
 
-Негативный контроль прибора (И5): в набор добавлены три подложные строки — подменённый
-приоритет, подменённый текст черновика и подменённая английская причина; прибор обязан
-назвать все три расхождениями. Без этого «0 расхождений» не отличить от «прибор ничего
+Негативный контроль прибора (И5): в набор добавлены четыре подложные строки — подменённый
+приоритет, подменённый текст черновика, подменённая английская причина и подменённая
+связка «причина — цитаты»; прибор обязан назвать все четыре расхождениями. Без этого «0 расхождений» не отличить от «прибор ничего
 не сравнивает».
 
 Причины сверяются на обоих языках каталога `engine/reasons.py`: карточка дашборда идёт
@@ -40,6 +40,11 @@ from leadcentre.engine.reasons import Language
 from leadcentre.engine.score import score_inbound
 from leadcentre.models import InboundMessage
 
+# Связку «причина — цитаты» строит генератор демо-данных, и он же единственное место, где
+# она живёт на стороне Python (Е1): сверять копию было бы сверкой копии с копией.
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from gen_mock import link_reasons
+
 # Выборка: по одному обращению каждого вида плюс те, на которых движок менялся
 # (renewal — gen-20, продление лицензии — urg-13, длинное — edge-03, спам — spam-01).
 SAMPLE_IDS = ("urg-01", "urg-13", "gen-20", "gen-19", "prc-01",
@@ -50,7 +55,7 @@ const path = require("path");
 const { extractFacts, scoreInbound } = require(path.join(process.argv[2], "mockEngine.js"));
 const { draftReply } = require(path.join(process.argv[2], "mockReply.js"));
 const rows = JSON.parse(require("fs").readFileSync(process.argv[3], "utf8"));
-const { renderReasons } = require(path.join(process.argv[2], "mockEngine.js"));
+const { renderReasons, linkReasons } = require(path.join(process.argv[2], "mockEngine.js"));
 const out = rows.map((row) => {
   const received = new Date(row.received_at + "T00:00:00Z");
   const { facts, quotes } = extractFacts(row.text, received);
@@ -59,7 +64,9 @@ const out = rows.map((row) => {
   return { id: row.id, facts, quotes, tier: scored.tier,
            reasons_ru: renderReasons(scored.reasonItems, "ru"),
            reasons_en: renderReasons(scored.reasonItems, "en"),
-           violations: scored.violations, reply };
+           violations: scored.violations, reply,
+           reason_links: linkReasons(scored.reasonItems, quotes, facts, received)
+             .map((l) => ({ code: l.code, quotes: l.quotes })) };
 });
 process.stdout.write(JSON.stringify(out));
 """
@@ -114,6 +121,11 @@ def python_side(row: dict) -> dict:
         "reply_outcome": drafted.outcome,
         "used_prices": list(drafted.used_prices),
         "reply_body": drafted.body,
+        # Какая цитата доказывает какую причину: на карточке это подсветка под причиной,
+        # и разъехавшийся отбор показал бы менеджеру доказательство не той причины.
+        "reason_links": [{"code": link["code"], "quotes": link["quotes"]}
+                         for link in link_reasons(result, list(facts.quotes), facts,
+                                                  date.fromisoformat(row["received_at"]))],
     }
 
 
@@ -135,12 +147,13 @@ def ts_side(item: dict) -> dict:
         "reply_outcome": item["reply"]["outcome"],
         "used_prices": item["reply"]["used_prices"],
         "reply_body": item["reply"]["body"],
+        "reason_links": item["reason_links"],
     }
 
 
 FIELDS = ("request_types", "headcount", "timeline_days", "budget_hint", "is_spam",
           "confidence", "quotes", "tier", "reasons_ru", "reasons_en", "reply_language",
-          "reply_outcome", "used_prices", "reply_body")
+          "reply_outcome", "used_prices", "reply_body", "reason_links")
 
 # Арабский черновик пишет модель, и в браузере её нет — это заявленное различие путей,
 # а не расхождение реализации. Сравниваются все поля, кроме тела и исхода черновика.
@@ -175,11 +188,13 @@ def main() -> int:
 
     py_items = {row["id"]: python_side(row) for row in rows}
 
-    # Негативный контроль: две подложные строки (И5).
+    # Негативный контроль: подложные строки (И5).
     controls: list[tuple[str, dict, dict, str]] = []
     for probe, field, value in (("контроль-приоритет", "tier", "LOW"),
                                 ("контроль-черновик", "reply_body", "подменённый текст"),
-                                ("контроль-причины-en", "reasons_en", ["подменено"])):
+                                ("контроль-причины-en", "reasons_en", ["подменено"]),
+                                ("контроль-связки-цитат", "reason_links",
+                                 [{"code": "подменено", "quotes": [99]}])):
         victim = dict(py_items[rows[0]["id"]])
         victim[field] = value
         controls.append((probe, victim, ts_items[rows[0]["id"]], field))

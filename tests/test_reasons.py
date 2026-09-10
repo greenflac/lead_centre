@@ -142,7 +142,7 @@ def test_every_language_has_plural_forms_and_a_rule(language):
     assert language in R.PLURAL_RULES, f"нет правила числительных для {language.value}"
     assert language in R.PLURAL_FORMS, f"нет форм числительных для {language.value}"
     # Единицы совпадают во всех языках: шаблон ссылается на единицу, а не на язык.
-    assert set(R.PLURAL_FORMS[language]) == {"day", "person", "service"}
+    assert set(R.PLURAL_FORMS[language]) == {"day", "person", "service", "char"}
 
 
 def test_validate_catalogue_reports_how_much_it_checked():

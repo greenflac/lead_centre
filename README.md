@@ -2,10 +2,27 @@
 
 [![ci](https://github.com/greenflac/lead_centre/actions/workflows/ci.yml/badge.svg?branch=claude%2Fwhitelist-env-vars-3x2zo6)](https://github.com/greenflac/lead_centre/actions/workflows/ci.yml?query=branch%3Aclaude%2Fwhitelist-env-vars-3x2zo6)
 
-Inbound request triage and a registry watchlist, both running through one qualification
-engine. A proactive test project for the SORP Group "AI developer (vibe coding)" vacancy
+Every day people write to a Dubai consultancy — the website chat, WhatsApp, Telegram:
+"how much does it cost to set up a company?", "I need an office for eight people from
+October", "my visa expires in two weeks". Every one of those messages was already paid for
+with advertising. Then it sits in a queue until a manager gets to it: hours, and overnight
+until morning. The person writes to three other firms meanwhile; whoever answers first
+keeps them. The money is spent, the lead is gone, and nobody counts how many.
+
+This is the tool that closes that wait. A message arrives and within seconds the manager
+has a card in front of them: what the person wants, how many people, what deadline, which
+language, how hot the request is and exactly why — with quotes from their own message —
+plus a draft reply in their language. The manager reads it, edits it, presses the button.
+Nothing is ever sent by the system itself. The second half works the other way round: the
+same engine reads a public UAE company registry and finds firms that will need these
+services soon — a reason with a date and evidence, not a bought contact list.
+
+What it is not: not a chatbot instead of a person, not a mailing list, not a replacement
+for the manager. It is preparation for the manager's conversation.
+
+A proactive test project for the SORP Group "AI developer (vibe coding)" vacancy
 (`docs/brief/01_vacancy.md`); it is not a production system and is not connected to any
-SORP data.
+SORP data. The inbound requests in the demo are synthetic; the registry is real.
 
 ![Inbox: the request list with priorities and an open card](web/screenshots/01-inbox.png)
 
@@ -13,17 +30,13 @@ SORP data.
 the facts extracted from the text, and a draft reply in the customer's language. The header
 counts what was scored and how many invariant violations there were.*
 
-## The problem it addresses
+## How it earns its keep
 
-An inbound request from the site form, WhatsApp or a chat widget sits in a queue until a
-manager gets to it. The request was already paid for with advertising. What the engine does
-is turn the raw text into a card a manager can act on in seconds: what the customer is
-asking for, how many people, what deadline, which language, a priority with the reasons for
-it, quoted evidence from the text itself, and a draft reply. A human presses every button;
-nothing is sent to a customer by the system.
-
-The second half is lead discovery: the same engine reads a public company registry and puts
-companies with a datable, provable reason on a watchlist — no contact details, deliberately.
+The owner already pays for the requests arriving today. Recovering some of the ones that
+burn out on response time is cheaper than buying new ones, and renewals — licences, visas,
+tenancy — are revenue that repeats with the same client every year; the registry shows
+whose date is coming up. No conversion figure and no rollout timeline is claimed anywhere
+in this repository: the only numbers here are the ones a command prints.
 
 ## Running it
 
@@ -138,7 +151,7 @@ Every number below came out of this repository. The command that produced it is 
 
 | Measurement | Value | Where from |
 |---|---|---|
-| Tests | 411 passed | `make test-ci` |
+| Tests | 575 in the suite; at the last run 571 passed and 4 failed | `make test-ci` at commit `d2980f1`, whose own message says the tree was left red mid-rewrite of the reason codes. The honest number, not the last green one. |
 | Agreement with the author's labels, Cohen's kappa | 0.838 (po 0.900, pe 0.382, 30 pairs, 27 matched) | `python eval/run_eval.py --labels eval/labels_synthetic.csv` |
 | Stability, 3 runs of the same input | 1.0000 on 70 requests | same run |
 | Negative controls | 6 of 6 | same run |

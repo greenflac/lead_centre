@@ -57,21 +57,25 @@ def test_long_message_threshold_is_600_chars(length, expected_model):
     assert result.model == expected_model
 
 
-@pytest.mark.parametrize("length", [599, 600])
-def test_short_route_carries_cheap_settings_and_a_reason_with_the_number(length):
+@pytest.mark.parametrize(("length", "expected_unit"), [(599, "символов"), (600, "символов")])
+def test_short_route_carries_cheap_settings_and_a_reason_with_the_number(length, expected_unit):
     result = route(_message_of_length(length))
     assert result.model == "claude-haiku-4-5-20251001"
     assert result.effort == "low"
     assert result.thinking == "off"
-    assert f"{length} символов" in result.reason
+    # Форма слова — литералом: правка правила числительных обязана краснить тест.
+    assert f"{length} {expected_unit}" in result.reason
     assert "короткое обращение" in result.reason
 
 
-@pytest.mark.parametrize("length", [601, 1332])
-def test_long_route_reason_names_the_length_and_the_threshold(length):
+@pytest.mark.parametrize(
+    ("length", "expected_unit"), [(601, "символ"), (700, "символов"), (1332, "символа")]
+)
+def test_long_route_reason_names_the_length_and_the_threshold(length, expected_unit):
+    """Все три формы русского числительного: 601 символ, 700 символов, 1332 символа."""
     result = route(_message_of_length(length))
     assert result.model == "claude-opus-5"
-    assert result.reason == f"длинное обращение: {length} символов > 600"
+    assert result.reason == f"длинное обращение: {length} {expected_unit} > 600"
 
 
 def test_route_returns_a_route_object_with_all_fields_filled():
@@ -270,11 +274,11 @@ def test_served_by_prints_model_and_cache_numbers():
         offline=False,
         scrubbed=Scrubbed(text="", phones=0, emails=0),
         dropped_quotes=0,
-        route_reason="длинное обращение: 1332 символов > 600",
+        route_reason="длинное обращение: 1332 символа > 600",
     )
     line = extraction.served_by()
     assert "обслужено: anthropic/claude-opus-5 за 1.50 с" in line
-    assert "длинное обращение: 1332 символов > 600" in line
+    assert "длинное обращение: 1332 символа > 600" in line
     assert "токены 3162/120" in line
     assert "кэш: прочитано 3000, записано 162" in line
 
