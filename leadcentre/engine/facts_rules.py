@@ -135,14 +135,20 @@ SENTENCE_BOUNDARIES = ".!?\n;"
 MAX_QUOTE_CHARS = 160
 
 
-def _sentence_around(text: str, start: int, end: int) -> str:
-    """Предложение, внутри которого лежит найденный кусок."""
+def _sentence_span(text: str, start: int, end: int) -> tuple[str, int, int]:
+    """Предложение вокруг найденного куска и границы, которые оно заняло в тексте.
+
+    Границы возвращаются вместе с текстом, потому что по ним отсеиваются цитаты-двойники:
+    в длинном перечислении без точек несколько маркеров попадают в одно и то же место, и
+    без сравнения границ карточка показывает три почти одинаковых окна как три разных
+    доказательства.
+    """
     left = max((text.rfind(ch, 0, start) for ch in SENTENCE_BOUNDARIES), default=-1)
     right_candidates = [pos for pos in (text.find(ch, end) for ch in SENTENCE_BOUNDARIES) if pos >= 0]
     right = min(right_candidates) if right_candidates else len(text)
     fragment = text[left + 1: right].strip()
     if len(fragment) <= MAX_QUOTE_CHARS:
-        return fragment
+        return fragment, left + 1, right
 
     # Длинное предложение подрезается вокруг совпадения по границам слов с обеих сторон:
     # цитата, начатая посреди слова, читается как мусор и обесценивает остальные
@@ -159,7 +165,12 @@ def _sentence_around(text: str, start: int, end: int) -> str:
     cut = cut.strip()
     prefix = "…" if head > left + 1 else ""
     suffix = "…" if tail < right else ""
-    return f"{prefix}{cut}{suffix}"
+    return f"{prefix}{cut}{suffix}", head, tail
+
+
+def _sentence_around(text: str, start: int, end: int) -> str:
+    """Предложение, внутри которого лежит найденный кусок."""
+    return _sentence_span(text, start, end)[0]
 
 
 # Слово о лицензии одинаково звучит при первичной регистрации и при продлении: «нужна
@@ -200,6 +211,9 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
     low = message.text.lower()
     scrubbed = extract_mod.scrub_pii(message.text)
     quotes: list[str] = []
+    # Границы уже занятых цитат: окно, пересекающееся с занятым, — тот же кусок текста
+    # под другим маркером, а не второе доказательство.
+    spans: list[tuple[int, int]] = []
 
     def hit(marker: str) -> bool:
         """Ищет маркер; найденный добавляет в цитаты предложением целиком.
@@ -210,9 +224,11 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
         index = low.find(marker)
         if index < 0:
             return False
-        fragment = _sentence_around(message.text, index, index + len(marker))
-        if fragment and fragment not in quotes:
+        fragment, start, end = _sentence_span(message.text, index, index + len(marker))
+        overlaps = any(start < taken_end and taken_start < end for taken_start, taken_end in spans)
+        if fragment and not overlaps and fragment not in quotes:
             quotes.append(fragment)
+            spans.append((start, end))
         return True
 
     types: list[RequestType] = []

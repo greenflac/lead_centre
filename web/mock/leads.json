@@ -144,7 +144,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.19,
+   "latency_ms": 0.13,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -238,7 +238,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.15,
+   "latency_ms": 0.18,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -423,7 +423,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -487,7 +487,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.03,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -587,7 +587,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.13,
+   "latency_ms": 0.12,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -648,7 +648,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.11,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -830,7 +830,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -921,7 +921,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.11,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -991,7 +991,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.17,
+   "latency_ms": 0.15,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1062,7 +1062,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.14,
+   "latency_ms": 0.12,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1548,7 +1548,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.11,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1693,7 +1693,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.13,
+   "latency_ms": 0.11,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1755,7 +1755,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1824,7 +1824,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.04,
+   "latency_ms": 0.05,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1964,7 +1964,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.15,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2034,7 +2034,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.13,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2121,7 +2121,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.14,
+   "latency_ms": 0.19,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2364,22 +2364,14 @@
     "quotes": [
      0,
      1,
-     2,
-     3,
-     4,
-     5,
-     6,
-     7,
-     8,
-     9,
-     10
+     2
     ]
    },
    {
     "text": "budget named: 150 тысяч",
     "code": "budget_named",
     "quotes": [
-     11
+     3
     ]
    },
    {
@@ -2395,43 +2387,11 @@
    },
    {
     "kind": "quote",
-    "value": "…в саудовской аравии и европе 3) нужен ли реальный офис или хватит flexi desk, мы физически будем в дубае примерно 6 месяцев в году 4) визы: нужно 3…"
-   },
-   {
-    "kind": "quote",
-    "value": "…клиенты в саудовской аравии и европе 3) нужен ли реальный офис или хватит flexi desk, мы физически будем в дубае примерно 6 месяцев в году 4) визы: нужно…"
-   },
-   {
-    "kind": "quote",
-    "value": "вопросы такие: 1) можно ли все три вида деятельности на одну лицензию или нужно три 2) mainland или freezone, если основные клиенты в саудовской аравии и…"
-   },
-   {
-    "kind": "quote",
     "value": "мы группа из трёх партнёров, сейчас компания зарегистрирована в Грузии, но банки там душат, поэтому смотрим ОАЭ"
    },
    {
     "kind": "quote",
-    "value": "…ли все три вида деятельности на одну лицензию или нужно три 2) mainland или freezone, если основные клиенты в саудовской аравии и европе 3) нужен ли…"
-   },
-   {
-    "kind": "quote",
-    "value": "…такие: 1) можно ли все три вида деятельности на одну лицензию или нужно три 2) mainland или freezone, если основные клиенты в саудовской аравии и европе 3)…"
-   },
-   {
-    "kind": "quote",
-    "value": "…или хватит flexi desk, мы физически будем в дубае примерно 6 месяцев в году 4) визы: нужно 3 партнёрские + 2 сотрудника, потом ещё 4 5) банк - какой реально…"
-   },
-   {
-    "kind": "quote",
     "value": "…4 5) банк - какой реально открывает счёт нерезидентам, у нас уже был отказ 6) бухгалтерия и corporate tax, нужен ли аудит при обороте около 4 млн AED 7)…"
-   },
-   {
-    "kind": "quote",
-    "value": "…нерезидентам, у нас уже был отказ 6) бухгалтерия и corporate tax, нужен ли аудит при обороте около 4 млн AED 7) сколько всё это стоит целиком за первый…"
-   },
-   {
-    "kind": "quote",
-    "value": "…открывает счёт нерезидентам, у нас уже был отказ 6) бухгалтерия и corporate tax, нужен ли аудит при обороте около 4 млн AED 7) сколько всё это стоит…"
    },
    {
     "kind": "quote",
@@ -2460,7 +2420,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.77,
+   "latency_ms": 0.71,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2609,7 +2569,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.14,
+   "latency_ms": 0.11,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2860,7 +2820,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.11,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2903,8 +2863,7 @@
     "code": "team_over_flexi_quota",
     "quotes": [
      0,
-     1,
-     2
+     1
     ]
    }
   ],
@@ -2912,10 +2871,6 @@
    {
     "kind": "quote",
     "value": "Компания 20 человек, ищем офис 200-250 кв"
-   },
-   {
-    "kind": "quote",
-    "value": "Компания 20 человек, ищем офис 200-250 кв.м в Barsha Heights, договор на 2 года"
    },
    {
     "kind": "quote",
@@ -2944,7 +2899,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.2,
+   "latency_ms": 0.15,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3001,7 +2956,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3064,7 +3019,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.04,
+   "latency_ms": 0.03,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3131,7 +3086,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3316,7 +3271,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3326,7 +3281,7 @@
    "live_latency_s": 4.4
   },
   "reply": {
-   "body": "‏وعليكم السلام ورحمة الله، شكرًا لتواصلكم بشأن تأسيس شركة لتجارة المواد الغذائية في دبي.\n‏تبدأ الخطوات باختيار الشكل القانوني والجهة المرخِّصة، ثم حجز الاسم التجاري واعتماد النشاط، وبعدها إصدار الرخصة واستكمال متطلبات العنوان والمقر، مع مراعاة أن تجارة المواد الغذائية تتطلب موافقة الجهة الرقابية المختصة على المستودع أو المقر ونوع المنتجات.\n‏أما المدة فهي مرتبطة بالجهات الحكومية وموافقاتها، ولا نستطيع تحديدها من جانبنا.\n‏كمؤشر أولي: التأسيس في المنطقة الحرة ⁦AED 12 500–27 000⁩، والتأسيس في البر الرئيسي ⁦AED 15 000–35 000⁩.\n‏وتبقى هذه أرقامًا استرشادية، ويُحتسب المبلغ النهائي بعد الحديث معكم وتحديد النشاط والجهة المرخِّصة وعدد الإقامات المطلوبة.\n‏هل تنوون الاستيراد والتوزيع داخل السوق المحلي في دبي، أم إعادة التصدير فقط؟",
+   "body": "‏وعليكم السلام ورحمة الله، شكرًا لتواصلكم معنا بشأن تأسيس شركة لتجارة المواد الغذائية في دبي.\n‏تبدأ الخطوات باختيار الشكل القانوني والجهة المرخِّصة، ثم حجز الاسم التجاري والحصول على الموافقة المبدئية، وبعدها إصدار الرخصة التجارية مع الموافقات المتعلقة بنشاط الأغذية، ثم تسجيل العنوان أو المكتب وفتح الحساب البنكي وترتيب التأشيرات.\n‏أما المدة فهي مرتبطة بالجهات الحكومية والموافقات الخاصة بنشاط الأغذية، ولا يمكننا تحديدها من جانبنا.\n‏كمرجع أولي: تأسيس شركة في البر الرئيسي يقع ضمن ⁦AED 15 000–35 000⁩، وفي المناطق الحرة ضمن ⁦AED 12 500–27 000⁩.\n‏تبقى هذه أرقام إرشادية، ويُحسب المبلغ النهائي بعد التحدث معكم وتحديد النشاط والجهة المرخِّصة وعدد التأشيرات.\n‏هل تفضّلون العمل داخل البر الرئيسي للبيع في السوق المحلي، أم في منطقة حرة؟",
    "language": "ar",
    "outcome": "draft",
    "needs_human": true,
@@ -3381,7 +3336,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.07,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3585,7 +3540,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3652,7 +3607,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.05,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3723,7 +3678,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3788,7 +3743,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3853,7 +3808,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.13,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3932,7 +3887,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.19,
+   "latency_ms": 0.12,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4005,7 +3960,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.14,
+   "latency_ms": 0.13,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4251,7 +4206,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.15,
+   "latency_ms": 0.14,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4325,7 +4280,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4446,7 +4401,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4508,7 +4463,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.11,
+   "latency_ms": 0.07,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4577,7 +4532,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.16,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4664,7 +4619,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.11,
+   "latency_ms": 0.12,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4885,7 +4840,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4978,7 +4933,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.15,
+   "latency_ms": 0.14,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,

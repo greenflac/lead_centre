@@ -408,3 +408,52 @@ def test_headcount_quote_is_absent_when_the_count_is_unknown():
     facts = rules_facts(_message("визы: нужно 3 партнёрские + 2 сотрудника, потом ещё 4"))
     assert "2 сотрудника" not in facts.quotes
     assert any("визы" in q for q in facts.quotes), "цитата под тип запроса обязана остаться"
+
+
+# --- цитаты не повторяют друг друга --------------------------------------------------
+
+
+LONG_ENUMERATION = (
+    "вопросы такие: 1) нужен ли офис или хватит flexi desk 2) визы на сотрудников "
+    "3) бухгалтерия и аудит 4) банк для нерезидента — всё это в одном предложении "
+    "без единой точки, потому что клиент писал в спешке и не расставлял знаки"
+)
+
+
+def test_markers_inside_one_sentence_give_one_quote():
+    """Несколько маркеров в одном перечислении — одно доказательство, а не четыре.
+
+    Живой дефект: на обращении edge-03 карточка показывала 12 цитат, из которых первые
+    три были окнами вокруг одного и того же места и отличались сдвигом на пару слов.
+    Читатель видит три почти одинаковых абзаца и решает, что система пересказывает саму
+    себя. Перекрывающееся окно — тот же кусок текста под другим маркером.
+    """
+    quotes = rules_facts(_message(LONG_ENUMERATION)).quotes
+    assert len(quotes) == 1, quotes
+
+
+def test_markers_in_different_sentences_give_different_quotes():
+    """Негативный контроль правила: непересекающиеся места обязаны дать разные цитаты.
+
+    Без этой половины проверка зеленела бы и на правиле «оставлять ровно одну цитату
+    всегда», то есть измеряла бы не то.
+    """
+    text = "нужен офис в Дубае. Отдельным вопросом: визы на сотрудников."
+    quotes = rules_facts(_message(text)).quotes
+    assert len(quotes) == 2, quotes
+
+
+def test_seed_edge_03_quotes_do_not_repeat_each_other():
+    """Тот самый вход из репозитория: цитат немного и ни одна не повторяет соседнюю."""
+    quotes = rules_facts(_seed_message("edge-03")).quotes
+    assert len(quotes) <= 5, quotes
+    stripped = [q.strip("…").strip() for q in quotes]
+    for i, first in enumerate(stripped):
+        for second in stripped[i + 1:]:
+            assert first not in second and second not in first, (first, second)
+
+
+def test_hot_requests_keep_at_least_one_quote():
+    """Схлопывание цитат не имеет права оставить горячее обращение без доказательства."""
+    for external_id in ("urg-01", "urg-13", "edge-03"):
+        assert rules_facts(_seed_message(external_id)).quotes, external_id

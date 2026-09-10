@@ -131,7 +131,7 @@ const MAX_QUOTE_CHARS = 160;
  * помечается многоточием: подрезка только справа давала цитаты вида «eezone, если…» —
  * доказательство, похожее на мусор (ИЗМЕРЕНО в Python на edge-03, 12 из 14 цитат).
  */
-function sentenceAround(text: string, start: number, end: number): string {
+function sentenceSpan(text: string, start: number, end: number): [string, number, number] {
   let left = -1;
   for (const ch of SENTENCE_BOUNDARIES) left = Math.max(left, text.lastIndexOf(ch, start - 1));
   let right = text.length;
@@ -140,7 +140,7 @@ function sentenceAround(text: string, start: number, end: number): string {
     if (pos >= 0) right = Math.min(right, pos);
   }
   const fragment = text.slice(left + 1, right).trim();
-  if (fragment.length <= MAX_QUOTE_CHARS) return fragment;
+  if (fragment.length <= MAX_QUOTE_CHARS) return [fragment, left + 1, right];
 
   const head = Math.max(left + 1, start - Math.floor(MAX_QUOTE_CHARS / 2));
   const tail = Math.min(right, head + MAX_QUOTE_CHARS);
@@ -154,7 +154,7 @@ function sentenceAround(text: string, start: number, end: number): string {
     cut = space >= 0 ? cut.slice(0, space) : cut;
   }
   cut = cut.trim();
-  return `${head > left + 1 ? "…" : ""}${cut}${tail < right ? "…" : ""}`;
+  return [`${head > left + 1 ? "…" : ""}${cut}${tail < right ? "…" : ""}`, head, tail];
 }
 
 // --- причины: зеркало каталога leadcentre/engine/reasons.py ---
@@ -343,14 +343,21 @@ export interface ExtractionResult {
 export function extractFacts(text: string, receivedAt: Date = new Date()): ExtractionResult {
   const low = text.toLowerCase();
   const quotes: string[] = [];
+  const spans: [number, number][] = [];
 
   // The proof is the sentence the customer wrote, not the stem our matcher found:
   // a quote «регистрац» reads as a stemmer bug, not as evidence (facts_rules.hit).
   const hit = (marker: string): boolean => {
     const index = low.indexOf(marker);
     if (index < 0) return false;
-    const fragment = sentenceAround(text, index, index + marker.length);
-    if (fragment && !quotes.includes(fragment)) quotes.push(fragment);
+    // Порт отсева цитат-двойников: окно, пересекающееся с уже занятым, — тот же кусок
+    // текста под другим маркером, а не второе доказательство.
+    const [fragment, from, to] = sentenceSpan(text, index, index + marker.length);
+    const overlaps = spans.some(([takenFrom, takenTo]) => from < takenTo && takenFrom < to);
+    if (fragment && !overlaps && !quotes.includes(fragment)) {
+      quotes.push(fragment);
+      spans.push([from, to]);
+    }
     return true;
   };
 
