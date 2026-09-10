@@ -118,7 +118,7 @@ export default function DiscoveredView({
                 <tr>
                   <th>Priority</th>
                   <th>Company</th>
-                  <th>Address</th>
+                  <th>Address type</th>
                   <th>City</th>
                   <th>Why it is here</th>
                   <th>Evidence</th>
