@@ -47,7 +47,7 @@ from leadcentre.sources.gleif import GleifAdapter
 # живой контур для этого текста. Решение настоящее, его принимает extract.route() по длине
 # обращения, до всякой сети, поэтому его можно показать честно и назвать «маршрут», а не
 # «обслужено».
-OFFLINE_MODEL = "rules_facts (офлайн-эвристика)"
+OFFLINE_MODEL = "rules_facts (offline heuristic)"
 
 # ИЗМЕРЕНО, прогон набора на живом контуре, записан в README §«Measured»:
 # $0.0033 за обращение при холодном кэше; задержка извлечения — 35.1 с на 8 обращений.
@@ -221,6 +221,13 @@ def build_leads() -> list[dict]:
         result = score_inbound(message, facts)
         drafted = reply_mod.draft(message, facts, result.tier, prices)
         chosen = extract_mod.route(message)
+        # Подпись маршрута — служебная строка английского интерфейса, поэтому она
+        # собирается здесь из тех же чисел, а не берётся русским текстом из route().
+        long_request = len(text) > extract_mod.LONG_MESSAGE_CHARS
+        route_reason = (
+            f"{'long' if long_request else 'short'} request: {len(text)} chars "
+            f"{'>' if long_request else '<='} {extract_mod.LONG_MESSAGE_CHARS}"
+        )
         quotes = [e.value for e in result.evidence if e.kind == "quote"]
         leads.append({
             "id": external_id,
@@ -257,7 +264,7 @@ def build_leads() -> list[dict]:
                 "output_tokens": 0,
                 "cost_usd": 0.0,
                 "route_model": chosen.model,
-                "route_reason": chosen.reason,
+                "route_reason": route_reason,
                 "live_cost_usd_per_lead": LIVE_COST_USD_PER_LEAD,
                 "live_latency_s": round(LIVE_LATENCY_S, 1),
             },

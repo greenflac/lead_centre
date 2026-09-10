@@ -145,10 +145,25 @@ def _sentence_around(text: str, start: int, end: int) -> str:
     fragment = text[left + 1: right].strip()
     if len(fragment) <= MAX_QUOTE_CHARS:
         return fragment
-    # Подрезаем по границе слова вокруг самого совпадения, чтобы цитата осталась читаемой.
+
+    # Длинное предложение подрезаем вокруг самого совпадения — но ОБЯЗАТЕЛЬНО по границам
+    # слов с обеих сторон. ИЗМЕРЕНО 2026-09-10 на обращении edge-03: подрезка только справа
+    # давала цитаты вида «eezone, если основные клиенты…» и «жно ли все три вида…» — 12 из
+    # 14 начинались посреди слова. Доказательство, которое выглядит как мусор, хуже
+    # отсутствующего: менеджер перестаёт верить и остальным причинам.
     head = max(left + 1, start - MAX_QUOTE_CHARS // 2)
-    cut = text[head: head + MAX_QUOTE_CHARS].strip()
-    return cut.rsplit(" ", 1)[0] + "…" if " " in cut else cut
+    tail = min(right, head + MAX_QUOTE_CHARS)
+    cut = text[head:tail]
+    if head > left + 1:
+        space = cut.find(" ")
+        cut = cut[space + 1:] if space >= 0 else cut
+    if tail < right:
+        space = cut.rfind(" ")
+        cut = cut[:space] if space >= 0 else cut
+    cut = cut.strip()
+    prefix = "…" if head > left + 1 else ""
+    suffix = "…" if tail < right else ""
+    return f"{prefix}{cut}{suffix}"
 
 
 # Слова о лицензии одинаково звучат при первичной регистрации и при продлении: «нужна

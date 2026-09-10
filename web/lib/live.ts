@@ -127,8 +127,8 @@ export function normalizePostedLead(value: unknown, text: string, channel: strin
           cost_usd: 0,
           route_model: asString(extraction.model, "unknown"),
           route_reason: asBool(extraction.offline)
-            ? "OFFLINE=1: модель не вызывалась, факты дал встроенный заменитель"
-            : "выбрана маршрутизатором бэкенда по длине обращения",
+            ? "OFFLINE=1: no model called, the backend used its built-in stub extractor"
+            : "picked by the backend router from the request length",
         }
       : undefined,
     reply: normalizeReply(body.reply),

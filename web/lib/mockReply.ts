@@ -98,9 +98,9 @@ const QUESTIONS = {
   ],
 };
 
-// Разряды разделяются неразрывным пробелом, как в reply.format_amount: обычный пробел
-// позволяет строке переноситься посреди суммы. ИЗМЕРЕНО сверкой: расходилось на всех
-// черновиках с ценой.
+// Неразрывные пробелы внутри суммы и между валютой и числом — как в reply.py: обычный
+// пробел даёт перенос строки посреди диапазона, и «AED» уезжает от своей суммы
+// (ИЗМЕРЕНО глазами на арабской карточке 02d, снимок от 2026-09-10).
 const NBSP = "\u00a0";
 
 function amount(value: number): string {
@@ -114,7 +114,7 @@ const LRI = "\u2066";
 const PDI = "\u2069";
 
 function priceFragment(item: PriceItem): string {
-  return `${LRI}AED ${amount(item.min)}–${amount(item.max)}${PDI}`;
+  return `${LRI}AED${NBSP}${amount(item.min)}–${amount(item.max)}${PDI}`;
 }
 
 function priceLine(key: string, language: "ru" | "en"): string {
