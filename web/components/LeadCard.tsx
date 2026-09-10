@@ -180,10 +180,16 @@ export default function LeadCard({
           <div className="section">
             <div className="section-title-row">
               <span className="section-title">Request text (as received)</span>
-              {quotes.length ? (
+              {/* Подсказка появляется только когда есть по чему кликать: при пустом
+                  списке причин она обещает действие, которого нет. */}
+              {quotes.length && links.some((item) => item.quotes.length) ? (
                 <span className="note">
                   {quotes.length} quoted fragment{quotes.length > 1 ? "s" : ""} — click a reason to
                   see which
+                </span>
+              ) : quotes.length ? (
+                <span className="note">
+                  {quotes.length} quoted fragment{quotes.length > 1 ? "s" : ""} highlighted
                 </span>
               ) : null}
             </div>

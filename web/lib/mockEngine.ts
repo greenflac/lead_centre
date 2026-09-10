@@ -43,8 +43,8 @@ const LONG_MODEL = "claude-opus-5";
 export function routeForText(text: string): { model: string; reason: string } {
   const length = text.length;
   return length > LONG_MESSAGE_CHARS
-    ? { model: LONG_MODEL, reason: `длинное обращение: ${length} символов > ${LONG_MESSAGE_CHARS}` }
-    : { model: SHORT_MODEL, reason: `короткое обращение: ${length} символов <= ${LONG_MESSAGE_CHARS}` };
+    ? { model: LONG_MODEL, reason: `long request: ${length} chars > ${LONG_MESSAGE_CHARS}` }
+    : { model: SHORT_MODEL, reason: `short request: ${length} chars <= ${LONG_MESSAGE_CHARS}` };
 }
 
 // --- markers mirrored from leadcentre/engine/facts_rules.py ---
