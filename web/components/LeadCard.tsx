@@ -296,6 +296,12 @@ export default function LeadCard({
             ) : (
               <div className="note">Base level, no modifier applied.</div>
             )}
+            {/* Причины на языке интерфейса — обязательство карточки, и невыполнимость
+                этого обязательства видна, а не спрятана (Р1): у лида, оценённого до того,
+                как движок начал хранить коды причин, английского текста не существует. */}
+            {lead.reasons_note ? (
+              <div className="note" style={{ marginTop: 8 }}>{lead.reasons_note}</div>
+            ) : null}
             {lead.violations.length ? (
               <div className="notice notice-error" style={{ marginTop: 16 }}>
                 <div className="notice-title">Invariant violated — priority withheld</div>

@@ -1090,3 +1090,33 @@ window is 60 days», «team of 14 — flexi desk will not cover the visa quota»
 карточки с нарушением, обе причины маршрута на двух языках, 17 контролей (13 негативных,
 4 положительных), провалов 0. Мутации: `LONG_MESSAGE_CHARS` 600->599 и 600->601 — по 9
 красных тестов; убранный английский текст нарушения роняет импорт и весь прогон.
+
+## Релизная чистка документации (2026-09-10)
+
+Владелец файлов: `docs/`, `web/README.md`. Код, `tests/`, корневой `README.md` не трогались.
+Ничего не удалялось и не коммитилось — удаление за владельцем.
+
+**Предложено оставить в релизе (5):** `docs/README.md` (переписан, 12 строк),
+`docs/onepager.md`, `docs/loom_script.md`, `docs/data/inbound_seed.md`,
+`docs/data/gleif_schema.md`. Метрики описаны в `eval/README.md` (вне `docs/`).
+**Предложено убрать (39 файлов):** `BLUEPRINT*`, `RELEASE_SPRINT.md`, `presentation.md`,
+`DEMO_brief.md`, `brief/`, `concept/`, `research/`, `design/`, `ops/`,
+`data/dubai_pulse_verdict.md`.
+
+**ИЗМЕРЕНО 2026-09-10** (числа в документах расходились с прогонами):
+- `make test-ci` -> **576 passed**. `docs/loom_script.md` называл 411 — исправлено;
+  `docs/README.md` называл 275 — файл переписан. Корневой `README.md` (576) верен.
+- `web/mock/leads.json`: 70 обращений, 13 HIGH / 41 MEDIUM / 16 LOW;
+  `companies.json`: 60, 12 HIGH / 48 MEDIUM. `web/README.md` называл 13/40/17 — исправлено.
+- `web/scripts/crosscheck.py`: 10 обращений, 144 поля, 144 сошлось, 0 расхождений,
+  подложек 4 из 4. `web/README.md` называл 134 поля и 3 подложки — исправлено.
+- `web/scripts/contrast.py`: проверено 38, нарушений 0, **не смогли 2** (порога нет) —
+  третий исход в README раньше не печатался (Р2), теперь печатается.
+- `web/scripts/css_audit.py`: проверено 7 свойств, нарушений 0.
+
+**Битые после чистки ссылки — в чужих файлах, чинить владельцам:**
+`README.md` (строки 24, 138, 221, 310), `eval/run_eval.py` (43–46),
+`leadcentre/engine/lint.py` (146, 269), `leadcentre/engine/reply.py` (512),
+`web/components/InboxView.tsx` (18, 187), `web/components/LeadCard.tsx` (175),
+`web/components/ui.tsx` (153), `web/scripts/contrast.py` (4).
+В оставшихся документах битых ссылок нет — проверено грепом всех путей.
