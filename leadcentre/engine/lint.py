@@ -141,6 +141,7 @@ CHECK_DEADLINE = "обещания сроков"
 CHECK_PRICES = "числа AED в диапазоне прайса"
 CHECK_MONEY_VERBATIM = "денежная вставка не переписана"
 CHECK_ASCII_DIGITS = "цифры в сумме европейские"
+CHECK_NO_MARKUP = "в письме нет разметки"
 
 # Арабо-индийские и персидские цифры. В арабском абзаце диапазон «35 000–60 000 درهم»,
 # набранный ими без латинского якоря, показывается читателю как «60 000–35 000»: клиент
@@ -274,6 +275,23 @@ def _check_ascii_digits(body: str, violations: list[str]) -> None:
         )
 
 
+#: Разметка markdown в письме клиенту. Заголовок и цитата в деловом письме не нужны,
+#: а звёздочки клиент видит как мусор. Ловится здесь, а не только чисткой на входе:
+#: чистка снимает разметку у своей модели, а линтер сторожит текст любого происхождения.
+MARKUP_LINE_RE = re.compile(r"^[\u200f\u200e\s]*(?:#{1,6}|>+)(?:\s+|$)", re.MULTILINE)
+MARKUP_INLINE_RE = re.compile(r"(?<!\*)\*{2,3}[^*\n]+\*{2,3}(?!\*)|`{1,3}[^`\n]+`{1,3}")
+
+
+def _check_markup(body: str, violations: list[str]) -> None:
+    """Разметки в письме быть не должно ни в начале строки, ни внутри неё."""
+    line = MARKUP_LINE_RE.search(body)
+    if line:
+        violations.append(f"{CHECK_NO_MARKUP}: строка начинается с «{line.group(0).strip()}»")
+    inline = MARKUP_INLINE_RE.search(body)
+    if inline:
+        violations.append(f"{CHECK_NO_MARKUP}: внутри строки «{inline.group(0)[:40]}»")
+
+
 def lint(
     reply: Reply,
     prices: dict[str, PriceItem] | None = None,
@@ -299,6 +317,8 @@ def lint(
     done.append(CHECK_SLOP)
     _check_deadlines(reply.body, violations)
     done.append(CHECK_DEADLINE)
+    _check_markup(reply.body, violations)
+    done.append(CHECK_NO_MARKUP)
 
     amounts: tuple[float, ...] = ()
     if prices is None:

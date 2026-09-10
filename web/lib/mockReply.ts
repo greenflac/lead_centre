@@ -113,8 +113,13 @@ function amount(value: number): string {
 const LRI = "\u2066";
 const PDI = "\u2069";
 
+// Склейка слов вокруг тире диапазона (reply.price_fragment): после тире браузер тоже
+// имеет право перенести строку, и в узкой колонке «AED 15 000–» оставалось наверху,
+// а «35 000» уезжало вниз. Диапазон, разорванный пополам, читается как одна цена.
+const WORD_JOINER = "\u2060";
+
 function priceFragment(item: PriceItem): string {
-  return `${LRI}AED${NBSP}${amount(item.min)}–${amount(item.max)}${PDI}`;
+  return `${LRI}AED${NBSP}${amount(item.min)}${WORD_JOINER}–${WORD_JOINER}${amount(item.max)}${PDI}`;
 }
 
 function priceLine(key: string, language: "ru" | "en"): string {
