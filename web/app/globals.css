@@ -773,6 +773,32 @@ table.grid tr:hover td { background: var(--surface-container-high); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* --- раскрытие «как это посчитано»: инженерное в один клик, а не в основном потоке --- */
+
+.details { border-top: 1px solid var(--outline-variant); padding-top: 12px; }
+.details-summary {
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  letter-spacing: var(--track);
+  text-transform: uppercase;
+  color: var(--on-surface-variant);
+  list-style: none;
+}
+.details-summary::-webkit-details-marker { display: none; }
+.details-summary::before { content: "+ "; font-family: var(--mono); }
+.details[open] > .details-summary::before { content: "− "; }
+.details-summary:hover { color: var(--on-surface); }
+.details-body { margin-top: 12px; }
+.details-inline { border-top: none; padding-top: 0; }
+.details-inline .details-body {
+  margin-top: 8px;
+  flex-basis: 100%;
+  font-size: 12px;
+  line-height: 16px;
+}
+
 /* --- служебная строка «чем обслужен лид» --- */
 
 .served {

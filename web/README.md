@@ -156,6 +156,24 @@ two languages, which is a defect the browser forces on us when no backend is att
 compares field by field, with two planted mismatches as a negative control. Last run:
 **10 requests, 124 fields, 124 matched, 0 mismatches, 2 of 2 planted mismatches caught.**
 
+## What the card shows, and what sits one click away
+
+The card carries only what a manager needs in order to decide on the lead: priority,
+channel, language, age; the request text; the facts that were actually extracted (empty
+ones are not listed at all); why this priority, with the quote behind each reason; the
+draft and the buttons.
+
+Everything engineering — request id, seed category, received UTC, which extractor served
+the lead, its latency and cost, the live routing decision and the seed-wide cost figure,
+plus the extraction-confidence band — lives inside one collapsed **"How this was scored"**
+disclosure. None of it was removed: it is honest, and it is exactly what a technical
+viewer asks for, but it is not part of the working flow. The same applies to the data-mode
+strip: one sentence in the header, the file names and cache state behind
+"where it comes from".
+
+Measured on `02b-lead-card-closeup.png`: **16 lines of service text on the card before,
+1 after** (the disclosure summary; a card whose reason cannot be quoted shows a second).
+
 ## Screenshots are produced by a script
 
 `python3 scripts/shots.py [base_url]` against a running `next start`. It fixes the file

@@ -11,6 +11,9 @@
     Карточка при неудачной записи всё равно возвращается: считать её заново дороже, чем
     показать со словами «не сохранено». Но выдавать несохранённое за сохранённое нельзя.
   * `GET /stats` печатает три числа рядом — проверено / нарушений / не смогли (Р2).
+  * причины карточки отдаются блоком `reasons_by_language` плюс `reasons_outcome`:
+    язык выбирает интерфейс, а «причины не восстановились» — отдельный исход, а не
+    русский текст в поле английского (см. `_reasons_block`).
 
 Ключи и режимы берутся из среды и нигде не дублируются (Е1): `OFFLINE=1` выключает сеть
 и для модели (extract), и для источника (GLEIF), и для хранилища (LocalStore).
@@ -37,6 +40,7 @@ from leadcentre.engine.extract import (
     extract_detailed,
     is_offline,
 )
+from leadcentre.engine.reasons import DEFAULT_LANGUAGE
 from leadcentre.engine.score import score, score_inbound
 from leadcentre.models import InboundMessage, Tier
 from leadcentre.report import build as build_report
@@ -46,13 +50,17 @@ from leadcentre.store import (
     REPLY_REJECTED,
     CompanyRow,
     DisagreementRow,
+    LeadCard,
     LeadRow,
     ReplyRow,
+    RestoredReasons,
     ScoreRow,
     StoreError,
     StoreRejected,
     StoreUnavailable,
     get_store,
+    reason_items_payload,
+    restore_reasons,
 )
 
 logger = logging.getLogger("leadcentre.api")
@@ -159,15 +167,70 @@ async def _store_rejected_handler(_: Request, exc: StoreRejected) -> JSONRespons
 # --- конвейер: вся работа здесь, обработчики только разбирают запрос (Т5) ---
 
 
+def _reasons_block(restored: RestoredReasons) -> dict[str, Any]:
+    """Причины в ответе API: коды, тексты по языкам и исход восстановления.
+
+    Форма выбрана так, а не «строка на выбранном сервером языке», по трём причинам.
+
+    1. Язык выбирает интерфейс, а не сервер. Дашборд переключает RU/EN на клиенте, без
+       похода на бэкенд; попросить `?lang=en` значило бы перерисовывать карточку
+       запросом и держать язык ещё и в состоянии сервера (второе место знания, Е1).
+    2. `reasons_by_language` содержит ровно те языки, которые ДЕЙСТВИТЕЛЬНО собраны.
+       Для старой записи без кодов там только `ru`, и отсутствие ключа `en` — машинный
+       признак: подставить русский текст в английскую карточку клиент уже не может
+       случайно, как и не может показать пустоту молча (есть `reasons_outcome`).
+    3. `reason_items` (код плюс параметры) отдаются рядом: интерфейсу они нужны для
+       привязки цитат и иконок к коду, а не к подстроке русского текста.
+
+    Поле `reasons` (готовые русские строки) осталось на месте — на него смотрят web-мок
+    и CRM; ломать их ради переезда нельзя, а источником истины оно уже не является.
+    """
+    return {
+        "reasons": list(restored.texts.get(DEFAULT_LANGUAGE.value, restored.stored_texts)),
+        "reason_items": reason_items_payload(restored.items),
+        "reasons_by_language": restored.texts,
+        "reasons_outcome": restored.outcome,
+        "reasons_detail": restored.detail,
+    }
+
+
+def _live_reasons(score_obj) -> RestoredReasons:
+    """Причины только что посчитанной оценки — тем же кодом, что и поднятые из базы.
+
+    Прогон через сериализацию и разбор нарочно: то, что API показывает сейчас, обязано
+    совпадать с тем, что поднимется из хранилища потом. Иначе живой и демонстрационный
+    режимы разъедутся ровно там, где их никто не сравнивает (Е1).
+    """
+    return restore_reasons(
+        {
+            "reasons": list(score_obj.reasons),
+            "reason_items": reason_items_payload(score_obj.reason_items),
+        }
+    )
+
+
 def _score_payload(company_score) -> dict[str, Any]:
     return {
         "tier": company_score.tier.value,
         "address_type": company_score.address_type.value,
         "event": company_score.event.value,
-        "reasons": list(company_score.reasons),
+        **_reasons_block(_live_reasons(company_score)),
         "evidence": [{"kind": e.kind, "value": e.value} for e in company_score.evidence],
         "violations": list(company_score.violations),
     }
+
+
+def _card_payload(card: LeadCard) -> dict[str, Any]:
+    """Карточка из хранилища → ответ API: причины восстанавливаются в оба языка.
+
+    Строка оценки отдаётся как лежит в базе, но обогащается блоком причин — иначе
+    интерфейс на английском получил бы русские строки из колонки `reasons` и показал
+    бы их как перевод.
+    """
+    payload = card.as_dict()
+    if payload.get("score") is not None:
+        payload["score"] = {**payload["score"], **_reasons_block(card.reasons())}
+    return payload
 
 
 def _facts_payload(facts) -> dict[str, Any]:
@@ -257,7 +320,9 @@ def handle_lead(payload: LeadIn, today: date | None = None) -> dict[str, Any]:
                 tier=inbound_score.tier.value,
                 address_type=inbound_score.address_type.value,
                 event=inbound_score.event.value,
-                reasons=inbound_score.reasons,
+                # Коды, а не строки: строки соберёт отрисовка (Е1), и английский
+                # у карточки, поднятой из базы, останется восстановимым.
+                reason_items=inbound_score.reason_items,
                 evidence=tuple(
                     {"kind": e.kind, "value": e.value} for e in inbound_score.evidence
                 ),
@@ -341,6 +406,9 @@ def handle_discover(payload: DiscoverIn, today: date | None = None) -> dict[str,
                 "address_lines": list(company.address_lines),
                 "tier": company_score.tier.value,
                 "reasons": list(company_score.reasons),
+                # Коды рядом со строками: карточку компании тоже показывают
+                # на двух языках, а `facts` — jsonb, отдельной колонки не нужно.
+                "reason_items": reason_items_payload(company_score.reason_items),
                 "violations": list(company_score.violations),
             },
         )
@@ -424,7 +492,7 @@ def get_leads(limit: int = DEFAULT_LIST_LIMIT) -> dict[str, Any]:
     except StoreError as exc:
         return {"outcome": OUTCOME_UNAVAILABLE, "message": str(exc), "leads": []}
     order = {t.value: i for i, t in enumerate((Tier.HIGH, Tier.MEDIUM, Tier.LOW, Tier.INVALID))}
-    items = [card.as_dict() for card in cards]
+    items = [_card_payload(card) for card in cards]
     items.sort(key=lambda c: order.get((c.get("score") or {}).get("tier", ""), len(order)))
     return {"outcome": OUTCOME_OK, "count": len(items), "leads": items}
 
@@ -437,7 +505,7 @@ def get_lead(lead_id: str) -> JSONResponse | dict[str, Any]:
             status_code=404,
             content={"outcome": OUTCOME_REJECTED, "message": f"обращение {lead_id} не найдено"},
         )
-    return {"outcome": OUTCOME_OK, **card.as_dict()}
+    return {"outcome": OUTCOME_OK, **_card_payload(card)}
 
 
 @app.post("/leads/{lead_id}/approve", response_model=None)

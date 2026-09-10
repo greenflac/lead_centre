@@ -54,7 +54,10 @@ USER_AGENT = "leadcentre/0.1 (+SORP Lead Centre)"
 DEFAULT_LIMIT = 50        # ВЫБРАНО: столько строк помещается в один экран инбокса
 
 # Коды PostgREST, означающие «схема не применена». Отдельно от прочих 404 (Е2).
-SCHEMA_MISSING_CODES = ("PGRST205", "PGRST202", "42P01")
+# PGRST204/42703 — «нет такой колонки»: это НЕ отказ по данным, а недокаченная миграция,
+# и лечится она средой, а не кодом. Свернуть её в StoreRejected значило бы отправить
+# владельца искать баг в payload вместо того, чтобы накатить schema.sql.
+SCHEMA_MISSING_CODES = ("PGRST205", "PGRST202", "PGRST204", "42P01", "42703")
 
 
 class SupabaseStore:

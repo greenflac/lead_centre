@@ -17,7 +17,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 5 дн."
+   "регистрация LEI просрочена на 5 дней"
   ],
   "evidence": [
    {
@@ -59,7 +59,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 6 дн."
+   "регистрация LEI просрочена на 6 дней"
   ],
   "evidence": [
    {
@@ -103,7 +103,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 4 дн."
+   "регистрация LEI просрочена на 4 дня"
   ],
   "evidence": [
    {
@@ -146,7 +146,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 13 дн."
+   "регистрация LEI просрочена на 13 дней"
   ],
   "evidence": [
    {
@@ -188,7 +188,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 4 дн."
+   "регистрация LEI просрочена на 4 дня"
   ],
   "evidence": [
    {
@@ -232,7 +232,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 11 дн."
+   "регистрация LEI просрочена на 11 дней"
   ],
   "evidence": [
    {
@@ -274,7 +274,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 11 дн."
+   "регистрация LEI просрочена на 11 дней"
   ],
   "evidence": [
    {
@@ -316,7 +316,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 18 дн."
+   "регистрация LEI просрочена на 18 дней"
   ],
   "evidence": [
    {
@@ -358,7 +358,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 14 дн."
+   "регистрация LEI просрочена на 14 дней"
   ],
   "evidence": [
    {
@@ -400,7 +400,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 11 дн."
+   "регистрация LEI просрочена на 11 дней"
   ],
   "evidence": [
    {
@@ -444,7 +444,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 12 дн."
+   "регистрация LEI просрочена на 12 дней"
   ],
   "evidence": [
    {
@@ -487,7 +487,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 4 дн."
+   "регистрация LEI просрочена на 4 дня"
   ],
   "evidence": [
    {
@@ -532,7 +532,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 6 дн."
+   "регистрация LEI просрочена на 6 дней"
   ],
   "evidence": [
    {
@@ -574,7 +574,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 2 дн."
+   "регистрация LEI просрочена на 2 дня"
   ],
   "evidence": [
    {
@@ -618,7 +618,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 5 дн."
+   "регистрация LEI просрочена на 5 дней"
   ],
   "evidence": [
    {
@@ -662,7 +662,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 4 дн."
+   "регистрация LEI просрочена на 4 дня"
   ],
   "evidence": [
    {
@@ -709,7 +709,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 16 дн."
+   "регистрация LEI просрочена на 16 дней"
   ],
   "evidence": [
    {
@@ -754,7 +754,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 6 дн."
+   "регистрация LEI просрочена на 6 дней"
   ],
   "evidence": [
    {
@@ -796,7 +796,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 14 дн."
+   "регистрация LEI просрочена на 14 дней"
   ],
   "evidence": [
    {
@@ -840,7 +840,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 5 дн."
+   "регистрация LEI просрочена на 5 дней"
   ],
   "evidence": [
    {
@@ -882,7 +882,7 @@
   "address_type": "A2_business_centre",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 14 дн."
+   "регистрация LEI просрочена на 14 дней"
   ],
   "evidence": [
    {
@@ -924,7 +924,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 8 дн."
+   "регистрация LEI просрочена на 8 дней"
   ],
   "evidence": [
    {
@@ -968,7 +968,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 1 дн.",
+   "регистрация LEI просрочена на 1 день",
    "город вне целевых (Abu Dhabi) — ступень понижена"
   ],
   "evidence": [
@@ -1014,7 +1014,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 8 дн."
+   "регистрация LEI просрочена на 8 дней"
   ],
   "evidence": [
    {
@@ -1058,7 +1058,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 10 дн."
+   "регистрация LEI просрочена на 10 дней"
   ],
   "evidence": [
    {
@@ -1103,7 +1103,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 1 дн."
+   "регистрация LEI просрочена на 1 день"
   ],
   "evidence": [
    {
@@ -1146,7 +1146,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 11 дн.",
+   "регистрация LEI просрочена на 11 дней",
    "город вне целевых (Ajman) — ступень понижена"
   ],
   "evidence": [
@@ -1190,7 +1190,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 8 дн."
+   "регистрация LEI просрочена на 8 дней"
   ],
   "evidence": [
    {
@@ -1235,7 +1235,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 4 дн."
+   "регистрация LEI просрочена на 4 дня"
   ],
   "evidence": [
    {
@@ -1277,7 +1277,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 12 дн.",
+   "регистрация LEI просрочена на 12 дней",
    "город вне целевых (RAS AL-KHAIMAH) — ступень понижена"
   ],
   "evidence": [
@@ -1320,7 +1320,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 2 дн."
+   "регистрация LEI просрочена на 2 дня"
   ],
   "evidence": [
    {
@@ -1361,7 +1361,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 11 дн.",
+   "регистрация LEI просрочена на 11 дней",
    "город вне целевых (Abu Dhabi) — ступень понижена"
   ],
   "evidence": [
@@ -1407,7 +1407,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 13 дн."
+   "регистрация LEI просрочена на 13 дней"
   ],
   "evidence": [
    {
@@ -1450,7 +1450,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 5 дн."
+   "регистрация LEI просрочена на 5 дней"
   ],
   "evidence": [
    {
@@ -1493,7 +1493,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 18 дн."
+   "регистрация LEI просрочена на 18 дней"
   ],
   "evidence": [
    {
@@ -1535,7 +1535,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 3 дн."
+   "регистрация LEI просрочена на 3 дня"
   ],
   "evidence": [
    {
@@ -1577,7 +1577,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 15 дн."
+   "регистрация LEI просрочена на 15 дней"
   ],
   "evidence": [
    {
@@ -1619,7 +1619,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 14 дн.",
+   "регистрация LEI просрочена на 14 дней",
    "город вне целевых (Nad Al Sheba) — ступень понижена"
   ],
   "evidence": [
@@ -1663,7 +1663,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 15 дн."
+   "регистрация LEI просрочена на 15 дней"
   ],
   "evidence": [
    {
@@ -1706,7 +1706,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 12 дн.",
+   "регистрация LEI просрочена на 12 дней",
    "город вне целевых (Sharjah) — ступень понижена"
   ],
   "evidence": [
@@ -1750,7 +1750,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 18 дн."
+   "регистрация LEI просрочена на 18 дней"
   ],
   "evidence": [
    {
@@ -1792,7 +1792,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 16 дн.",
+   "регистрация LEI просрочена на 16 дней",
    "город вне целевых (Sharjah) — ступень понижена"
   ],
   "evidence": [
@@ -1838,7 +1838,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 7 дн."
+   "регистрация LEI просрочена на 7 дней"
   ],
   "evidence": [
    {
@@ -1883,7 +1883,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 12 дн."
+   "регистрация LEI просрочена на 12 дней"
   ],
   "evidence": [
    {
@@ -1925,7 +1925,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 11 дн.",
+   "регистрация LEI просрочена на 11 дней",
    "город вне целевых (Dubai Silicon Oasis) — ступень понижена"
   ],
   "evidence": [
@@ -1968,7 +1968,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 18 дн.",
+   "регистрация LEI просрочена на 18 дней",
    "город вне целевых (Ras al Khaimah) — ступень понижена"
   ],
   "evidence": [
@@ -2014,7 +2014,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 18 дн."
+   "регистрация LEI просрочена на 18 дней"
   ],
   "evidence": [
    {
@@ -2059,7 +2059,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 2 дн."
+   "регистрация LEI просрочена на 2 дня"
   ],
   "evidence": [
    {
@@ -2104,7 +2104,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 5 дн.",
+   "регистрация LEI просрочена на 5 дней",
    "город вне целевых (أبو ظبي) — ступень понижена"
   ],
   "evidence": [
@@ -2149,7 +2149,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 11 дн.",
+   "регистрация LEI просрочена на 11 дней",
    "город вне целевых (Ras Al Khaimah/ رأس الخيمة) — ступень понижена"
   ],
   "evidence": [
@@ -2194,7 +2194,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 5 дн."
+   "регистрация LEI просрочена на 5 дней"
   ],
   "evidence": [
    {
@@ -2238,7 +2238,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 5 дн."
+   "регистрация LEI просрочена на 5 дней"
   ],
   "evidence": [
    {
@@ -2280,7 +2280,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 17 дн.",
+   "регистрация LEI просрочена на 17 дней",
    "город вне целевых (دبي) — ступень понижена"
   ],
   "evidence": [
@@ -2324,7 +2324,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 5 дн."
+   "регистрация LEI просрочена на 5 дней"
   ],
   "evidence": [
    {
@@ -2367,7 +2367,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 4 дн."
+   "регистрация LEI просрочена на 4 дня"
   ],
   "evidence": [
    {
@@ -2411,7 +2411,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 14 дн.",
+   "регистрация LEI просрочена на 14 дней",
    "город вне целевых (Ajman) — ступень понижена"
   ],
   "evidence": [
@@ -2455,7 +2455,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 13 дн."
+   "регистрация LEI просрочена на 13 дней"
   ],
   "evidence": [
    {
@@ -2497,7 +2497,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 14 дн."
+   "регистрация LEI просрочена на 14 дней"
   ],
   "evidence": [
    {
@@ -2539,7 +2539,7 @@
   "address_type": "A1_registrar",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 11 дн.",
+   "регистрация LEI просрочена на 11 дней",
    "город вне целевых (Nad Al Sheba) — ступень понижена"
   ],
   "evidence": [
@@ -2582,7 +2582,7 @@
   "address_type": "A3_own",
   "event": "B1_lapsed",
   "reasons": [
-   "регистрация LEI просрочена 5 дн."
+   "регистрация LEI просрочена на 5 дней"
   ],
   "evidence": [
    {
