@@ -150,7 +150,7 @@ export function ConfidenceBand({ value }: { value: number }) {
 
 /**
  * Direction of a block of customer text, by the first strongly-directional character —
- * the same rule the browser applies for dir="auto" (docs/design/03_arabic_rtl.md §2.5).
+ * the same rule the browser applies for dir="auto".
  * The attribute stays "auto" so the browser decides the layout; this only picks the type
  * size, because Naskh at the Latin size reads noticeably smaller (§3.2).
  */

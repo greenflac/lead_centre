@@ -116,7 +116,7 @@ export async function getStats(): Promise<Stats> {
 
 /**
  * `onStep` is called when a stage has actually finished, not on a timer: in mock mode the
- * four stages run here one after another, so the form reports what executed (Е2). Against
+ * four stages run here one after another, so the form reports what executed. Against
  * the live backend they happen inside one HTTP call and cannot be observed — the caller is
  * told so by never receiving a step.
  */
@@ -200,7 +200,7 @@ export async function approve(id: string): Promise<Lead> {
   }
   await request<unknown>(`/leads/${encodeURIComponent(id)}/approve`, { method: "POST" });
   // The decision endpoints answer with a CRM/eval receipt, not the card, so the card is
-  // re-read: what the dashboard shows next is what the backend actually stored (Е2).
+  // re-read: what the dashboard shows next is what the backend actually stored.
   return readCard(id, "approved", null);
 }
 

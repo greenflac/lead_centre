@@ -171,8 +171,7 @@ export default function LeadCard({
           <div className="section">
             <div className="section-title">Request text (as received)</div>
             {/* dir="auto" — направление задаёт первый сильный символ содержимого: инбокс
-                смешанный, и глобальный dir="rtl" сломал бы русские и английские строки
-                (docs/design/03_arabic_rtl.md §2.5). */}
+                смешанный, и глобальный dir="rtl" сломал бы русские и английские строки. */}
             <div className={`message-text${isRtlText(lead.text) ? " rtl-block" : ""}`} dir="auto">
               {lead.text.trim() ? markQuotes(lead.text, quotes, activeQuotes) : "— empty message —"}
             </div>
@@ -297,7 +296,7 @@ export default function LeadCard({
               <div className="note">Base level, no modifier applied.</div>
             )}
             {/* Причины на языке интерфейса — обязательство карточки, и невыполнимость
-                этого обязательства видна, а не спрятана (Р1): у лида, оценённого до того,
+                этого обязательства видна, а не спрятана: у лида, оценённого до того,
                 как движок начал хранить коды причин, английского текста не существует. */}
             {lead.reasons_note ? (
               <div className="note" style={{ marginTop: 8 }}>{lead.reasons_note}</div>

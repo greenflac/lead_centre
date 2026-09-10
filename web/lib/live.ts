@@ -49,7 +49,7 @@ export function normalizeFacts(value: unknown): LeadFacts {
 }
 
 /**
- * Reasons in the language of the interface, with three outcomes kept apart (Р1).
+ * Reasons in the language of the interface, with three outcomes kept apart.
  *
  * The engine stores a reason as a code plus parameters and renders it on demand, so the
  * API hands over `reasons_by_language` — and it contains ONLY the languages it could
@@ -149,9 +149,9 @@ export function normalizePostedLead(value: unknown, text: string, channel: strin
     violations: asStrings(score.violations),
     facts,
     facts_source: asString(extraction.provider, "llm"),
-    // Чем обслужен лид — из ответа API, а не из намерения (Е2): имя модели то, которое
+    // Чем обслужен лид — из ответа API, а не из намерения: имя модели то, которое
     // вернул провайдер. Стоимость бэкенд не считает, поэтому её здесь нет, а не ноль:
-    // выдуманный ноль хуже отсутствующего поля (Р1).
+    // выдуманный ноль хуже отсутствующего поля.
     serving: Object.keys(extraction).length
       ? {
           provider: asString(extraction.provider, "llm"),

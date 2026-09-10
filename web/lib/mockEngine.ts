@@ -241,7 +241,7 @@ function pluralPhrase(language: ReasonLanguage, value: number, noun: string): st
   return `${value} ${PLURAL_FORMS[language][noun][pluralIndex(language, value)]}`;
 }
 
-/** Отрисовка одной причины. Неизвестный код — ошибка, а не пустая строка (Р1). */
+/** Отрисовка одной причины. Неизвестный код — ошибка, а не пустая строка. */
 export function renderReason(item: ReasonItem, language: ReasonLanguage): string {
   const spec = REASON_CATALOGUE[item.code];
   if (!spec) throw new Error(`unknown reason code: ${item.code}`);
@@ -424,10 +424,10 @@ export interface ScoreResult {
 /**
  * Which quotes prove which reason. Same method as web/scripts/gen_mock.py: the extractor is
  * run over each quote, and a quote counts as proof when the same fact follows from it alone
- * — no second copy of the markers (Е1). Связь идёт по КОДУ причины, а не по её тексту:
+ * — no second copy of the markers. Связь идёт по КОДУ причины, а не по её тексту:
  * текст двуязычный и переписывается, код — контракт. Reasons that cannot have a quote
  * (language of the whole text, extraction confidence) get an empty list, and that third
- * outcome is not folded into "no quote found" (Р1).
+ * outcome is not folded into "no quote found".
  */
 export function linkReasons(
   items: ReasonItem[],

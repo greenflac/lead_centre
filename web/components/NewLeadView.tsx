@@ -52,7 +52,7 @@ export default function NewLeadView({
   const [error, setError] = useState<ApiError | null>(null);
   const [result, setResult] = useState<Lead | null>(null);
   // Сколько шагов конвейера действительно отработало. Шаг зажигается по факту исполнения,
-  // а не по таймеру: индикатор, который движется сам по себе, измеряет не работу (П1/Е2).
+  // а не по таймеру: индикатор, который движется сам по себе, измеряет не работу.
   const [step, setStep] = useState<number>(-1);
 
   async function submit() {
