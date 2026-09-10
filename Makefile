@@ -4,7 +4,7 @@ test:
 	OFFLINE=1 python -m pytest
 
 lint:
-	python -m ruff check leadcentre tests
+	python -m ruff check leadcentre tests ci eval scripts web/scripts
 
 run: ## скоринг из кэша, сеть не нужна
 	OFFLINE=1 python -m leadcentre.cli discover
