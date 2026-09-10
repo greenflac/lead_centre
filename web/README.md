@@ -153,8 +153,9 @@ Two scripts keep that honest, and both print numbers rather than a verdict:
 `leadcentre/engine/facts_rules.py`, `score.py` and `reply.py` — one piece of knowledge in
 two languages, which is a defect the browser forces on us when no backend is attached.
 `PYTHONPATH=. python3 scripts/crosscheck.py` runs ten seed requests through both paths and
-compares field by field, with two planted mismatches as a negative control. Last run:
-**10 requests, 124 fields, 124 matched, 0 mismatches, 2 of 2 planted mismatches caught.**
+compares field by field — including the reasons rendered in both Russian and English — with
+three planted mismatches as a negative control. Last run: **10 requests, 134 fields,
+134 matched, 0 mismatches, 3 of 3 planted mismatches caught.**
 
 ## What the card shows, and what sits one click away
 
@@ -202,6 +203,12 @@ non-breaking space after `AED` instead of a plain one.
 ## Language
 
 Interface and this README are in English. Request texts are shown exactly as received (RU,
-EN, mixed), and draft replies are written in the customer's language. Priority reasons come
-from the Python engine and are shown verbatim, in Russian, so that what the manager reads is
-literally what the engine produced.
+EN, AR, mixed), and draft replies are written in the customer's language, with the language
+of the draft marked next to it.
+
+Priority reasons come from the Python engine's own bilingual catalogue
+(`leadcentre/engine/reasons.py`): the engine stores a reason as a code plus its parameters
+and renders it on demand, so the card shows the English rendering of the very reason the
+engine produced — a translation by the engine, not by the dashboard. The measuring bench and
+the logs render the same reasons in Russian; `scripts/crosscheck.py` compares **both**
+languages between the Python and the TypeScript path, so the two cannot drift apart.

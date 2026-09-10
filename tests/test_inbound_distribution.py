@@ -22,8 +22,10 @@ from pathlib import Path
 import pytest
 
 from leadcentre.engine.facts_rules import rules_facts
+from leadcentre.engine.reasons import ReasonCode
 from leadcentre.engine.score import score_inbound
 from leadcentre.models import Tier
+from tests.conftest import has_reason
 
 ROOT = Path(__file__).resolve().parents[1]
 SEED_CSV = ROOT / "data" / "inbound_seed.csv"
@@ -148,8 +150,8 @@ def test_timeline_signal_is_not_the_only_road_to_high(messages, facts, tiers):
 def test_urgency_fires_on_8_of_the_15_extracted_deadlines(scores, facts):
     """Сколько раз признак срочности реально сработал — числом, а не «работает» (Е3).
 
-    Считается по причине в карточке, а не по порогу из `rubric`: тест видит поведение,
-    а не константу, и потому краснеет при любом сдвиге порога в обе стороны.
+    Считается по коду причины в карточке, а не по порогу из `rubric` и не по началу
+    строки: тест видит поведение, а не константу, и переживает правку формулировки.
     ИЗМЕРЕНО 2026-09-09 при пороге 60: 15 сроков извлечено, 8 сработали, 7 нет.
     """
     with_deadline = [f for f in facts if f.timeline_days is not None]
