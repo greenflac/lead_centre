@@ -1,5 +1,93 @@
 [
  {
+  "id": "urg-13",
+  "channel": "telegram",
+  "text": "our licence expires in 21 days and we must move to a bigger unit at the same time. 14 staff. urgent, who can call me today",
+  "language": "en",
+  "category": "urgent corporate",
+  "received_at": "2026-09-09T15:24:00Z",
+  "is_synthetic": true,
+  "tier": "HIGH",
+  "reasons": [
+   "needed in 21 days — inside the hot window of 60 days",
+   "2 services asked about — this is a package, not a single line item",
+   "team of 14 — flexi desk will not cover the visa quota"
+  ],
+  "reason_links": [
+   {
+    "text": "needed in 21 days — inside the hot window of 60 days",
+    "code": "urgent_timeline",
+    "quotes": [
+     0
+    ]
+   },
+   {
+    "text": "2 services asked about — this is a package, not a single line item",
+    "code": "package_request",
+    "quotes": [
+     0
+    ]
+   },
+   {
+    "text": "team of 14 — flexi desk will not cover the visa quota",
+    "code": "team_over_flexi_quota",
+    "quotes": [
+     1
+    ]
+   }
+  ],
+  "evidence": [
+   {
+    "kind": "quote",
+    "value": "our licence expires in 21 days and we must move to a bigger unit at the same time"
+   },
+   {
+    "kind": "quote",
+    "value": "14 staff"
+   }
+  ],
+  "violations": [],
+  "facts": {
+   "request_types": [
+    "office",
+    "renewal"
+   ],
+   "jurisdiction_hint": null,
+   "headcount": 14,
+   "timeline_days": 21,
+   "budget_hint": null,
+   "language": "en",
+   "is_spam": false,
+   "has_contact": false,
+   "confidence": 1.0
+  },
+  "facts_source": "offline_heuristic",
+  "serving": {
+   "provider": "offline",
+   "model": "rules_facts (offline heuristic)",
+   "latency_ms": 0.12,
+   "input_tokens": 0,
+   "output_tokens": 0,
+   "cost_usd": 0.0,
+   "route_model": "claude-haiku-4-5-20251001",
+   "route_reason": "short request: 122 chars <= 600",
+   "live_cost_usd_per_lead": 0.0033,
+   "live_latency_s": 4.4
+  },
+  "reply": {
+   "body": "Hello,\nOn the office: we run our own business centre in Dubai, with small private offices and flexi-desks that cover the visa quota.\nMarket range: small private office in a business centre — ⁦AED 35 000–60 000⁩ per year.\nMarket range: annual renewal (licence, Ejari, visa quota) — ⁦AED 15 000–30 000⁩ per year.\nThis is a market range; the final figure depends on your activity and visa count — we will price it exactly after a short call.\nAre you leaning towards mainland or a free zone — or would you compare both?",
+   "language": "en",
+   "outcome": "draft",
+   "needs_human": true,
+   "used_prices": [
+    "office_mini_year",
+    "renewal_year"
+   ],
+   "notice": ""
+  },
+  "status": "new"
+ },
+ {
   "id": "acct-08",
   "channel": "telegram",
   "text": "нужен счёт в банке + платёжный шлюз для интернет-магазина. вы с этим помогаете или только регистрация?",
@@ -56,7 +144,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -150,7 +238,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.15,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -207,7 +295,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.06,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -335,7 +423,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -399,7 +487,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.02,
+   "latency_ms": 0.03,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -499,7 +587,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -560,7 +648,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -623,7 +711,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.03,
+   "latency_ms": 0.04,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -742,7 +830,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -833,7 +921,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -903,7 +991,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.13,
+   "latency_ms": 0.14,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -974,7 +1062,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.12,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1104,7 +1192,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.45,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1198,7 +1286,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.13,
+   "latency_ms": 0.22,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1263,7 +1351,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1395,7 +1483,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1460,7 +1548,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.12,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1535,7 +1623,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.13,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1605,7 +1693,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.11,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1667,7 +1755,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1736,7 +1824,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.03,
+   "latency_ms": 0.04,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1790,7 +1878,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1876,7 +1964,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.12,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1946,7 +2034,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2033,7 +2121,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.11,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2107,7 +2195,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.07,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2236,7 +2324,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.05,
+   "latency_ms": 0.06,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2376,7 +2464,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.58,
+   "latency_ms": 0.62,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2386,7 +2474,7 @@
    "live_latency_s": 4.4
   },
   "reply": {
-   "body": "‏مرحباً سيرغي، بخصوص الأنشطة: يمكن ضم التجارة بالجملة وخدمات تطوير البرمجيات تحت رخصة واحدة في عدد من الجهات، أما التوظيف فهو نشاط منظَّم ويُرجَّح أن يحتاج رخصة مستقلة لاحقاً.\n‏مع عملاء في السعودية وأوروبا، تعمل المنطقة الحرة جيداً للتصدير وإعادة التصدير، بينما يمنحك الـmainland مرونة أوسع في التعامل داخل السوق المحلي والتوريد للجهات الحكومية؛ ولحصص التأشيرات الخمس ثم الأربع الإضافية غالباً لن يكفي flexi desk، ويصبح المكتب الفعلي هو الخيار العملي.\n‏أما الحساب البنكي فيُقيَّم حسب طبيعة النشاط وهيكل الملكية وسجل الشركة الجورجية، ونعدّ الملف مسبقاً لتقليل احتمال الرفض المتكرر؛ ومع إيرادات بحدود ذلك المستوى يلزم تسجيل ضريبة الشركات ومسك دفاتر منتظم، ومسألة التدقيق ترتبط بالجهة المُصدِّرة للرخصة وشكل الكيان.\n‏كمرجع أولي: تأسيس شركة mainland بالرخصة والرسوم الحكومية ⁦AED 15 000–35 000⁩، ومكتب خاص صغير في مركزنا التجاري ⁦AED 35 000–60 000⁩ سنوياً، والتأشيرات والمحاسبة تُحسب على حدة.\n‏هذه أرقام استرشادية فقط، والكلفة النهائية للسنة الأولى والثانية تُحدَّد بعد مكالمة نراجع فيها الأنشطة وعدد التأشيرات والجهة المناسبة، دون مفاجآت لاحقة.\n‏نقترح مكالمة أو لقاءً في مكتبنا بدبي بعد وصولكم في العشرين من أكتوبر، ونحن جاهزون بالعربية أو الإنجليزية.",
+   "body": "‏مرحبًا سيرجي، شكرًا على التفصيل الواضح؛ تجارة الإلكترونيات بالجملة وخدمات تطوير البرمجيات يمكن غالبًا دمجهما تحت رخصة واحدة إن كانت الأنشطة متوافقة لدى الجهة المرخِّصة، أما التوظيف فيُعامل عادة كنشاط منظَّم منفصل ويُضاف لاحقًا؛ ومع عملاء في السعودية وأوروبا يبقى الـmainland أوسع من حيث التعامل المحلي والتوريد، بينما تمنح المنطقة الحرة ملكية وهيكلًا أبسط.\n‏بخصوص المقر، فليكسي ديسك قد يكفي لعدد محدود من التأشيرات، لكن مع ثلاث تأشيرات شركاء واثنتين للموظفين ثم أربع إضافية فالأنسب مكتب فعلي لأن حصة التأشيرات ترتبط بمساحة المقر؛ وفي حدود أربعة ملايين درهم إيرادات يخضع النشاط لضريبة الشركات مع مسك دفاتر منتظم، والتدقيق يتحدد بالشكل القانوني والجهة المرخِّصة. أما الحساب البنكي فنتيح الملف عبر بنوك نتعامل معها مباشرة، وسبب الرفض السابق يستحق مراجعة قبل التقديم.\n‏كمرجع أولي: تأسيس شركة mainland مع الرخصة والرسوم الحكومية ⁦AED 15 000–35 000⁩، ومكتب خاص صغير في مركزنا ⁦AED 35 000–60 000⁩.\n‏هذه أرقام استرشادية فقط، والكلفة النهائية للسنة الأولى والثانية تُحسب بعد الحديث معكم وتحديد النشاط وعدد التأشيرات، دون مبالغ مفاجئة لاحقًا.\n‏بما أنكم في دبي من العشرين، نقترح لقاءً في مكتبنا أو مكالمة في نهاية أكتوبر لمراجعة الملف كاملًا.",
    "language": "ar",
    "outcome": "draft",
    "needs_human": true,
@@ -2525,7 +2613,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2654,7 +2742,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2711,7 +2799,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2776,7 +2864,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2860,7 +2948,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.14,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2917,7 +3005,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3047,7 +3135,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3062,94 +3150,6 @@
    "outcome": "questions",
    "needs_human": false,
    "used_prices": [],
-   "notice": ""
-  },
-  "status": "new"
- },
- {
-  "id": "urg-13",
-  "channel": "telegram",
-  "text": "our licence expires in 21 days and we must move to a bigger unit at the same time. 14 staff. urgent, who can call me today",
-  "language": "en",
-  "category": "urgent corporate",
-  "received_at": "2026-08-04T15:24:00Z",
-  "is_synthetic": true,
-  "tier": "HIGH",
-  "reasons": [
-   "needed in 21 days — inside the hot window of 60 days",
-   "2 services asked about — this is a package, not a single line item",
-   "team of 14 — flexi desk will not cover the visa quota"
-  ],
-  "reason_links": [
-   {
-    "text": "needed in 21 days — inside the hot window of 60 days",
-    "code": "urgent_timeline",
-    "quotes": [
-     0
-    ]
-   },
-   {
-    "text": "2 services asked about — this is a package, not a single line item",
-    "code": "package_request",
-    "quotes": [
-     0
-    ]
-   },
-   {
-    "text": "team of 14 — flexi desk will not cover the visa quota",
-    "code": "team_over_flexi_quota",
-    "quotes": [
-     1
-    ]
-   }
-  ],
-  "evidence": [
-   {
-    "kind": "quote",
-    "value": "our licence expires in 21 days and we must move to a bigger unit at the same time"
-   },
-   {
-    "kind": "quote",
-    "value": "14 staff"
-   }
-  ],
-  "violations": [],
-  "facts": {
-   "request_types": [
-    "office",
-    "renewal"
-   ],
-   "jurisdiction_hint": null,
-   "headcount": 14,
-   "timeline_days": 21,
-   "budget_hint": null,
-   "language": "en",
-   "is_spam": false,
-   "has_contact": false,
-   "confidence": 1.0
-  },
-  "facts_source": "offline_heuristic",
-  "serving": {
-   "provider": "offline",
-   "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
-   "input_tokens": 0,
-   "output_tokens": 0,
-   "cost_usd": 0.0,
-   "route_model": "claude-haiku-4-5-20251001",
-   "route_reason": "short request: 122 chars <= 600",
-   "live_cost_usd_per_lead": 0.0033,
-   "live_latency_s": 4.4
-  },
-  "reply": {
-   "body": "Hello,\nOn the office: we run our own business centre in Dubai, with small private offices and flexi-desks that cover the visa quota.\nMarket range: small private office in a business centre — ⁦AED 35 000–60 000⁩ per year.\nMarket range: annual renewal (licence, Ejari, visa quota) — ⁦AED 15 000–30 000⁩ per year.\nThis is a market range; the final figure depends on your activity and visa count — we will price it exactly after a short call.\nAre you leaning towards mainland or a free zone — or would you compare both?",
-   "language": "en",
-   "outcome": "draft",
-   "needs_human": true,
-   "used_prices": [
-    "office_mini_year",
-    "renewal_year"
-   ],
    "notice": ""
   },
   "status": "new"
@@ -3200,7 +3200,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3320,7 +3320,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.07,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3330,7 +3330,7 @@
    "live_latency_s": 4.4
   },
   "reply": {
-   "body": "‏وعليكم السلام ورحمة الله، شكرًا لتواصلكم بخصوص تأسيس شركة لتجارة المواد الغذائية في دبي.\n‏الخطوات تبدأ بتحديد الجهة المناسبة (مainland أو منطقة حرة)، ثم حجز الاسم التجاري وتحديد النشاط، وإصدار الموافقة المبدئية، وتوثيق عقد التأسيس، وتأمين العنوان أو المكتب، وأخيرًا إصدار الرخصة، مع مراعاة أن تجارة المواد الغذائية تتطلب موافقة إضافية من الجهة الرقابية المختصة قبل ممارسة النشاط.\n‏أما المدة فهي مرتبطة بإجراءات الجهات الحكومية والموافقات الخاصة بالنشاط الغذائي، ولا نستطيع تحديدها من جانبنا.\n‏للتقدير المبدئي: تأسيس شركة في المainland يتراوح ضمن ⁦AED 15 000–35 000⁩، وفي المناطق الحرة ضمن ⁦AED 12 500–27 000⁩.\n‏هذه أرقام استرشادية فقط، ويُحتسب المبلغ النهائي بعد الحديث معكم وتوضيح النشاط وعدد الشركاء والتأشيرات المطلوبة.\n‏هل تفضّلون أن يكون النشاط تجارة جملة ومستودعات أم تجارة تجزئة داخل دبي؟",
+   "body": "‏وعليكم السلام ورحمة الله، شكرًا لتواصلكم معنا بشأن تأسيس شركة لتجارة المواد الغذائية في دبي.\n‏الخطوات تبدأ بتحديد الجهة المناسبة (مainland أو منطقة حرة) وفق طبيعة نشاطكم وأسواق البيع، ثم حجز الاسم التجاري واعتماد النشاط، وتجهيز المستندات وعقد التأسيس، واستكمال متطلبات النشاط الغذائي لدى الجهات المختصة، وبعدها إصدار الرخصة وفتح الحساب البنكي وترتيب التأشيرات.\n‏أما المدة فهي مرتبطة بالجهات الحكومية وموافقاتها، ولا يمكننا الالتزام بها من جانبنا.\n‏للتقدير المبدئي: تأسيس شركة mainland يتراوح ضمن ⁦AED 15 000–35 000⁩، وفي المناطق الحرة ضمن ⁦AED 12 500–27 000⁩.\n‏تبقى هذه أرقامًا إرشادية، ويُحتسب المبلغ النهائي بعد حديث قصير نفهم فيه تفاصيل النشاط وعدد التأشيرات المطلوبة.\n‏هل تفضّلون البيع بالتجزئة والتوزيع داخل السوق المحلي، أم الاستيراد وإعادة التصدير؟",
    "language": "ar",
    "outcome": "draft",
    "needs_human": true,
@@ -3385,7 +3385,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3524,7 +3524,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.14,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3589,7 +3589,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3656,7 +3656,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.05,
+   "latency_ms": 0.04,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3727,7 +3727,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.07,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3792,7 +3792,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3857,7 +3857,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3935,7 +3935,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.13,
+   "latency_ms": 0.11,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4003,7 +4003,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.11,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4149,7 +4149,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4249,7 +4249,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.17,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4323,7 +4323,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4444,7 +4444,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4506,7 +4506,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.05,
+   "latency_ms": 0.07,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4575,7 +4575,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4662,7 +4662,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4742,7 +4742,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.11,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4883,7 +4883,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.09,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4976,7 +4976,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.15,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
