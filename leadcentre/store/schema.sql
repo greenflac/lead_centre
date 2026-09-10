@@ -81,7 +81,7 @@ alter table public.scores
 
 -- Черновик ответа.
 -- lint_ok — булев, но у линтера ТРИ исхода (OK / VIOLATIONS / UNVERIFIABLE), поэтому
--- рядом стоит lint_status, а lint_ok при «не смогли проверить» = NULL (Р1). Колонки
+-- рядом стоит lint_status, а lint_ok при «не смогли проверить» = NULL. Колонки
 -- lint_status в исходном ТЗ не было: без неё третий исход сворачивался бы в false,
 -- то есть «не проверяли» читалось бы как «нарушение».
 create table if not exists public.replies (
