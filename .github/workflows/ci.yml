@@ -8,8 +8,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install -e ".[dev]" fastapi uvicorn httpx
+      - run: pip install -e ".[dev]"
       # Сеть в тестах запрещена машиной: ci/sitecustomize.py подхватывается через PYTHONPATH.
       - run: make test-ci-selfcheck
       - run: make test-ci
-      - run: python -m ruff check leadcentre tests
+      - run: make lint
