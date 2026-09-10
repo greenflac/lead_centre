@@ -244,16 +244,20 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
         quotes.append(message.text[found.start(): found.end()])
     # budget_hint — кусок текста, а не наш пересказ (Е2): движок смотрит на содержимое
     # поля (в нём должна быть сумма), и подмена пересказом молча съела бы сигнал.
-    budget_parts: list[str] = []
+    # Бюджет — это то, что написал клиент, а не список сработавших маркеров. Раньше сюда
+    # склеивались все совпадения, и в карточке стояло «150 тысяч; бюджет; AED; дирхам» —
+    # отладочный вывод вместо цитаты (замечено осмотром карточки edge-03). Сумма, если она
+    # есть, вытесняет всё остальное: именно она отличает названный бюджет от разговора о нём.
     money = MONEY_RE.search(low)
     if money:
-        fragment = message.text[money.start(): money.end()].strip()
-        budget_parts.append(fragment)
-        quotes.append(fragment)
-    for marker in BUDGET_MARKERS:
-        if hit(marker):
-            budget_parts.append(message.text[low.find(marker): low.find(marker) + len(marker)])
-    budget = "; ".join(dict.fromkeys(budget_parts)) or None
+        budget = message.text[money.start(): money.end()].strip()
+        quotes.append(budget)
+    else:
+        budget = None
+        for marker in BUDGET_MARKERS:
+            if hit(marker):
+                budget = message.text[low.find(marker): low.find(marker) + len(marker)]
+                break
     is_spam = False
     for marker in SPAM_MARKERS:
         is_spam = hit(marker) or is_spam
