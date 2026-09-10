@@ -3,7 +3,7 @@
 Перенесено из приёмочного прибора автора модуля (scratchpad/check_reasons.py): там оно
 печатало таблицу и считало сработавшие контроли, здесь каждый контроль — отдельный тест,
 который краснеет сам. Печатать «ГОДНО» рядом с зелёным прогоном больше не требуется:
-вердикт выносит раннер, а не тот, кто делал (И1).
+вердикт выносит раннер, а не тот, кто делал.
 
 Что здесь сторожится:
 
@@ -14,12 +14,12 @@
   в tests/test_enum_coverage.py.
 * **Числительные**: «1 день / 2 дня / 5 дней», отдельно край 11–14 («11 дней», не
   «11 день») — правило, которое ломается тише всего.
-* **Негативные контроли** (И5): отсутствующий параметр, лишний параметр, дробное число,
+* **Негативные контроли**: отсутствующий параметр, лишний параметр, дробное число,
   неизвестный язык, пустой и отсутствующий текст, потерянный placeholder, единица без
   форм. Рядом с каждым — положительный контроль: на годном входе прибор обязан
   шевельнуться, иначе «ошибка есть всегда» читалось бы как успех.
 
-Ожидаемое — литералы (Т2): русские и английские строки выписаны руками, а не собраны
+Ожидаемое — литералы: русские и английские строки выписаны руками, а не собраны
 тем же кодом, который проверяется.
 """
 from __future__ import annotations
@@ -71,7 +71,7 @@ ALL_LANGUAGES = list(R.Language)
 
 def _placeholders(template: str) -> set[str]:
     """Имена параметров шаблона. Разбор здесь свой, а не импорт `R._placeholders`:
-    импортированное ожидание поедет вместе с кодом и промолчит (Т2)."""
+    импортированное ожидание поедет вместе с кодом и промолчит."""
     import string
 
     return {
@@ -85,7 +85,7 @@ def _placeholders(template: str) -> set[str]:
 
 
 def test_sample_params_cover_every_code():
-    """Прибор измеряет весь каталог, а не его половину (Р2: «проверено N»)."""
+    """Прибор измеряет весь каталог, а не его половину («проверено N»)."""
     missing = sorted(set(R.ReasonCode) - set(SAMPLE_PARAMS), key=lambda c: c.value)
     assert missing == [], f"нет показательных параметров для {[c.value for c in missing]}"
     assert len(SAMPLE_PARAMS) == len(ALL_CODES) == 16
@@ -146,7 +146,7 @@ def test_every_language_has_plural_forms_and_a_rule(language):
 
 
 def test_validate_catalogue_reports_how_much_it_checked():
-    """«Проверено N» вместо голого «нарушений нет» (Р2): 16 кодов x 2 языка."""
+    """«Проверено N» вместо голого «нарушений нет»: 16 кодов x 2 языка."""
     assert R.validate_catalogue() == 32
 
 
@@ -183,7 +183,7 @@ def test_catalogue_has_no_two_codes_with_the_same_russian_text():
     ],
 )
 def test_russian_numerals_agree_with_the_noun(number, expected):
-    """Три формы русского, с обоими краями и серединой (Т3).
+    """Три формы русского, с обоими краями и серединой.
 
     11-14 — исключение из правила «оканчивается на 1 — форма один»: без guard
     получится «11 день», и это ровно та ошибка, которую не видно на глаз в тесте,
@@ -202,7 +202,7 @@ def test_english_numerals_have_two_forms(number, expected):
 
 def test_russian_and_english_forms_differ_on_the_same_number():
     """Негативный контроль прибора: если бы отрисовка не знала про язык, тексты
-    совпали бы, и все проверки выше проходили бы, ничего не измеряя (И5)."""
+    совпали бы, и все проверки выше проходили бы, ничего не измеряя."""
     assert R.plural_phrase(RU, 5, "day") != R.plural_phrase(EN, 5, "day")
 
 
@@ -258,7 +258,7 @@ def test_reason_with_a_duplicate_param_is_an_error():
 
 
 def test_the_same_reason_with_params_renders():
-    """Положительный контроль к контролям 1-4: годный вход обязан пройти (И5)."""
+    """Положительный контроль к контролям 1-4: годный вход обязан пройти."""
     assert R.reason(R.ReasonCode.TEAM_OVER_FLEXI_QUOTA, headcount=8).text(EN) == (
         "team of 8 — flexi desk will not cover the visa quota"
     )
@@ -327,7 +327,7 @@ def test_catalogue_with_a_blank_english_text_is_rejected():
 
     Причина без параметров выбрана намеренно: пустоту тут ловит только правило
     пустоты — сверка placeholder'ов подстраховать его не может, и контроль мерит
-    ровно то, что называет (И5).
+    ровно то, что называет.
     """
     blank = _catalogue_with(
         R.ReasonCode.ENTITY_INACTIVE,
@@ -428,7 +428,7 @@ def test_render_on_a_known_language_works():
 
 
 def test_score_with_two_sources_of_text_is_rejected():
-    """Контроль 12: причины заданы дважды — строками и кодами (Е1).
+    """Контроль 12: причины заданы дважды — строками и кодами.
 
     Два источника текста — это тот дефект, ради которого каталог и заведён;
     `Score` не даёт завести его заново.
@@ -454,7 +454,7 @@ def _stored_card() -> Score:
 
 
 def test_stored_card_cannot_be_rendered_in_english():
-    """Контроль 13: строк без кодов не хватает на второй язык — это «не смогли» (Р1),
+    """Контроль 13: строк без кодов не хватает на второй язык — это «не смогли»,
     а не молчаливая подмена русским текстом на английском экране."""
     with pytest.raises(R.ReasonError):
         _stored_card().reasons_in(EN)
@@ -466,14 +466,14 @@ def test_stored_card_still_gives_russian():
 
 
 def test_card_without_reasons_at_all_is_an_empty_tuple():
-    """Третий исход `reasons_in` (Р1): причин нет вовсе — пусто, и это не ошибка."""
+    """Третий исход `reasons_in`: причин нет вовсе — пусто, и это не ошибка."""
     empty = Score(tier=Tier.LOW, address_type=AddressType.UNKNOWN, event=Event.NONE)
     assert empty.reasons_in(EN) == ()
     assert empty.reasons_in(RU) == ()
 
 
 def test_score_renders_russian_from_the_items_it_was_given():
-    """`reasons` — это отрисовка `reason_items`, а не отдельное знание (Е1)."""
+    """`reasons` — это отрисовка `reason_items`, а не отдельное знание."""
     card = Score(
         tier=Tier.MEDIUM,
         address_type=AddressType.UNKNOWN,
@@ -492,7 +492,7 @@ def test_score_renders_russian_from_the_items_it_was_given():
 def test_inbound_seed_rows_render_in_both_languages(external_id):
     """Прогон по обращениям из посева: каждая причина рисуется на обоих языках.
 
-    Сеть не нужна — CSV лежит в репозитории (Т4).
+    Сеть не нужна — CSV лежит в репозитории.
     """
     rows = {
         row["external_id"]: row

@@ -1,8 +1,8 @@
 """Тесты рубрики и скоринга.
 
-Ожидаемое — литералами (Т2): пороги записаны числами (90 / 60 / 90), ступени —
+Ожидаемое — литералами: пороги записаны числами (90 / 60 / 90), ступени —
 членами `Tier`, ни одного обращения к `rubric.MATRIX` или `rubric.*_DAYS`.
-Фикстуры берутся с обоих краёв диапазона и из середины (Т3).
+Фикстуры берутся с обоих краёв диапазона и из середины.
 """
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ def test_registrar_marker_wins_over_business_centre():
     assert classify_address(company) is AddressType.REGISTRAR
 
 
-# --- ось B: пороги. Края и середина каждого диапазона (Т3) ------------------------
+# --- ось B: пороги. Края и середина каждого диапазона ------------------------
 
 
 @pytest.mark.parametrize(
@@ -226,7 +226,7 @@ def test_inactive_entity_is_low():
 
 
 def test_non_ae_country_is_invalid_with_violation():
-    """Негативный контроль: компания не из ОАЭ — INVALID и непустые violations (Р1)."""
+    """Негативный контроль: компания не из ОАЭ — INVALID и непустые violations."""
     company = lapsed_company(10, country="SA", address_lines=ADDR_REGISTRAR)
     result = score(company, TODAY)
     assert result.tier is Tier.INVALID

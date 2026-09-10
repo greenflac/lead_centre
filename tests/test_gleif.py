@@ -1,6 +1,6 @@
 """Тесты адаптера GLEIF: офлайн-разбор кэша, английские названия/города, отсутствие сети.
 
-Ожидаемое — литералы из data/gleif_ae_*_sample.json, выписанные руками (Т2).
+Ожидаемое — литералы из data/gleif_ae_*_sample.json, выписанные руками.
 """
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ def _is_arabic(text: str) -> bool:
 
 
 def test_sample_files_exist_and_hold_60_records_each():
-    """Негативный контроль прибора: если кэш пуст, «0 нарушений» ничего не значит (Р2)."""
+    """Негативный контроль прибора: если кэш пуст, «0 нарушений» ничего не значит."""
     for name in ("gleif_ae_lapsed_sample.json", "gleif_ae_fresh_sample.json"):
         records = json.loads((DATA_DIR / name).read_text())
         assert len(records) == 60, name
@@ -50,7 +50,7 @@ def test_fetch_fresh_offline_counts():
 
 @pytest.mark.parametrize("limit", [0, 1, 30, 60, 200])
 def test_limit_cuts_the_cache(limit):
-    """Края и середина диапазона limit (Т3): кэша 60 записей, больше не появится."""
+    """Края и середина диапазона limit: кэша 60 записей, больше не появится."""
     result = GleifAdapter(mode="lapsed", offline=True).fetch(limit)
     assert result.fetched == min(limit, 60)
     assert len(result.companies) == min(limit, 60)
@@ -96,7 +96,7 @@ def test_no_card_shows_an_arabic_name():
     """Главный инвариант: НИ ОДНА карточка обеих выборок не показывает название арабицей.
 
     Написан про саму беду, а не про её случай: счёт «подменено N» переживает ровно одно
-    изменение источника, а это требование переживёт любое (И2 — беда наблюдаема).
+    изменение источника, а это требование переживёт любое (беда наблюдаема).
     ИЗМЕРЕНО 2026-09-09: 120 записей, арабских названий 0 (было 8).
     """
     cards = []
@@ -131,7 +131,7 @@ def test_every_arabic_legal_name_is_replaced_in_the_lapsed_sample():
 
 
 def test_source_split_between_other_names_and_transliterated_names():
-    """Откуда взялась латиница — числами (Е3), по обеим выборкам: 43 + 8 из 51."""
+    """Откуда взялась латиница — числами, по обеим выборкам: 43 + 8 из 51."""
     records = json.loads((DATA_DIR / "gleif_ae_lapsed_sample.json").read_text())
     records += json.loads((DATA_DIR / "gleif_ae_fresh_sample.json").read_text())
     arabic = [
@@ -340,7 +340,7 @@ def test_live_records_land_on_the_expected_step(lei, mode, expected_name, step_f
 
 
 def test_previous_legal_name_is_never_reached_on_this_cache():
-    """Отрицательный результат числом (И6): ступень 5 на выборках не срабатывает ни разу.
+    """Отрицательный результат числом: ступень 5 на выборках не срабатывает ни разу.
 
     У единственной записи с PREVIOUS_LEGAL_NAME без PREFERRED_ASCII
     (529900MHS1KEGQZD7A14) есть ещё и ALTERNATIVE_LANGUAGE_LEGAL_NAME с тем же текстом,
@@ -357,7 +357,7 @@ def test_previous_legal_name_is_never_reached_on_this_cache():
 
 
 def test_which_step_serves_each_arabic_record():
-    """Разбивка по ступеням числами (Е3): 37 + 10 + 4 из 51, ступени 5-7 пусты."""
+    """Разбивка по ступеням числами: 37 + 10 + 4 из 51, ступени 5-7 пусты."""
     records = json.loads((DATA_DIR / "gleif_ae_lapsed_sample.json").read_text())
     records += json.loads((DATA_DIR / "gleif_ae_fresh_sample.json").read_text())
     steps = {
@@ -441,7 +441,7 @@ def test_records_without_minimum_fields_are_skipped(record):
 
 
 def test_skipped_is_counted_not_hidden(monkeypatch):
-    """Пропуск печатается числом, а не проглатывается (Е3)."""
+    """Пропуск печатается числом, а не проглатывается."""
     good = json.loads((DATA_DIR / "gleif_ae_lapsed_sample.json").read_text())[:2]
     broken = [{"attributes": {"lei": "Z" * 20, "entity": {}}}]
     adapter = GleifAdapter(mode="lapsed", offline=True)
@@ -484,14 +484,14 @@ def test_offline_fetch_does_not_touch_the_network(monkeypatch):
 
 
 def test_negative_control_online_fetch_would_use_urlopen(monkeypatch):
-    """Контроль прибора (И5): подмена действительно перехватывает сетевой путь."""
+    """Контроль прибора: подмена действительно перехватывает сетевой путь."""
     monkeypatch.setattr(urllib.request, "urlopen", _boom)
     with pytest.raises(NetworkForbidden):
         GleifAdapter(mode="lapsed", offline=False).fetch(5)
 
 
 def test_url_is_built_with_filters_and_sort():
-    """URL не проверяется сетью, поэтому проверяется строкой (Ц10: имя эндпоинта в коде одно)."""
+    """URL не проверяется сетью, поэтому проверяется строкой (имя эндпоинта в коде одно)."""
     url = GleifAdapter(mode="lapsed", offline=True)._url(500)
     assert url.startswith("https://api.gleif.org/api/v1/lei-records?")
     assert "filter%5Bentity.legalAddress.country%5D=AE" in url

@@ -31,11 +31,11 @@ from leadcentre.models import (
 ROOT = Path(__file__).resolve().parents[1]
 PRICELIST = ROOT / "data" / "pricelist_demo.yaml"
 
-# Языки, на которых движок обязан отвечать шаблонами. Литералы (Т2): список в модуле
+# Языки, на которых движок обязан отвечать шаблонами. Литералы: список в модуле
 # может измениться, и тест должен это заметить, а не поехать следом.
 TEMPLATE_LANGUAGES = ("ru", "en")
 
-# Исходы, объявленные автором reply.py. Падение исключением исходом не является (Р1).
+# Исходы, объявленные автором reply.py. Падение исключением исходом не является.
 DECLARED_OUTCOMES = ("draft", "questions", "spam_skipped", "no_draft_needs_human")
 
 
@@ -156,7 +156,7 @@ def test_types_with_price_keys_can_be_priced(kind):
 
 
 def test_missing_template_is_a_declared_outcome_not_an_exception(monkeypatch):
-    """Негативный контроль (И5/Р1): если шаблона для типа нет, это исход, а не падение.
+    """Негативный контроль: если шаблона для типа нет, это исход, а не падение.
 
     Тип выбрасывается из словарей на время теста — так воспроизводится ровно то
     состояние, в котором `RENEWAL` обрушивал карточку.
@@ -169,7 +169,7 @@ def test_missing_template_is_a_declared_outcome_not_an_exception(monkeypatch):
     monkeypatch.setattr(reply, "PRICE_KEY_BY_REQUEST", price_keys)
 
     result = reply.draft(_message(), _rich_facts(RequestType.OFFICE, "ru"), Tier.HIGH)
-    # Заявленный автором исход: говорить не о чем — карточку берёт человек (Р1),
+    # Заявленный автором исход: говорить не о чем — карточку берёт человек,
     # а не KeyError и не молчаливый пустой черновик.
     assert result.outcome == "no_draft_needs_human"
     assert result.needs_human is True
@@ -196,7 +196,7 @@ def test_unknown_request_type_value_does_not_crash(monkeypatch):
 
 
 def test_unknown_type_alongside_a_known_one_is_skipped_with_a_notice(monkeypatch):
-    """Один незнакомый тип не отменяет черновик: он пропускается, и пропуск виден (Е3).
+    """Один незнакомый тип не отменяет черновик: он пропускается, и пропуск виден.
 
     Проверяется вместе со знакомым типом — иначе исход был бы NO_DRAFT и мы бы
     не увидели ни черновика, ни пометки.
@@ -245,7 +245,7 @@ def test_type_markers_cover_every_request_type_except_other():
     }
 
 
-# --- одно знание — одно место (Е1) -----------------------------------------------
+# --- одно знание — одно место -----------------------------------------------
 
 
 GEN_MOCK = ROOT / "web" / "scripts" / "gen_mock.py"

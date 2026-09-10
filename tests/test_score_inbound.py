@@ -1,6 +1,6 @@
 """Тесты оси C — скоринг входящих обращений (`score_inbound`).
 
-Ожидаемое — литералы (Т2): пороги записаны числами и строками (30 дней, 2 типа услуг,
+Ожидаемое — литералы: пороги записаны числами и строками (30 дней, 2 типа услуг,
 5 человек, 0.5 уверенности, язык "ru", 2 содержательных признака для HIGH), ступени —
 членами `Tier`. Из `rubric` не импортируется ничего: ни `URGENT_TIMELINE_DAYS`,
 ни `SIGNALS_FOR_HIGH`, ни `TIER_LADDER`, ни базовая ступень.
@@ -9,7 +9,7 @@
 срочность, пакет услуг, размер команды, названный бюджет. Язык в счёт не идёт вовсе.
 Поэтому почти в каждом тесте есть «спутник» — второй признак, без которого подъём до
 HIGH не наблюдается: `headcount=10` или `timeline_days=10`.
-Края и середина по каждому порогу (Т3), негативные контроли на спам и пустой текст (И5).
+Края и середина по каждому порогу, негативные контроли на спам и пустой текст.
 """
 from __future__ import annotations
 
@@ -96,7 +96,7 @@ def test_urgent_timeline_alone_is_only_one_signal():
     """Один содержательный признак от базы MEDIUM оставляет MEDIUM (SIGNALS_FOR_HIGH = 2)."""
     result = score_inbound(make_message(), make_facts(timeline_days=1))
     assert result.tier is Tier.MEDIUM
-    # 60 — порог срочности литералом (Т2): причина обязана назвать и срок, и границу
+    # 60 — порог срочности литералом: причина обязана назвать и срок, и границу
     assert reason_params(result, ReasonCode.URGENT_TIMELINE) == {"days": 1, "limit": 60}
 
 
@@ -192,7 +192,7 @@ def test_headcount_below_threshold_leaves_no_reason():
     ],
 )
 def test_budget_without_a_digit_does_not_raise_the_tier(budget_hint):
-    """Вопрос о цене — не бюджет: из «скок стоит» горячий лид не следует (И2, живой дефект).
+    """Вопрос о цене — не бюджет: из «скок стоит» горячий лид не следует (живой дефект).
 
     Спутник (команда 10 человек) есть, поэтому засчитайся бюджет — вышло бы HIGH.
     """
@@ -221,7 +221,7 @@ def test_budget_with_a_digit_raises_the_tier(budget_hint):
 def test_budget_reason_is_trimmed_to_40_characters():
     long_hint = "1" + "я" * 80
     result = score_inbound(make_message(), make_facts(budget_hint=long_hint, headcount=10))
-    # обрезка — свойство параметра, а не текста: 40 символов литералом (Т2)
+    # обрезка — свойство параметра, а не текста: 40 символов литералом
     assert reason_params(result, ReasonCode.BUDGET_NAMED) == {"budget": long_hint[:40]}
     assert len(long_hint[:40]) == 40
 
@@ -386,7 +386,7 @@ def test_low_confidence_does_not_lower_below_the_base():
 
 def test_low_confidence_reason_prints_the_number():
     result = score_inbound(make_message(), make_facts(confidence=0.42))
-    # 0.5 — порог доверия литералом (Т2)
+    # 0.5 — порог доверия литералом
     assert reason_params(result, ReasonCode.LOW_CONFIDENCE) == {
         "confidence": 0.42,
         "threshold": 0.5,
@@ -497,7 +497,7 @@ def test_spam_without_request_types_is_still_low():
 
 @pytest.mark.parametrize("text", ["", "   ", "\n\t "])
 def test_empty_text_cannot_produce_high(text):
-    """Негативный контроль: высокая уверенность и цитаты не спасают пустой текст (Р1)."""
+    """Негативный контроль: высокая уверенность и цитаты не спасают пустой текст."""
     facts = make_facts(
         request_types=(RequestType.OFFICE, RequestType.VISA),
         timeline_days=3,
