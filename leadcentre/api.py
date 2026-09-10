@@ -239,6 +239,7 @@ def _facts_payload(facts) -> dict[str, Any]:
         "jurisdiction_hint": facts.jurisdiction_hint,
         "headcount": facts.headcount,
         "timeline_days": facts.timeline_days,
+        "urgency_stated": facts.urgency_stated,
         "budget_hint": facts.budget_hint,
         "language": facts.language,
         "is_spam": facts.is_spam,

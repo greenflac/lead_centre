@@ -14,11 +14,6 @@ from datetime import date
 from leadcentre.engine import extract as extract_mod
 from leadcentre.models import InboundMessage, LeadFacts, RequestType
 
-# Срок по умолчанию, когда срочность заявлена словами («срочно», «asap»), но без числа:
-# две недели — обычный горизонт таких обращений. Порог сторожится измерительным стендом:
-# его сдвиг роняет согласие с разметкой и негативные контроли.
-URGENT_DEFAULT_DAYS = 14
-
 # --- факты без модели: режим rules ---
 
 SPAM_MARKERS = (
@@ -71,11 +66,6 @@ BUDGET_MARKERS = (
 RULES_CONFIDENCE_MATCHED = 1.0
 RULES_CONFIDENCE_EMPTY = 0.0   # ничего не нашли — честный ноль, а не догадка
 
-URGENT_MARKERS = (
-    "срочно", "urgent", "asap", "в этом месяце", "this month", "до конца месяца",
-    "до пятницы", "сегодня", "today", "как можно быстрее", "лишь бы быстро",
-    "на этой неделе",
-)
 
 MONTHS = {
     "январ": 1, "феврал": 2, "марта": 3, "апрел": 4, "мая": 5, "июн": 6, "июл": 7,
@@ -134,8 +124,10 @@ def _timeline_days(text: str, received_at: date) -> int | None:
             best = delta
     if best is not None:
         return best
-    if any(marker in low for marker in URGENT_MARKERS):
-        return URGENT_DEFAULT_DAYS
+    # Слово «срочно» — не дата. Раньше здесь подставлялись две недели, и карточка
+    # показывала «timeline 14 days» на тексте, где никакого числа не было: выдуманное
+    # число, поданное как извлечённый факт. Сама срочность не теряется — она уходит
+    # отдельным фактом `urgency_stated`, у которого есть цитата и нет придуманной даты.
     return None
 
 
@@ -286,6 +278,7 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
         jurisdiction_hint=None,
         headcount=headcount,
         timeline_days=_timeline_days(message.text, message.received_at),
+        urgency_stated=extract_mod.urgency_stated(message.text),
         budget_hint=budget,
         language=extract_mod.detect_language(message.text),
         is_spam=is_spam,

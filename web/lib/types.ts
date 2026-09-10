@@ -16,6 +16,8 @@ export interface LeadFacts {
   jurisdiction_hint: string | null;
   headcount: number | null;
   timeline_days: number | null;
+  /** Срочность заявлена словами, даты в тексте нет — признак есть, придуманной даты нет. */
+  urgency_stated: boolean;
   budget_hint: string | null;
   language: string;
   is_spam: boolean;

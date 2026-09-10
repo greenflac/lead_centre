@@ -116,6 +116,7 @@ class ReasonCode(str, Enum):
     SPAM_OR_OFF_TOPIC = "spam_or_off_topic"
     NO_REQUEST_TYPE = "no_request_type"
     URGENT_TIMELINE = "urgent_timeline"
+    URGENT_STATED = "urgent_stated"
     PACKAGE_REQUEST = "package_request"
     TEAM_OVER_FLEXI_QUOTA = "team_over_flexi_quota"
     BUDGET_NAMED = "budget_named"
@@ -349,6 +350,13 @@ CATALOGUE: dict[ReasonCode, ReasonSpec] = {
         texts={
             Language.RU: "из текста не извлечён ни один тип запроса",
             Language.EN: "no request type could be extracted from the text",
+        },
+    ),
+    ReasonCode.URGENT_STATED: ReasonSpec(
+        params=(),
+        texts={
+            Language.RU: "срочность заявлена словами, даты клиент не назвал",
+            Language.EN: "urgency stated in words, no date given",
         },
     ),
     ReasonCode.URGENT_TIMELINE: ReasonSpec(
