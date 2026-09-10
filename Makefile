@@ -1,4 +1,4 @@
-.PHONY: test lint run discover fetch demo test-ci test-ci-selfcheck mutate
+.PHONY: test lint run discover fetch demo test-ci test-ci-selfcheck mutate check-web
 
 test:
 	OFFLINE=1 python -m pytest
@@ -17,6 +17,11 @@ fetch: ## обновить кэш из GLEIF
 
 demo: ## сквозная проверка обещания из README: четыре обращения, 31 проверка
 	PYTHONPATH=. OFFLINE=1 python scripts/e2e_demo.py
+
+check-web: ## приборы дашборда: контраст, свойства системы, сверка порта с движком
+	python3 web/scripts/contrast.py
+	python3 web/scripts/css_audit.py
+	python3 web/scripts/crosscheck.py
 
 test-ci: ## тесты с машинным запретом сети (Т4)
 	PYTHONPATH=ci:. OFFLINE=1 python -m pytest -p no:cacheprovider

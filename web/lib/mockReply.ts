@@ -1,6 +1,6 @@
 // Draft replies for requests typed into the demo form, mock mode only.
 //
-// DEBT(2026-09-09): mirrors leadcentre/engine/reply.py and the ranges of
+// Mirrors leadcentre/engine/reply.py and the ranges of
 // data/pricelist_demo.yaml in TypeScript. Same reason as mockEngine.ts: the browser cannot
 // run the Python drafter with no backend attached. With NEXT_PUBLIC_API_URL set, the live
 // adapter returns the Python draft and this file is never called.

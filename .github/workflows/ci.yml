@@ -13,3 +13,27 @@ jobs:
       - run: make test-ci-selfcheck
       - run: make test-ci
       - run: make lint
+      # Сквозная проверка обещания из первого абзаца README: четыре обращения, 32 проверки.
+      - run: make demo
+
+  web:
+    # Приборы дашборда — такой же гейт, как тесты: контраст, свойства дизайн-системы и
+    # сверка порта на TypeScript с движком на Python. Без этой работы копия правил в порте
+    # расходится с оригиналом молча — так уже было.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: pip install -e ".[dev]"
+      - run: npm ci
+        working-directory: web
+      - run: make check-web
+      - run: npm run build
+        working-directory: web

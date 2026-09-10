@@ -1,17 +1,20 @@
 // Client-side facts + scoring used ONLY by the mock adapter, for requests typed into the
 // demo form.
 //
-// DEBT(2026-09-09): this is a TypeScript port of two Python modules —
+// Осознанная копия, а не забытый долг: это порт двух модулей на Python —
 // `leadcentre/engine/facts_rules.py` (deterministic fact extraction) and
 // `leadcentre/engine/score.py::score_inbound` with the thresholds of
 // `leadcentre/engine/rubric.py`. One piece of knowledge in two languages, which is exactly
 // the disease that made the Python side merge its two copies of the fact heuristic. It
-// exists only because a browser cannot run Python with no backend attached, and it must be
-// re-checked against those three files whenever the rubric moves. Last synced against
+// exists only because a browser cannot run Python with no backend attached. The re-check
+// against those three files is no longer a promise: web/scripts/crosscheck.py runs both
+// paths over 10 requests and every field of the result, and CI fails the build when they
+// disagree. Last synced against
 // commit ae00357 ("одна эвристика фактов на всех; горизонт срочности расширен до 60 дней")
 // plus SIGNALS_FOR_HIGH = 2. Re-synced 2026-09-10 against RequestType.RENEWAL, the
-// sentence-quote rule (facts_rules.hit / _sentence_around) and _drop_setup_inside_renewal;
-// the cross-check of 10 requests through both paths is in web/scripts/crosscheck.py.
+// sentence-quote rule (facts_rules.hit / _sentence_span), _drop_setup_inside_renewal, the
+// headcount third outcome, the dominant-script language rule, the overlapping-quote filter
+// and the whole-budget capture.
 // When NEXT_PUBLIC_API_URL is set, nothing in this file runs: the Python engine decides.
 
 import type { Evidence, LeadFacts, Tier } from "./types";
