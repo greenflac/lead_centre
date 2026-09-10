@@ -1,4 +1,4 @@
-.PHONY: test lint run discover fetch
+.PHONY: test lint run discover fetch demo test-ci test-ci-selfcheck mutate
 
 test:
 	OFFLINE=1 python -m pytest
@@ -14,6 +14,9 @@ discover: ## скоринг с живым GLEIF
 
 fetch: ## обновить кэш из GLEIF
 	python -m leadcentre.cli fetch
+
+demo: ## сквозная проверка обещания из README: четыре обращения, 31 проверка
+	PYTHONPATH=. OFFLINE=1 python scripts/e2e_demo.py
 
 test-ci: ## тесты с машинным запретом сети (Т4)
 	PYTHONPATH=ci:. OFFLINE=1 python -m pytest -p no:cacheprovider

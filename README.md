@@ -1,6 +1,6 @@
 # SORP Lead Centre
 
-[![ci](https://github.com/greenflac/lead_centre/actions/workflows/ci.yml/badge.svg?branch=claude%2Fwhitelist-env-vars-3x2zo6)](https://github.com/greenflac/lead_centre/actions/workflows/ci.yml?query=branch%3Aclaude%2Fwhitelist-env-vars-3x2zo6)
+[![ci](https://github.com/greenflac/lead_centre/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenflac/lead_centre/actions/workflows/ci.yml?query=branch%3Amain)
 
 Every day people write to a Dubai consultancy — the website chat, WhatsApp, Telegram:
 "how much does it cost to set up a company?", "I need an office for eight people from
@@ -20,8 +20,9 @@ services soon — a reason with a date and evidence, not a bought contact list.
 What it is not: not a chatbot instead of a person, not a mailing list, not a replacement
 for the manager. It is preparation for the manager's conversation.
 
-A proactive test project for the SORP Group "AI developer (vibe coding)" vacancy;
-it is not a production system and is not connected to any SORP data. The inbound requests in the demo are synthetic; the registry is real.
+A proactive test project for the SORP Group "AI developer (vibe coding)" vacancy; it is
+not a production system and is not connected to any SORP data. The inbound requests in the
+demo are synthetic; the registry is real.
 
 ![Inbox: the request list with priorities and an open card](web/screenshots/01-inbox.png)
 
@@ -43,6 +44,7 @@ Python 3.11. `pip install -e ".[dev]"`.
 
 ```bash
 make test-ci     # the whole test suite, network blocked by the machine, not by agreement
+make demo        # the first paragraph of this file, checked end to end: 4 requests, 32 checks
 make run         # score registry companies from the cached sample, no network, no API key
 python eval/run_eval.py --labels eval/labels_synthetic.csv   # the measurement bench
 ```
@@ -150,7 +152,7 @@ Every number below came out of this repository. The command that produced it is 
 
 | Measurement | Value | Where from |
 |---|---|---|
-| Tests | 576 passed, 0 failed, 0 skipped | `make test-ci` — network is blocked by the machine, not by convention; the ban itself is checked by `make test-ci-selfcheck` |
+| Tests | 621 passed, 0 failed, 0 skipped | `make test-ci` — network is blocked by the machine, not by convention; the ban itself is checked by `make test-ci-selfcheck` |
 | Agreement with the author's labels, Cohen's kappa | 0.838 (po 0.900, pe 0.382, 30 pairs, 27 matched) | `python eval/run_eval.py --labels eval/labels_synthetic.csv` |
 | Stability, 3 runs of the same input | 1.0000 on 70 requests | same run |
 | Negative controls | 6 of 6 | same run |
