@@ -212,14 +212,27 @@ function pickPriceKeys(facts: LeadFacts): string[] {
   return keys.slice(0, 2);
 }
 
-/** Port of reply.detect_script_language: the script of the text outweighs the flag. */
+/** Порт reply.DOMINANT_SCRIPT_SHARE. Значение живёт в Python, здесь — копия под сверкой. */
+const DOMINANT_SCRIPT_SHARE = 0.8;
+
+/**
+ * Port of reply.detect_script_language: язык называет ПРЕОБЛАДАЮЩАЯ письменность.
+ * Три исхода: язык назван; письменности нет вовсе (латиница); письменности две и ни одна
+ * не преобладает — тогда решает флаг. Одна вежливая фраза на чужом языке в конце длинного
+ * письма языка разговора не меняет.
+ */
 function scriptLanguage(text: string): "ar" | "ru" | null {
+  let ar = 0;
+  let ru = 0;
   for (const ch of text) {
     if ((ch >= "\u0600" && ch <= "\u06ff") || (ch >= "\u0750" && ch <= "\u077f") ||
-        (ch >= "\ufb50" && ch <= "\ufdff") || (ch >= "\ufe70" && ch <= "\ufeff")) return "ar";
+        (ch >= "\ufb50" && ch <= "\ufdff") || (ch >= "\ufe70" && ch <= "\ufeff")) ar += 1;
+    else if (ch >= "\u0400" && ch <= "\u04ff") ru += 1;
   }
-  for (const ch of text) if (ch >= "\u0400" && ch <= "\u04ff") return "ru";
-  return null;
+  const total = ar + ru;
+  if (total === 0) return null;
+  const [language, best] = ar >= ru ? (["ar", ar] as const) : (["ru", ru] as const);
+  return best / total >= DOMINANT_SCRIPT_SHARE ? language : null;
 }
 
 export function draftReply(facts: LeadFacts, tier: string, text = ""): Reply {

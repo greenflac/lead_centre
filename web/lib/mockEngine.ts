@@ -111,8 +111,8 @@ const EXPIRES_RE = /(?:expires?|истека[а-яё]*|заканчива[а-я�
 // HIGH против MEDIUM. Границы слова записаны явным просмотром вперёд.
 const WORD_TAIL = "(?![0-9A-Za-z_\\u0400-\\u04ff])";
 const HEADCOUNT_RE = new RegExp(
-  `(\\d+)\\s*(?:[а-яёa-z]+\\s+)?(?:человек|чел${WORD_TAIL}|людей|people|ppl${WORD_TAIL}|persons|seats|мест${WORD_TAIL}|сотрудник[а-яё]*|staff)`,
-  "i",
+  `(\\d+)\\s*(?:[а-яёa-z]+\\s+){0,2}?(?:человек|чел${WORD_TAIL}|людей|people|ppl${WORD_TAIL}|persons|seats|мест${WORD_TAIL}|сотрудник[а-яё]*|staff|партнёр[а-яё]*|партнер[а-яё]*|виз[а-яё]*|visas?)`,
+  "gi",
 );
 const MONEY_RE = /\d[\d\s.,]*\s*(?:aed|дирхам|тысяч|k\b)/i;
 
@@ -366,11 +366,16 @@ export function extractFacts(text: string, receivedAt: Date = new Date()): Extra
   }
   types = dropSetupInsideRenewal(low, types, fired);
 
+  // Третий исход для факта, как в Python: несколько разных количеств людей в одном
+  // тексте — размер команды из него не следует, и первое совпадение не выдаётся за него.
   let headcount: number | null = null;
-  const head = low.match(HEADCOUNT_RE);
-  if (head && head.index !== undefined) {
+  HEADCOUNT_RE.lastIndex = 0;
+  const heads = [...low.matchAll(HEADCOUNT_RE)];
+  const distinct = new Set(heads.map((m) => parseInt(m[1], 10)));
+  if (distinct.size === 1) {
+    const head = heads[0];
     headcount = parseInt(head[1], 10);
-    quotes.push(text.slice(head.index, head.index + head[0].length));
+    quotes.push(text.slice(head.index!, head.index! + head[0].length));
   }
 
   // budget_hint carries the text itself, not a paraphrase: the rubric looks for a figure

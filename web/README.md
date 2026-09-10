@@ -148,7 +148,7 @@ against those backends by hand.
 | `02-lead-card.png`, `02b-…-closeup.png` | An urgent HIGH request |
 | `02c-lead-card-low.png` | Emoji-only edge case: LOW, confidence 0.00, no evidence, questions instead of prices |
 | `02d-lead-card-arabic.png` | Arabic request and Arabic draft: right-to-left base, Noto Naskh Arabic, ranges still reading left to right, and the "not proofread by a native speaker" notice in English — it is addressed to the manager, not to the customer |
-| `02e-lead-card-three-languages.png` | The `edge-03` case, three languages on one screen: English interface **and** English reasons, a Russian request, an Arabic draft. Each block holds one language, so nothing reads as a mix. The budget reason reads `budget named: 150 тысяч` — the customer's own words, with that same fragment quoted underneath as its evidence |
+| `02e-lead-card-long-request.png` | The `edge-03` case, the longest request in the set: seven numbered questions, five services asked about. The budget reason reads `budget named: 150 тысяч` — the customer's own words, with that same fragment quoted underneath as its evidence, and the quoted sentence highlighted in the request text on the left |
 | `03-new-request-form.png` | The form and the pipeline explainer |
 | `04-new-request-result.png` | Card produced from a request typed into the form |
 | `05-discovered.png` | Registry watchlist |
