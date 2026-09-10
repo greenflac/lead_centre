@@ -57,6 +57,7 @@ SAMPLE_PARAMS: dict[R.ReasonCode, dict[str, object]] = {
     R.ReasonCode.SPAM_OR_OFF_TOPIC: {},
     R.ReasonCode.NO_REQUEST_TYPE: {},
     R.ReasonCode.URGENT_TIMELINE: {"days": 14, "limit": 60},
+    R.ReasonCode.URGENT_STATED: {},
     R.ReasonCode.PACKAGE_REQUEST: {"count": 2},
     R.ReasonCode.TEAM_OVER_FLEXI_QUOTA: {"headcount": 8},
     R.ReasonCode.BUDGET_NAMED: {"budget": "20 000 AED в год"},
@@ -88,7 +89,7 @@ def test_sample_params_cover_every_code():
     """Прибор измеряет весь каталог, а не его половину («проверено N»)."""
     missing = sorted(set(R.ReasonCode) - set(SAMPLE_PARAMS), key=lambda c: c.value)
     assert missing == [], f"нет показательных параметров для {[c.value for c in missing]}"
-    assert len(SAMPLE_PARAMS) == len(ALL_CODES) == 16
+    assert len(SAMPLE_PARAMS) == len(ALL_CODES) == 17
 
 
 def test_catalogue_declares_every_code():
@@ -147,7 +148,7 @@ def test_every_language_has_plural_forms_and_a_rule(language):
 
 def test_validate_catalogue_reports_how_much_it_checked():
     """«Проверено N» вместо голого «нарушений нет»: 16 кодов x 2 языка."""
-    assert R.validate_catalogue() == 32
+    assert R.validate_catalogue() == 34
 
 
 def test_catalogue_has_no_two_codes_with_the_same_russian_text():
@@ -405,7 +406,7 @@ def test_the_product_catalogue_passes():
 
     Без него все проверки выше зеленели бы и на приборе, который всегда говорит «нет».
     """
-    assert R.validate_catalogue(R.CATALOGUE) == 32
+    assert R.validate_catalogue(R.CATALOGUE) == 34
 
 
 # --- негативные контроли: язык отрисовки ------------------------------------------

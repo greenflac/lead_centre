@@ -167,6 +167,12 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
             days=facts.timeline_days,
             limit=rubric.URGENT_TIMELINE_DAYS,
         ))
+    elif facts.urgency_stated:
+        # Слово «срочно» — содержательный признак наравне со сроком, но не дата.
+        # Раньше здесь стоял выдуманный срок в две недели, и карточка показывала его
+        # как извлечённый факт. Признак остался, придуманное число ушло.
+        bumps += 1
+        reasons.append(reason(ReasonCode.URGENT_STATED))
     if len(facts.request_types) >= rubric.PACKAGE_MIN_REQUEST_TYPES:
         bumps += 1
         reasons.append(reason(ReasonCode.PACKAGE_REQUEST, count=len(facts.request_types)))

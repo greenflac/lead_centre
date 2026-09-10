@@ -153,6 +153,7 @@ class LeadFacts:
     jurisdiction_hint: str | None = None      # mainland | freezone | конкретная зона | None
     headcount: int | None = None
     timeline_days: int | None = None          # через сколько дней клиенту нужно решение
+    urgency_stated: bool = False              # срочность заявлена словами, даты в тексте нет
     budget_hint: str | None = None
     language: str = "en"                      # ru | en | ar | mixed
     is_spam: bool = False

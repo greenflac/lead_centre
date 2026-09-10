@@ -602,6 +602,9 @@ def parse_facts(text: str, scrubbed: Scrubbed) -> tuple[LeadFacts, int]:
         jurisdiction_hint=_optional_str(raw.get("jurisdiction_hint"), "jurisdiction_hint"),
         headcount=headcount,
         timeline_days=timeline_days,
+        # По тексту, который видела модель: маскирование контактов слов о срочности
+        # не трогает, а признак обязан считаться одинаково в обоих режимах.
+        urgency_stated=urgency_stated(scrubbed.text),
         budget_hint=_optional_str(raw.get("budget_hint"), "budget_hint"),
         language=language,
         is_spam=bool(raw.get("is_spam")),
@@ -629,6 +632,24 @@ def _optional_str(value: object, field: str) -> str | None:
     if not isinstance(value, str):
         raise ExtractionError(f"{field} не строка: {value!r}")
     return value.strip() or None
+
+
+# --- свойства текста, которые решает код, а не модель ---
+
+# Слова, которыми клиент заявляет срочность, не называя даты. Это свойство текста, а не
+# суждение модели: и режим rules, и режим llm читают его отсюда, иначе признак есть в
+# одном пути и молча отсутствует в другом.
+URGENT_MARKERS = (
+    "срочно", "urgent", "asap", "в этом месяце", "this month", "до конца месяца",
+    "до пятницы", "сегодня", "today", "как можно быстрее", "лишь бы быстро",
+    "на этой неделе",
+)
+
+
+def urgency_stated(text: str) -> bool:
+    """Заявлена ли срочность словами. Дату отсюда не выводим: слово «срочно» — не дата."""
+    low = text.lower()
+    return any(marker in low for marker in URGENT_MARKERS)
 
 
 # --- режим OFFLINE ---
@@ -668,6 +689,7 @@ def _offline_extraction(message: InboundMessage) -> Extraction:
     facts = LeadFacts(
         request_types=(RequestType.OTHER,),
         language=detect_language(message.text),
+        urgency_stated=urgency_stated(message.text),
         has_contact=scrubbed.has_contact,
         confidence=0.0,
     )

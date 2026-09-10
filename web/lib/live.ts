@@ -40,6 +40,7 @@ export function normalizeFacts(value: unknown): LeadFacts {
     jurisdiction_hint: typeof facts.jurisdiction_hint === "string" ? facts.jurisdiction_hint : null,
     headcount: asNumber(facts.headcount),
     timeline_days: asNumber(facts.timeline_days),
+    urgency_stated: asBool(facts.urgency_stated),
     budget_hint: typeof facts.budget_hint === "string" ? facts.budget_hint : null,
     language: asString(facts.language, "en"),
     is_spam: asBool(facts.is_spam),

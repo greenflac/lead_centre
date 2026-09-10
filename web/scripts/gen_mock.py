@@ -177,6 +177,7 @@ def link_reasons(result, quotes, facts, received_on: date) -> list[dict]:
 
     by_code = {
         ReasonCode.URGENT_TIMELINE: lambda f: f.timeline_days == facts.timeline_days,
+        ReasonCode.URGENT_STATED: lambda f: f.urgency_stated,
         ReasonCode.PACKAGE_REQUEST: lambda f: bool(f.request_types),
         ReasonCode.TEAM_OVER_FLEXI_QUOTA: lambda f: f.headcount == facts.headcount,
         # Цитата доказывает бюджет, только если из неё следует ТОТ ЖЕ бюджет. Просто
@@ -256,6 +257,7 @@ def build_leads() -> list[dict]:
                 "jurisdiction_hint": facts.jurisdiction_hint,
                 "headcount": facts.headcount,
                 "timeline_days": facts.timeline_days,
+                "urgency_stated": facts.urgency_stated,
                 "budget_hint": facts.budget_hint,
                 "language": facts.language,
                 "is_spam": facts.is_spam,

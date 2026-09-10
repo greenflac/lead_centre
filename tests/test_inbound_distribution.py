@@ -123,7 +123,7 @@ def test_timeline_signal_still_discriminates(facts):
     непустыми — это негативный контроль самого признака.
     """
     known = [f.timeline_days for f in facts if f.timeline_days is not None]
-    assert len(known) >= 10, f"сроков в наборе всего {len(known)} — мерить нечем"
+    assert len(known) >= 8, f"сроков в наборе всего {len(known)} — мерить нечем"
 
     fires = [d for d in known if d <= 60]
     silent = [d for d in known if d > 60]
@@ -132,9 +132,17 @@ def test_timeline_signal_still_discriminates(facts):
         f"признак срочности срабатывает на всех {len(known)} сроках — "
         "он выродился в «срок вообще упомянут»"
     )
-    # обе группы заметные, а не «один случай для галочки»
-    assert len(fires) >= 3
-    assert len(silent) >= 3
+    # Числами, а не «обе непустые»: ИЗМЕРЕНО 2026-09-10 на наборе из 70 обращений —
+    # 2 названных срока внутри горячего окна, 7 вне его. Пока движок сам придумывал
+    # две недели на каждое «срочно», внутри окна оказывалось 8 — то есть признак
+    # разделял выдуманные сроки, а не названные.
+    #
+    # ИЗМЕРЕННАЯ ГРАНИЦА НАБОРА: названных близких сроков в нём всего два. Для показа
+    # этого хватает (словесная срочность идёт отдельным признаком и покрывает семь
+    # обращений), но на живом потоке эту долю надо перемерить — синтетика писалась
+    # до того, как признаки разделили.
+    assert len(fires) == 2
+    assert len(silent) == 7
 
 
 def test_timeline_signal_is_not_the_only_road_to_high(messages, facts, tiers):
@@ -147,15 +155,37 @@ def test_timeline_signal_is_not_the_only_road_to_high(messages, facts, tiers):
     assert high_without_timeline, "все HIGH держатся на одном признаке — шкала однобокая"
 
 
-def test_urgency_fires_on_8_of_the_15_extracted_deadlines(scores, facts):
+def test_urgency_fires_on_2_of_the_9_extracted_deadlines(scores, facts):
     """Сколько раз признак срочности реально сработал — числом, а не «работает».
 
     Считается по коду причины в карточке, а не по порогу из `rubric` и не по началу
     строки: тест видит поведение, а не константу, и переживает правку формулировки.
-    ИЗМЕРЕНО 2026-09-09 при пороге 60: 15 сроков извлечено, 8 сработали, 7 нет.
+
+    ИЗМЕРЕНО 2026-09-10: 9 сроков извлечено, 2 внутри горячего окна, 7 вне его.
+    Раньше сроков было 15, но шесть из них движок придумывал сам: слово «срочно» без
+    даты превращалось в «две недели». Придуманные ушли, извлечёнными остались только те,
+    где клиент назвал срок.
     """
     with_deadline = [f for f in facts if f.timeline_days is not None]
     fired = [s for s in scores if has_reason(s, ReasonCode.URGENT_TIMELINE)]
-    assert len(with_deadline) == 15
-    assert len(fired) == 8
+    assert len(with_deadline) == 9
+    assert len(fired) == 2
     assert len(with_deadline) - len(fired) == 7
+
+
+def test_urgency_in_words_is_counted_separately_from_a_named_deadline(scores, facts):
+    """Заявленная словами срочность — свой признак со своей причиной, а не срок.
+
+    Негативный контроль правила: обе группы обязаны быть непустыми. Если бы словесная
+    срочность зажигала и `URGENT_TIMELINE`, признак снова означал бы придуманную дату;
+    если бы не зажигала ничего, набор потерял бы семь горячих обращений.
+    """
+    stated = [f for f in facts if f.urgency_stated]
+    by_words = [s for s in scores if has_reason(s, ReasonCode.URGENT_STATED)]
+    by_date = [s for s in scores if has_reason(s, ReasonCode.URGENT_TIMELINE)]
+    assert len(stated) >= len(by_words) > 0, "словесная срочность не сработала ни разу"
+    assert by_date, "срок, названный клиентом, перестал срабатывать"
+    both = [s for s in scores
+            if has_reason(s, ReasonCode.URGENT_STATED)
+            and has_reason(s, ReasonCode.URGENT_TIMELINE)]
+    assert not both, "одно обращение получило и придуманную, и названную срочность"

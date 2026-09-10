@@ -51,7 +51,6 @@ export function routeForText(text: string): { model: string; reason: string } {
 }
 
 // --- markers mirrored from leadcentre/engine/facts_rules.py ---
-const URGENT_DEFAULT_DAYS = 14;
 const RULES_CONFIDENCE_MATCHED = 1.0;
 const RULES_CONFIDENCE_EMPTY = 0.0;
 const MIXED_SHARE = 0.2;
@@ -202,6 +201,10 @@ const REASON_CATALOGUE: Record<string, ReasonSpec> = {
     ru: "срок {days:plural:day} — внутри горячего окна в {limit:plural:day}",
     en: "needed in {days:plural:day} — inside the hot window of {limit:plural:day}",
   },
+  urgent_stated: {
+    ru: "срочность заявлена словами, даты клиент не назвал",
+    en: "urgency stated in words, no date given",
+  },
   package_request: {
     ru: "запрошено услуг: {count} — нужен пакет",
     en: "{count:plural:service} asked about — this is a package, not a single line item",
@@ -315,7 +318,8 @@ function timelineDays(text: string, receivedAt: Date): number | null {
     if (delta >= 0 && (best === null || delta < best)) best = delta;
   }
   if (best !== null) return best;
-  if (URGENT_MARKERS.some((marker) => low.includes(marker))) return URGENT_DEFAULT_DAYS;
+  // Слово «срочно» — не дата: раньше здесь подставлялись две недели, и карточка
+  // показывала выдуманное число как извлечённый факт. Признак ушёл в urgency_stated.
   return null;
 }
 
@@ -426,6 +430,7 @@ export function extractFacts(text: string, receivedAt: Date = new Date()): Extra
     jurisdiction_hint: null,
     headcount,
     timeline_days: timelineDays(text, receivedAt),
+    urgency_stated: URGENT_MARKERS.some((marker) => low.includes(marker)),
     budget_hint: budget,
     language: detectLanguage(text),
     is_spam: isSpam,
@@ -463,6 +468,7 @@ export function linkReasons(
     perQuote.map((f, index) => (test(f) ? index : -1)).filter((index) => index >= 0);
   const byCode: Record<string, (f: LeadFacts) => boolean> = {
     urgent_timeline: (f) => f.timeline_days === facts.timeline_days,
+    urgent_stated: (f) => f.urgency_stated,
     package_request: (f) => f.request_types.length > 0,
     team_over_flexi_quota: (f) => f.headcount === facts.headcount,
     // A quote proves the budget only when the SAME budget follows from it: "any money
@@ -503,6 +509,9 @@ export function scoreInbound(text: string, facts: LeadFacts, quotes: string[]): 
       code: "urgent_timeline",
       params: { days: facts.timeline_days, limit: URGENT_TIMELINE_DAYS },
     });
+  } else if (facts.urgency_stated) {
+    substantive += 1;
+    reasons.push({ code: "urgent_stated", params: {} });
   }
   if (facts.request_types.length >= PACKAGE_MIN_REQUEST_TYPES) {
     substantive += 1;
