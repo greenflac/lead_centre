@@ -151,7 +151,7 @@ Every number below came out of this repository. The command that produced it is 
 
 | Measurement | Value | Where from |
 |---|---|---|
-| Tests | 575 in the suite; at the last run 571 passed and 4 failed | `make test-ci` at commit `d2980f1`, whose own message says the tree was left red mid-rewrite of the reason codes. The honest number, not the last green one. |
+| Tests | 576 passed, 0 failed, 0 skipped | `make test-ci` — network is blocked by the machine, not by convention; the ban itself is checked by `make test-ci-selfcheck` |
 | Agreement with the author's labels, Cohen's kappa | 0.838 (po 0.900, pe 0.382, 30 pairs, 27 matched) | `python eval/run_eval.py --labels eval/labels_synthetic.csv` |
 | Stability, 3 runs of the same input | 1.0000 on 70 requests | same run |
 | Negative controls | 6 of 6 | same run |
