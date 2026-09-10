@@ -160,7 +160,9 @@ class SupabaseStore:
             return StoreHealth(self.name, StoreHealth.UNAVAILABLE, str(exc))
         except StoreRejected as exc:
             return StoreHealth(self.name, StoreHealth.REJECTED, str(exc))
-        return StoreHealth(self.name, StoreHealth.OK, f"{self.url}/rest/v1")
+        # Адрес проекта наружу не отдаётся: /health доступен без аутентификации, а ссылка
+        # на конкретный проект — это приглашение постучаться. Живость видна и без неё.
+        return StoreHealth(self.name, StoreHealth.OK, "PostgREST отвечает, таблицы на месте")
 
     def save_lead(self, row: LeadRow) -> str:
         result = self._request(

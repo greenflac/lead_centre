@@ -275,6 +275,16 @@ def test_stats_says_unavailable_instead_of_zeros(client, monkeypatch):
     assert "leads" not in body
 
 
+def test_health_does_not_hand_out_the_project_address():
+    """`/health` открыт без аутентификации: адрес проекта наружу отдавать нечего."""
+    store = SupabaseStore(url="https://abcdefghijklm.supabase.co", secret_key="k")
+    store._request = lambda *a, **kw: []  # type: ignore[method-assign]
+    detail = store.health().detail
+    assert "abcdefghijklm" not in detail
+    assert "supabase.co" not in detail
+    assert detail  # и при этом исход не пустой: живость всё равно видна
+
+
 def test_discover_offline_reads_cache_and_stores(client, memory_store):
     body = client.post("/discover/run", json={"mode": "lapsed", "limit": 3}).json()
     assert body["offline"] is True
