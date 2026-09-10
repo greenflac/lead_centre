@@ -1,6 +1,6 @@
 """Офлайн-реализация хранилища: JSON-файл в `data/` или память.
 
-Зачем: `OFFLINE=1` обязан работать без сети — тесты и CI не ходят наружу (Т4), а демо
+Зачем: `OFFLINE=1` обязан работать без сети — тесты и CI не ходят наружу, а демо
 не должно останавливаться из-за чужой аварии. Интерфейс тот же `Store`, поэтому переход
 на Supabase — смена реализации, а не переписывание API.
 
@@ -61,7 +61,7 @@ class LocalStore:
         try:
             raw = json.loads(self.path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
-            # «Не смогли прочитать» — не то же самое, что «пусто» (Р1): пустой словарь
+            # «Не смогли прочитать» — не то же самое, что «пусто»: пустой словарь
             # здесь молча стёр бы накопленные обращения.
             raise StoreUnavailable(f"локальное хранилище не прочитано: {self.path}: {exc}") from exc
         if not isinstance(raw, dict):
@@ -116,7 +116,7 @@ class LocalStore:
             self._flush()
 
     def save_reply(self, row: ReplyRow) -> None:
-        payload = row.payload()  # проверка статуса живёт в ReplyRow (Е1)
+        payload = row.payload()  # проверка статуса живёт в ReplyRow
         with self._lock:
             if not self._find("leads", row.lead_id):
                 raise StoreRejected(f"черновик на неизвестное обращение {row.lead_id!r}")
@@ -226,10 +226,10 @@ def _counters(
     companies: list[dict[str, Any]],
     disagreements: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    """Числа для отчёта. Общая для обеих реализаций (Е1): считается одинаково.
+    """Числа для отчёта. Общая для обеих реализаций: считается одинаково.
 
     `lint`: проверено / нарушений / не смогли — три числа рядом, без агрегатного
-    булева (Р2). `lint_ok is None` — это «не смогли», а не «нарушение».
+    булева. `lint_ok is None` — это «не смогли», а не «нарушение».
     """
     by_tier = Counter(s.get("tier", "?") for s in scores)
     lint_checked = sum(1 for r in replies if r.get("lint_ok") is not None)

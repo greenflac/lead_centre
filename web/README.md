@@ -28,8 +28,8 @@ NEXT_PUBLIC_API_URL=            # empty or unset → mock mode, reads web/mock/*
 NEXT_PUBLIC_API_URL=https://…   # live mode, all six calls go to the backend
 ```
 
-The active mode is shown in the header (`MOCK DATA` / `LIVE DATA`), so nobody mistakes demo
-numbers for production ones. `lib/api.ts` is the only module that knows which mode is on;
+The active mode is shown in the header (`DEMO DATA` / `LIVE BACKEND`), so nobody mistakes
+demo numbers for production ones. `lib/api.ts` is the only module that knows which mode is on;
 components call six functions and nothing else:
 
 | Function | Live endpoint |
@@ -65,9 +65,17 @@ Requests typed into **New request** in mock mode are scored in the browser by
 `lib/mockEngine.ts` and `lib/mockReply.ts` — TypeScript ports of the Python scoring rules and
 reply builder, needed because a browser cannot run Python with no backend attached. They are
 checked against Python rather than trusted: `PYTHONPATH=. python3 web/scripts/crosscheck.py`
-runs ten seed requests through both paths and compares field by field in both languages, with
-planted mismatches as a negative control. Last run: 10 requests, 144 fields, 144 matched,
-0 mismatches, 4 of 4 planted mismatches caught. In live mode neither file is executed.
+runs ten seed requests through both paths and compares field by field in both languages —
+facts, tier, reasons, draft, and which quote is offered as proof of which reason — with
+planted mismatches as a negative control. Last run (2026-09-10): 10 requests, 144 fields,
+144 matched, 0 mismatches, 4 of 4 planted mismatches caught. In live mode neither file is
+executed.
+
+`budget_hint` is the customer's own words, not the list of markers that fired: a figure in
+the text displaces the markers, and only when there is no figure does the first matching
+marker stand in. That rule lives in `facts_rules.rules_facts`, and the TypeScript copy is
+held to it by the cross-check above — reverting the copy to the old marker join reddens it on
+5 fields.
 
 ### In live mode
 
@@ -79,6 +87,14 @@ browser only ever calls its own origin.
 `lib/live.ts` translates the backend envelopes (`{outcome, leads: [...]}` with
 `{lead, score, reply}` cards) into the flat `Lead` the components render. An
 `outcome: "unavailable"` answer becomes a visible error, never an empty list.
+
+**Reasons arrive in the interface language, and where they cannot, the card says so.** The
+API sends `reasons_by_language`, which holds only the languages it could actually assemble
+from the stored reason codes. `lib/live.ts::uiReasons` keeps three outcomes apart: an `en`
+list is rendered as is; no reasons at all is not a failure; and a lead scored before the
+engine kept reason codes (`reasons_outcome: "no_codes"`) has no English text in existence, so
+the card shows the stored Russian **with a line saying it is shown as stored and has to be
+rescored**. Russian is never relabelled as English.
 
 To run both halves locally:
 
@@ -96,7 +112,21 @@ cd web && npm run build && npm start                      # terminal 2
   cached sample; the priority and the reason are ours, the fields are the registry's.
 * Prices in draft replies are ranges from the demo price list, marked as such. They are not
   SORP's prices.
-* Arabic drafts have not been read by a native speaker, and the card says so.
+* Arabic drafts have not been read by a native speaker, and the card says so — in English,
+  because that notice is for the manager, not for the customer.
+
+**Known, not fixed:** in the narrow Arabic column a price range can still break across lines,
+now between the two figures (`AED 15 000–` / `35 000`, visible in `02d`; in the wider column of
+`02e` the same range holds together). The order stays correct — the isolate holds it — but the
+break is ugly. The fix belongs to `leadcentre/engine/reply.py::price_fragment`: a non-breaking
+hyphen inside the range, the same move that already fixed the break between `AED` and its
+digits.
+
+**The Arabic draft is not reproducible.** The model writes it on every `gen_mock.py` run: in
+3 observed runs on 2026-09-10 the `edge-03` draft passed the reply linter twice and was
+rejected once (7 lines against a maximum of 6). A rejected draft is the honest "no draft,
+needs a human" outcome, but its notice is still Russian — only `NATIVE_REVIEW_NOTICE` was
+translated. Regenerate, then look at the card before shooting it.
 
 ## States you can actually see
 
@@ -107,15 +137,18 @@ cd web && npm run build && npm start                      # terminal 2
 
 ## Screenshots
 
-All taken from the running production build, Chromium at 1440 px, by
-`python3 web/scripts/shots.py [base_url]`.
+All taken from the running production build, Chromium at 1440 px. Ten come from
+`python3 web/scripts/shots.py [base_url]` in mock mode; `06` needs a stub backend answering
+402 and `08`/`09` a build pointed at a running `leadcentre/api.py`, so those three are shot
+against those backends by hand.
 
 | File | What it shows |
 |---|---|
 | `01-inbox.png` | Inbox list and the open card |
 | `02-lead-card.png`, `02b-…-closeup.png` | An urgent HIGH request |
 | `02c-lead-card-low.png` | Emoji-only edge case: LOW, confidence 0.00, no evidence, questions instead of prices |
-| `02d-lead-card-arabic.png`, `02e-…-three-languages.png` | Arabic request and draft: right-to-left base, Noto Naskh Arabic, ranges still reading left to right |
+| `02d-lead-card-arabic.png` | Arabic request and Arabic draft: right-to-left base, Noto Naskh Arabic, ranges still reading left to right, and the "not proofread by a native speaker" notice in English — it is addressed to the manager, not to the customer |
+| `02e-lead-card-three-languages.png` | The `edge-03` case, three languages on one screen: English interface **and** English reasons, a Russian request, an Arabic draft. Each block holds one language, so nothing reads as a mix. The budget reason reads `budget named: 150 тысяч` — the customer's own words, with that same fragment quoted underneath as its evidence |
 | `03-new-request-form.png` | The form and the pipeline explainer |
 | `04-new-request-result.png` | Card produced from a request typed into the form |
 | `05-discovered.png` | Registry watchlist |

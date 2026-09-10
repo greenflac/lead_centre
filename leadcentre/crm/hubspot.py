@@ -8,9 +8,9 @@
 Порядок важен: сначала объекты, потом связи; связь на несозданный объект — 404, и
 это «не смогли», а не «отказ».
 
-Три исхода (Р1): SENT (создан хотя бы deal или company, id возвращены), REJECTED
+Три исхода: SENT (создан хотя бы deal или company, id возвращены), REJECTED
 (HubSpot отверг данные: 400/409), UNAVAILABLE (401/403/429/5xx/сеть). Частичный успех
-печатается числами и списком созданных id (Е3), а не булевым флагом: если company
+печатается числами и списком созданных id, а не булевым флагом: если company
 создалась, а deal нет, «false» скрыл бы уже созданную запись, и следующий прогон
 сделал бы дубль.
 
@@ -35,11 +35,11 @@ from leadcentre.crm.base import (
 )
 
 API = "https://api.hubapi.com"
-TIMEOUT_S = 20.0            # ВЫБРАНО: вызывается из обработчика HTTP, как и Supabase
+TIMEOUT_S = 20.0            # вызывается из обработчика HTTP, как и Supabase
 USER_AGENT = "leadcentre/0.1 (+SORP Lead Centre)"
 
-# Воронка и стадия. ВЫБРАНО: `default`/`appointmentscheduled` — стандартные для нового
-# портала HubSpot; на портале с настроенной воронкой задаются HUBSPOT_PIPELINE/STAGE.
+# Воронка и стадия: `default`/`appointmentscheduled` — то, что заведено в новом портале
+# HubSpot по умолчанию. На портале с настроенной воронкой задаются HUBSPOT_PIPELINE/STAGE.
 DEFAULT_PIPELINE = "default"
 DEFAULT_DEALSTAGE = "appointmentscheduled"
 
@@ -110,7 +110,7 @@ class HubspotSink:
             return UNAVAILABLE
         return REJECTED
 
-    # --- тела запросов (отдельно от отправки: тест видит ровно то, что уйдёт, И5) ---
+    # --- тела запросов, отдельно от отправки: тест видит ровно то, что уйдёт ---
 
     def company_properties(self, lead: CrmLead) -> dict[str, str]:
         return {

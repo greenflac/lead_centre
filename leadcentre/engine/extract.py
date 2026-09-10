@@ -425,7 +425,7 @@ class OpenAICompatibleProvider:
     """Шлюз формата OpenAI chat completions (у нас — Pollinations).
 
     Structured outputs здесь нет, поэтому схему держим сами: кладём её в системный промпт
-    и валидируем ответ тем же `parse_facts`, что и у Anthropic (Е1). `response_format`
+    и валидируем ответ тем же `parse_facts`, что и у Anthropic. `response_format`
     просим, но на него не рассчитываем — невалидный ответ будет `ExtractionError`.
     """
 

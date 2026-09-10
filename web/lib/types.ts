@@ -37,6 +37,12 @@ export interface Reply {
 /** A reason together with the quotes it is derived from. Empty list = not quotable. */
 export interface ReasonLink {
   text: string;
+  /**
+   * The reason's code from `leadcentre/engine/reasons.py`. It is the contract; the text is
+   * bilingual and gets rewritten, so anything that has to recognise a particular reason
+   * matches on this and never on the words.
+   */
+  code?: string;
   quotes: number[];
 }
 
