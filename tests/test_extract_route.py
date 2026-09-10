@@ -1,6 +1,6 @@
 """Тесты маршрутизации моделей по длине обращения и разбора ответа провайдера.
 
-Ожидаемое — литералы (Т2): порог записан числами 600/601, имена моделей — строками.
+Ожидаемое — литералы: порог записан числами 600/601, имена моделей — строками.
 Из `extract` не импортируется ни `LONG_MESSAGE_CHARS`, ни `ANTHROPIC_MODEL`, ни `LONG_MODEL`:
 иначе тест поедет вместе с константой и промолчит.
 Сеть не нужна нигде: `route()` решает по длине, разбор ответа идёт по подставленному объекту.
@@ -129,7 +129,7 @@ def test_route_needs_no_api_key(monkeypatch):
 
 
 def test_provider_sends_the_routed_model_in_the_request_body():
-    """Маршрут доезжает до тела запроса (П1: канал воздействия виден в теле, без сети)."""
+    """Маршрут доезжает до тела запроса (канал воздействия виден в теле, без сети)."""
     provider = AnthropicProvider(Route("claude-opus-5", "low", "off", "тест"))
     body = provider.build_body("system", "content")
     assert body["model"] == "claude-opus-5"
@@ -228,7 +228,7 @@ def _online(monkeypatch):
 
 
 def test_served_model_comes_from_the_response_not_from_the_intent(_online):
-    """Е2: если API обслужил другой моделью, в отчёте стоит та, что ответила."""
+    """Если API обслужил другой моделью, в отчёте стоит та, что ответила, а не та, что просили."""
     provider = _FakeProvider(_FakeResponse("claude-opus-4-8"))
     extraction = extract_detailed(make_message("нужен офис"), provider=provider)
     assert provider.model() == "claude-haiku-4-5-20251001"  # намерение
@@ -254,7 +254,7 @@ def test_cache_counters_come_from_usage(_online):
 
 
 def test_cache_counters_are_zero_when_the_cache_did_not_fire(_online):
-    """Негативный контроль (И5): при нулях в usage счётчики нулевые, а не «наверное сработал»."""
+    """Негативный контроль: при нулях в usage счётчики нулевые, а не «наверное сработал»."""
     provider = _FakeProvider(_FakeResponse("claude-haiku-4-5-20251001"))
     extraction = extract_detailed(make_message("нужен офис"), provider=provider)
     assert (extraction.cache_read_tokens, extraction.cache_write_tokens) == (0, 0)

@@ -1,4 +1,4 @@
-"""Тесты отчёта и точки входа. Логика вызывается функцией, не подпроцессом (Т5)."""
+"""Тесты отчёта и точки входа. Логика вызывается функцией, не подпроцессом."""
 from __future__ import annotations
 
 import urllib.request
@@ -53,7 +53,7 @@ def test_lines_print_numbers_not_a_flag():
 
 
 def test_empty_run_is_not_a_success():
-    """Ноль нарушений при нуле проверок — не успех: числа должны это показывать (Р2)."""
+    """Ноль нарушений при нуле проверок — не успех: числа должны это показывать."""
     lines = report.build(_result(skipped=0), []).lines()
     assert "проверено 0" in lines[1]
     assert "нарушений инвариантов 0" in lines[2]
@@ -79,7 +79,7 @@ def test_format_row_contains_tier_city_name_and_evidence():
     assert row.startswith("HIGH   ")
     assert "Dubai" in row
     assert "Test Trading LLC" in row
-    assert card.reasons, "карточка осталась без причин — сверять нечего (Р2)"
+    assert card.reasons, "карточка осталась без причин — сверять нечего"
     for text in card.reasons:
         assert text in row, f"причина потерялась в строке отчёта: {text!r}"
     assert "10" in row, "число из параметра причины до строки отчёта не доехало"

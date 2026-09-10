@@ -1,8 +1,8 @@
 """Тесты HTTP-слоя, хранилища и CRM-приёмника.
 
-Три исхода (Р1) здесь и проверяются: годно / отказ / не смогли. Ожидаемые значения —
-литералы, а не импорт из проверяемого модуля (Т2): переименуют статус в коде — тест
-покраснеет, а не поедет следом. Сеть не трогается ни одним тестом (Т4): хранилище
+Три исхода здесь и проверяются: годно / отказ / не смогли. Ожидаемые значения —
+литералы, а не импорт из проверяемого модуля: переименуют статус в коде — тест
+покраснеет, а не поедет следом. Сеть не трогается ни одним тестом: хранилище
 локальное, извлечение в OFFLINE.
 """
 from __future__ import annotations
@@ -113,7 +113,7 @@ def test_get_store_offline_is_local(monkeypatch):
     assert get_store().name == "local"
 
 
-# --- Supabase: классификация кодов (негативный контроль, И5) ---
+# --- Supabase: классификация кодов ошибок (с негативным контролем) ---
 
 
 def _http_error(code: int, payload: dict) -> urllib.error.HTTPError:
@@ -150,7 +150,7 @@ def test_supabase_requires_keys(monkeypatch):
 
 
 def test_null_sink_reports_skipped_not_sent():
-    """NullSink ничего не отправлял; выдать это за успех — ровно тот дефект, что и Е2."""
+    """NullSink ничего не отправлял; выдать это за успех — то же враньё, что и «отправлено»."""
     result = NullSink().send(CrmLead("id", "ACME", "HIGH", "form", "ru", "текст"))
     assert result.outcome == "skipped"
     assert result.ok is False
@@ -216,7 +216,7 @@ def test_provider_budget_error_is_402_not_500(client, monkeypatch):
 
 
 def test_store_unavailable_still_returns_card(client, monkeypatch):
-    """Карточку посчитали — отдаём, но «не сохранено» говорим прямо (Р1)."""
+    """Карточку посчитали — отдаём, но «не сохранено» говорим прямо."""
     def boom(_row):
         raise StoreUnavailable("схема не применена")
 
@@ -263,7 +263,7 @@ def test_stats_prints_three_numbers(client):
 
 
 def test_stats_says_unavailable_instead_of_zeros(client, monkeypatch):
-    """Ноль лидов при недоступном хранилище — не отчёт, а обман (Р2)."""
+    """Ноль лидов при недоступном хранилище — не отчёт, а обман."""
     from leadcentre.store.base import StoreHealth
 
     monkeypatch.setattr(
