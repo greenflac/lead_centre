@@ -2,12 +2,16 @@
 
 Три исхода вместо двух (Р1): годный tier, LOW и INVALID — «не смогли оценить». INVALID
 не сворачивается в LOW: это разные вещи для отчёта и для менеджера.
+
+Текста причин здесь нет и быть не должно: модуль называет код причины и её параметры,
+формулировки на русском и английском живут в `engine/reasons.py` (Е1).
 """
 from __future__ import annotations
 
 from datetime import date
 
 from leadcentre.engine import rubric
+from leadcentre.engine.reasons import Reason, ReasonCode, reason
 from leadcentre.models import (
     AddressType,
     Company,
@@ -34,26 +38,26 @@ def classify_address(company: Company) -> AddressType:
     return AddressType.UNKNOWN
 
 
-def classify_event(company: Company, today: date) -> tuple[Event, tuple[str, ...]]:
-    """Ось B: самый сильный из поводов плюс человекочитаемые причины."""
-    reasons: list[str] = []
+def classify_event(company: Company, today: date) -> tuple[Event, tuple[Reason, ...]]:
+    """Ось B: самый сильный из поводов плюс причины кодами и параметрами."""
+    reasons: list[Reason] = []
     if company.registration_status == "LAPSED" and company.next_renewal_on:
         overdue = (today - company.next_renewal_on).days
         if 0 <= overdue <= rubric.LAPSED_FRESH_DAYS:
-            reasons.append(f"регистрация LEI просрочена {overdue} дн.")
+            reasons.append(reason(ReasonCode.LEI_LAPSED_FRESH, days=overdue))
             return Event.LAPSED, tuple(reasons)
         if overdue > rubric.LAPSED_FRESH_DAYS:
-            reasons.append(f"регистрация LEI просрочена давно ({overdue} дн.)")
+            reasons.append(reason(ReasonCode.LEI_LAPSED_LONG_AGO, days=overdue))
             return Event.NONE, tuple(reasons)
     if company.created_on:
         age = (today - company.created_on).days
         if 0 <= age <= rubric.NEW_ENTITY_DAYS:
-            reasons.append(f"юрлицо создано {age} дн. назад")
+            reasons.append(reason(ReasonCode.ENTITY_RECENTLY_CREATED, days=age))
             return Event.NEW_ENTITY, tuple(reasons)
     if company.next_renewal_on and company.registration_status == "ISSUED":
         left = (company.next_renewal_on - today).days
         if 0 <= left <= rubric.RENEWAL_SOON_DAYS:
-            reasons.append(f"продление LEI через {left} дн.")
+            reasons.append(reason(ReasonCode.LEI_RENEWAL_SOON, days=left))
             return Event.RENEWAL_SOON, tuple(reasons)
     return Event.NONE, tuple(reasons)
 
@@ -71,20 +75,27 @@ def collect_evidence(company: Company) -> tuple[Evidence, ...]:
 
 def score(company: Company, today: date) -> Score:
     address_type = classify_address(company)
-    event, reasons = classify_event(company, today)
+    event, event_reasons = classify_event(company, today)
     tier = rubric.MATRIX[(address_type, event)]
-    reasons = list(reasons)
+    reasons: list[Reason] = list(event_reasons)
     violations: list[str] = []
 
     # Модификаторы
     if tier is Tier.HIGH and company.city.strip().lower() not in rubric.TARGET_CITIES:
         tier = Tier.MEDIUM
-        reasons.append(f"город вне целевых ({company.city or 'не указан'}) — ступень понижена")
+        city = company.city.strip()
+        reasons.append(
+            reason(ReasonCode.CITY_OFF_TARGET, city=city) if city
+            else reason(ReasonCode.CITY_NOT_SET)
+        )
 
     # Инварианты. Нарушение — не LOW, а INVALID (Р1).
+    # DEBT(2026-09-10): `violations` — по-прежнему русские строки, кодов у них нет.
+    # Карточку INVALID интерфейс не показывает, поэтому на английский экран этот текст
+    # не попадает; двуязычными их стоит сделать той же машинкой отдельной задачей.
     if not company.entity_active:
         tier = Tier.LOW
-        reasons.append("юрлицо неактивно")
+        reasons.append(reason(ReasonCode.ENTITY_INACTIVE))
     evidence = collect_evidence(company)
     if tier is Tier.HIGH and not evidence:
         violations.append("HIGH без доказательства")
@@ -97,7 +108,7 @@ def score(company: Company, today: date) -> Score:
         tier=tier,
         address_type=address_type,
         event=event,
-        reasons=tuple(reasons),
+        reason_items=tuple(reasons),
         evidence=evidence,
         violations=tuple(violations),
     )
@@ -121,7 +132,7 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
     единого извлечённого запроса — это LOW, а не «не смогли»: текст мы прочитали.
     Нарушение инварианта — INVALID, отдельный третий исход (Р1).
     """
-    reasons: list[str] = []
+    reasons: list[Reason] = []
     violations: list[str] = []
 
     if facts.is_spam:
@@ -129,38 +140,44 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
             tier=Tier.LOW,
             address_type=AddressType.UNKNOWN,
             event=Event.NONE,
-            reasons=("обращение помечено как спам или не по теме",),
+            reason_items=(reason(ReasonCode.SPAM_OR_OFF_TOPIC),),
             evidence=tuple(Evidence("quote", q) for q in facts.quotes),
         )
 
     tier = rubric.INBOUND_BASE if facts.request_types else rubric.INBOUND_BASE_NO_REQUEST
     if not facts.request_types:
-        reasons.append("из текста не извлечён ни один тип запроса")
+        reasons.append(reason(ReasonCode.NO_REQUEST_TYPE))
 
     bumps = 0
     if facts.timeline_days is not None and facts.timeline_days <= rubric.URGENT_TIMELINE_DAYS:
         bumps += 1
-        reasons.append(f"срок {facts.timeline_days} дн. — не больше {rubric.URGENT_TIMELINE_DAYS}")
+        reasons.append(reason(
+            ReasonCode.URGENT_TIMELINE,
+            days=facts.timeline_days,
+            limit=rubric.URGENT_TIMELINE_DAYS,
+        ))
     if len(facts.request_types) >= rubric.PACKAGE_MIN_REQUEST_TYPES:
         bumps += 1
-        reasons.append(f"запрошено услуг: {len(facts.request_types)} — нужен пакет")
+        reasons.append(reason(ReasonCode.PACKAGE_REQUEST, count=len(facts.request_types)))
     if facts.headcount is not None and facts.headcount >= rubric.TEAM_MIN_HEADCOUNT:
         bumps += 1
-        reasons.append(f"команда {facts.headcount} чел. — флекси не закроет визовую квоту")
+        reasons.append(reason(ReasonCode.TEAM_OVER_FLEXI_QUOTA, headcount=facts.headcount))
     # Бюджетом считается только сумма. Модель охотно кладёт в это поле сам вопрос
     # «сколько стоит» — из вопроса о цене горячий лид не следует, скорее наоборот.
     if facts.budget_hint and any(ch.isdigit() for ch in facts.budget_hint):
         bumps += 1
-        reasons.append(f"назван бюджет: {facts.budget_hint[:40]}")
+        reasons.append(reason(ReasonCode.BUDGET_NAMED, budget=facts.budget_hint[:40]))
 
     substantive = bumps
 
     # Язык — довесок, а не самостоятельный повод (см. LANGUAGE_NEEDS_ANOTHER_SIGNAL).
     if facts.language in rubric.TARGET_LANGUAGES:
         if substantive or not rubric.LANGUAGE_NEEDS_ANOTHER_SIGNAL:
-            reasons.append(f"язык обращения {facts.language} — основная аудитория")
+            reasons.append(reason(ReasonCode.TARGET_LANGUAGE, language=facts.language))
         else:
-            reasons.append(f"язык обращения {facts.language}, но других признаков нет")
+            reasons.append(
+                reason(ReasonCode.TARGET_LANGUAGE_ALONE, language=facts.language)
+            )
 
     # Горячим делает только набор содержательных признаков: одного мало, иначе HIGH
     # достаётся половине входящих и перестаёт что-либо значить (см. SIGNALS_FOR_HIGH).
@@ -176,7 +193,11 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
     # приоритет, выведенный из ненадёжных фактов, дороже пропущенного лида.
     if facts.confidence < rubric.LOW_CONFIDENCE:
         tier = min(tier, Tier.MEDIUM, key=rubric.TIER_LADDER.index)
-        reasons.append(f"уверенность извлечения {facts.confidence:.2f} — ниже порога")
+        reasons.append(reason(
+            ReasonCode.LOW_CONFIDENCE,
+            confidence=facts.confidence,
+            threshold=rubric.LOW_CONFIDENCE,
+        ))
 
     evidence = tuple(Evidence("quote", q) for q in facts.quotes)
     if tier is Tier.HIGH and not evidence:
@@ -190,7 +211,7 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
         tier=tier,
         address_type=AddressType.UNKNOWN,
         event=Event.NONE,
-        reasons=tuple(reasons),
+        reason_items=tuple(reasons),
         evidence=evidence,
         violations=tuple(violations),
     )

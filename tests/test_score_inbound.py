@@ -15,9 +15,21 @@ from __future__ import annotations
 
 import pytest
 
+from leadcentre.engine.reasons import ReasonCode
 from leadcentre.engine.score import score_inbound
 from leadcentre.models import AddressType, Event, RequestType, Tier
-from tests.conftest import make_facts, make_message
+from tests.conftest import (
+    has_reason,
+    make_facts,
+    make_message,
+    reason_codes,
+    reason_params,
+)
+
+# Причина проверяется кодом и параметром, а не текстом карточки: формулировки живут
+# в каталоге `engine/reasons.py` и проверяются в tests/test_reasons.py. Раньше здесь
+# матчились подстроки («срок 10 дн.»), и правка текста красила девять тестов,
+# ни одного правила при этом не сломав.
 
 # --- база: с типом запроса и без ------------------------------------------------
 
@@ -36,7 +48,7 @@ def test_base_tier_with_one_request_type_is_medium():
 def test_base_tier_without_request_types_is_low():
     result = score_inbound(make_message(), make_facts(request_types=()))
     assert result.tier is Tier.LOW
-    assert "из текста не извлечён ни один тип запроса" in result.reasons
+    assert reason_codes(result) == [ReasonCode.NO_REQUEST_TYPE]
 
 
 def test_no_request_types_with_one_bump_reaches_only_medium():
@@ -77,19 +89,20 @@ def test_urgent_timeline_threshold_is_60_days(timeline_days, expected):
 def test_timeline_beyond_the_threshold_leaves_no_reason(timeline_days):
     """Негативный контроль: не сработавший признак не пишет причину в карточку."""
     result = score_inbound(make_message(), make_facts(timeline_days=timeline_days))
-    assert not [r for r in result.reasons if "срок" in r]
+    assert not has_reason(result, ReasonCode.URGENT_TIMELINE)
 
 
 def test_urgent_timeline_alone_is_only_one_signal():
     """Один содержательный признак от базы MEDIUM оставляет MEDIUM (SIGNALS_FOR_HIGH = 2)."""
     result = score_inbound(make_message(), make_facts(timeline_days=1))
     assert result.tier is Tier.MEDIUM
-    assert any("срок 1 дн." in r for r in result.reasons)
+    # 60 — порог срочности литералом (Т2): причина обязана назвать и срок, и границу
+    assert reason_params(result, ReasonCode.URGENT_TIMELINE) == {"days": 1, "limit": 60}
 
 
 def test_urgent_timeline_reason_names_the_number():
     result = score_inbound(make_message(), make_facts(timeline_days=10))
-    assert any("срок 10 дн." in r for r in result.reasons)
+    assert reason_params(result, ReasonCode.URGENT_TIMELINE) == {"days": 10, "limit": 60}
 
 
 # --- порог пакета: 2 типа запроса ------------------------------------------------
@@ -114,12 +127,13 @@ def test_package_alone_is_only_one_signal():
     facts = make_facts(request_types=(RequestType.OFFICE, RequestType.VISA))
     result = score_inbound(make_message(), facts)
     assert result.tier is Tier.MEDIUM
-    assert any("запрошено услуг: 2" in r for r in result.reasons)
+    assert reason_params(result, ReasonCode.PACKAGE_REQUEST) == {"count": 2}
 
 
 def test_package_reason_names_the_count():
     facts = make_facts(request_types=(RequestType.OFFICE, RequestType.VISA))
-    assert any("запрошено услуг: 2" in r for r in score_inbound(make_message(), facts).reasons)
+    result = score_inbound(make_message(), facts)
+    assert reason_params(result, ReasonCode.PACKAGE_REQUEST) == {"count": 2}
 
 
 # --- порог команды: 5 человек ----------------------------------------------------
@@ -148,18 +162,18 @@ def test_team_headcount_threshold_is_5(headcount, expected):
 def test_team_headcount_alone_is_only_one_signal():
     result = score_inbound(make_message(), make_facts(headcount=40))
     assert result.tier is Tier.MEDIUM
-    assert any("команда 40 чел." in r for r in result.reasons)
+    assert reason_params(result, ReasonCode.TEAM_OVER_FLEXI_QUOTA) == {"headcount": 40}
 
 
 def test_team_headcount_reason_names_the_number():
     result = score_inbound(make_message(), make_facts(headcount=7))
-    assert any("команда 7 чел." in r for r in result.reasons)
+    assert reason_params(result, ReasonCode.TEAM_OVER_FLEXI_QUOTA) == {"headcount": 7}
 
 
 def test_headcount_below_threshold_leaves_no_reason():
     """Негативный контроль: не сработавший признак не пишет причину в карточку."""
     result = score_inbound(make_message(), make_facts(headcount=4))
-    assert not [r for r in result.reasons if "команда" in r]
+    assert not has_reason(result, ReasonCode.TEAM_OVER_FLEXI_QUOTA)
 
 
 # --- бюджет: засчитывается только сумма, а не вопрос о цене ----------------------
@@ -184,7 +198,7 @@ def test_budget_without_a_digit_does_not_raise_the_tier(budget_hint):
     """
     result = score_inbound(make_message(), make_facts(budget_hint=budget_hint, headcount=10))
     assert result.tier is Tier.MEDIUM
-    assert not [r for r in result.reasons if "бюджет" in r]
+    assert not has_reason(result, ReasonCode.BUDGET_NAMED)
 
 
 @pytest.mark.parametrize(
@@ -201,14 +215,15 @@ def test_budget_with_a_digit_raises_the_tier(budget_hint):
     """Спутник — команда 10 человек; названный бюджет становится вторым признаком."""
     result = score_inbound(make_message(), make_facts(budget_hint=budget_hint, headcount=10))
     assert result.tier is Tier.HIGH
-    assert any("назван бюджет" in r for r in result.reasons)
+    assert reason_params(result, ReasonCode.BUDGET_NAMED) == {"budget": budget_hint}
 
 
 def test_budget_reason_is_trimmed_to_40_characters():
     long_hint = "1" + "я" * 80
     result = score_inbound(make_message(), make_facts(budget_hint=long_hint, headcount=10))
-    reason = next(r for r in result.reasons if "назван бюджет" in r)
-    assert reason == f"назван бюджет: {long_hint[:40]}"
+    # обрезка — свойство параметра, а не текста: 40 символов литералом (Т2)
+    assert reason_params(result, ReasonCode.BUDGET_NAMED) == {"budget": long_hint[:40]}
+    assert len(long_hint[:40]) == 40
 
 
 # --- регрессии живых прогонов ----------------------------------------------------
@@ -231,11 +246,12 @@ def test_live_lead_is_high_for_substantive_reasons_not_for_the_language():
     )
     result = score_inbound(make_message("нужно 12 рабочих мест с 1 октября"), facts)
     assert result.tier is Tier.HIGH
-    assert any("команда 12 чел." in r for r in result.reasons)
-    assert any("срок 22 дн." in r for r in result.reasons)
-    assert not [r for r in result.reasons if "бюджет" in r]
+    assert reason_params(result, ReasonCode.TEAM_OVER_FLEXI_QUOTA) == {"headcount": 12}
+    assert reason_params(result, ReasonCode.URGENT_TIMELINE) == {"days": 22, "limit": 60}
+    assert not has_reason(result, ReasonCode.BUDGET_NAMED)
     # содержательных причин минимум две — карточка не держится на языке
-    assert len([r for r in result.reasons if "язык" not in r]) >= 2
+    language_codes = {ReasonCode.TARGET_LANGUAGE, ReasonCode.TARGET_LANGUAGE_ALONE}
+    assert len([c for c in reason_codes(result) if c not in language_codes]) >= 2
 
 
 def test_prc_01_price_question_in_russian_is_not_high():
@@ -248,7 +264,7 @@ def test_prc_01_price_question_in_russian_is_not_high():
     )
     result = score_inbound(make_message("скок стоит офис?"), facts)
     assert result.tier is Tier.MEDIUM
-    assert "язык обращения ru, но других признаков нет" in result.reasons
+    assert reason_params(result, ReasonCode.TARGET_LANGUAGE_ALONE) == {"language": "ru"}
 
 
 # --- язык: довесок, а не самостоятельный повод ------------------------------------
@@ -264,35 +280,48 @@ def test_language_alone_never_raises_the_tier(language):
 def test_russian_alone_says_in_reasons_that_other_signals_are_missing():
     result = score_inbound(make_message(), make_facts(language="ru"))
     assert result.tier is Tier.MEDIUM
-    assert "язык обращения ru, но других признаков нет" in result.reasons
+    assert reason_params(result, ReasonCode.TARGET_LANGUAGE_ALONE) == {"language": "ru"}
+    assert not has_reason(result, ReasonCode.TARGET_LANGUAGE)
 
 
 @pytest.mark.parametrize(
-    ("signal", "expected_reason_part"),
+    ("signal", "expected_code", "expected_params"),
     [
-        ({"timeline_days": 10}, "срок 10 дн."),
-        ({"headcount": 12}, "команда 12 чел."),
-        ({"budget_hint": "120-150 тысяч дирхам"}, "назван бюджет"),
-        ({"request_types": (RequestType.OFFICE, RequestType.VISA)}, "запрошено услуг: 2"),
+        ({"timeline_days": 10}, ReasonCode.URGENT_TIMELINE, {"days": 10, "limit": 60}),
+        ({"headcount": 12}, ReasonCode.TEAM_OVER_FLEXI_QUOTA, {"headcount": 12}),
+        (
+            {"budget_hint": "120-150 тысяч дирхам"},
+            ReasonCode.BUDGET_NAMED,
+            {"budget": "120-150 тысяч дирхам"},
+        ),
+        (
+            {"request_types": (RequestType.OFFICE, RequestType.VISA)},
+            ReasonCode.PACKAGE_REQUEST,
+            {"count": 2},
+        ),
     ],
 )
 @pytest.mark.parametrize("language", ["ru", "en"])
 def test_language_never_changes_the_tier_only_the_reason(
-    signal, expected_reason_part, language
+    signal, expected_code, expected_params, language
 ):
     """Язык не входит в счётчик признаков: при любом языке ступень одна и та же.
 
-    Меняется только текст причины в карточке — ради него правило и оставлено.
+    Меняется только причина в карточке — ради неё правило и оставлено. Русский даёт
+    TARGET_LANGUAGE (есть содержательный признак), нецелевой язык — ни одной языковой
+    причины вовсе.
     """
     overrides = {"request_types": (RequestType.OFFICE,), "language": language, **signal}
     facts = make_facts(**overrides)
     result = score_inbound(make_message(), facts)
     assert result.tier is Tier.MEDIUM  # один содержательный признак — подъёма нет
-    assert any(expected_reason_part in r for r in result.reasons)
+    assert reason_params(result, expected_code) == expected_params
     if language == "ru":
-        assert "язык обращения ru — основная аудитория" in result.reasons
+        assert reason_params(result, ReasonCode.TARGET_LANGUAGE) == {"language": "ru"}
+        assert not has_reason(result, ReasonCode.TARGET_LANGUAGE_ALONE)
     else:
-        assert not [r for r in result.reasons if "язык обращения" in r]
+        assert not has_reason(result, ReasonCode.TARGET_LANGUAGE)
+        assert not has_reason(result, ReasonCode.TARGET_LANGUAGE_ALONE)
 
 
 def test_language_does_not_complete_a_pair_of_signals():
@@ -315,14 +344,15 @@ def test_non_target_language_adds_nothing_even_with_a_signal(language):
         make_message(), make_facts(request_types=(), language=language, headcount=10)
     )
     assert result.tier is Tier.MEDIUM
-    assert not [r for r in result.reasons if "язык обращения" in r]
+    assert not has_reason(result, ReasonCode.TARGET_LANGUAGE)
+    assert not has_reason(result, ReasonCode.TARGET_LANGUAGE_ALONE)
 
 
 def test_russian_alone_from_low_base_stays_low():
     """Ни одного содержательного признака: язык не вытягивает даже на ступень вверх."""
     result = score_inbound(make_message(), make_facts(request_types=(), language="ru"))
     assert result.tier is Tier.LOW
-    assert "язык обращения ru, но других признаков нет" in result.reasons
+    assert reason_params(result, ReasonCode.TARGET_LANGUAGE_ALONE) == {"language": "ru"}
 
 
 # --- порог уверенности: 0.5 ------------------------------------------------------
@@ -356,7 +386,11 @@ def test_low_confidence_does_not_lower_below_the_base():
 
 def test_low_confidence_reason_prints_the_number():
     result = score_inbound(make_message(), make_facts(confidence=0.42))
-    assert any("уверенность извлечения 0.42" in r for r in result.reasons)
+    # 0.5 — порог доверия литералом (Т2)
+    assert reason_params(result, ReasonCode.LOW_CONFIDENCE) == {
+        "confidence": 0.42,
+        "threshold": 0.5,
+    }
 
 
 # --- сколько признаков делает лид горячим: ровно 2 -------------------------------
@@ -434,7 +468,7 @@ def test_low_base_reaches_only_medium_even_with_two_signals():
     facts = make_facts(request_types=(), timeline_days=5, headcount=40, language="ru")
     result = score_inbound(make_message(), facts)
     assert result.tier is Tier.MEDIUM
-    assert "из текста не извлечён ни один тип запроса" in result.reasons
+    assert has_reason(result, ReasonCode.NO_REQUEST_TYPE)
 
 
 # --- негативные контроли: спам и пустой текст ------------------------------------
@@ -452,7 +486,7 @@ def test_spam_is_low_and_ignores_every_bump():
     )
     result = score_inbound(make_message(), facts)
     assert result.tier is Tier.LOW
-    assert result.reasons == ("обращение помечено как спам или не по теме",)
+    assert reason_codes(result) == [ReasonCode.SPAM_OR_OFF_TOPIC]
     assert result.violations == ()
 
 

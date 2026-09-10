@@ -125,7 +125,12 @@ const MIN_PHONE_DIGITS = 9;
 const SENTENCE_BOUNDARIES = ".!?\n;";
 const MAX_QUOTE_CHARS = 160;
 
-/** Порт facts_rules._sentence_around: предложение, внутри которого лежит совпадение. */
+/**
+ * Порт facts_rules._sentence_around: предложение, внутри которого лежит совпадение.
+ * Длинное подрезается вокруг самого совпадения по границам слов С ОБЕИХ сторон и
+ * помечается многоточием: подрезка только справа давала цитаты вида «eezone, если…» —
+ * доказательство, похожее на мусор (ИЗМЕРЕНО в Python на edge-03, 12 из 14 цитат).
+ */
 function sentenceAround(text: string, start: number, end: number): string {
   let left = -1;
   for (const ch of SENTENCE_BOUNDARIES) left = Math.max(left, text.lastIndexOf(ch, start - 1));
@@ -136,12 +141,123 @@ function sentenceAround(text: string, start: number, end: number): string {
   }
   const fragment = text.slice(left + 1, right).trim();
   if (fragment.length <= MAX_QUOTE_CHARS) return fragment;
+
   const head = Math.max(left + 1, start - Math.floor(MAX_QUOTE_CHARS / 2));
-  const cut = text.slice(head, head + MAX_QUOTE_CHARS).trim();
-  return cut.includes(" ") ? `${cut.slice(0, cut.lastIndexOf(" "))}…` : cut;
+  const tail = Math.min(right, head + MAX_QUOTE_CHARS);
+  let cut = text.slice(head, tail);
+  if (head > left + 1) {
+    const space = cut.indexOf(" ");
+    cut = space >= 0 ? cut.slice(space + 1) : cut;
+  }
+  if (tail < right) {
+    const space = cut.lastIndexOf(" ");
+    cut = space >= 0 ? cut.slice(0, space) : cut;
+  }
+  cut = cut.trim();
+  return `${head > left + 1 ? "…" : ""}${cut}${tail < right ? "…" : ""}`;
 }
 
-function step(tier: Tier, delta: number): Tier {
+// --- причины: зеркало каталога leadcentre/engine/reasons.py ---
+//
+// Причина хранится структурно — код плюс параметры — и отрисовывается на языке
+// интерфейса. Так устроен и Python (`Score.reason_items` + `reasons_in(language)`), и
+// иначе двуязычность превращается в два независимых списка строк. Сверка
+// web/scripts/crosscheck.py сличает отрисовку на ОБОИХ языках.
+export type ReasonLanguage = "ru" | "en";
+
+export interface ReasonItem {
+  code: string;
+  params: Record<string, string | number>;
+}
+
+interface ReasonSpec {
+  ru: string;
+  en: string;
+}
+
+const REASON_CATALOGUE: Record<string, ReasonSpec> = {
+  spam_or_off_topic: {
+    ru: "обращение помечено как спам или не по теме",
+    en: "message flagged as spam or off topic",
+  },
+  no_request_type: {
+    ru: "из текста не извлечён ни один тип запроса",
+    en: "no request type could be extracted from the text",
+  },
+  urgent_timeline: {
+    ru: "срок {days:plural:day} — не больше {limit:plural:day}",
+    en: "needed in {days:plural:day} — urgency window is {limit:plural:day}",
+  },
+  package_request: {
+    ru: "запрошено услуг: {count} — нужен пакет",
+    en: "{count:plural:service} asked about — this is a package, not a single line item",
+  },
+  team_over_flexi_quota: {
+    ru: "команда {headcount:plural:person} — флекси не закроет визовую квоту",
+    en: "team of {headcount} — flexi desk will not cover the visa quota",
+  },
+  budget_named: { ru: "назван бюджет: {budget}", en: "budget named: {budget}" },
+  target_language: {
+    ru: "язык обращения {language} — основная аудитория",
+    en: "written in {language} — core audience",
+  },
+  target_language_alone: {
+    ru: "язык обращения {language}, но других признаков нет",
+    en: "written in {language}, but no other signal backs it up",
+  },
+  low_confidence: {
+    ru: "уверенность извлечения {confidence:.2f} — ниже порога {threshold:.2f}",
+    en: "extraction confidence {confidence:.2f} — below the {threshold:.2f} threshold",
+  },
+};
+
+// Русский требует трёх форм числительного, английский — двух (порт _plural_index_ru /
+// _plural_index_en, правило CLDR one/few/many).
+const PLURAL_FORMS: Record<ReasonLanguage, Record<string, string[]>> = {
+  ru: {
+    day: ["день", "дня", "дней"],
+    person: ["человек", "человека", "человек"],
+    service: ["услуга", "услуги", "услуг"],
+  },
+  en: {
+    day: ["day", "days"],
+    person: ["person", "people"],
+    service: ["service", "services"],
+  },
+};
+
+function pluralIndex(language: ReasonLanguage, value: number): number {
+  if (language === "en") return value === 1 ? 0 : 1;
+  const n = Math.abs(value);
+  if (n % 10 === 1 && n % 100 !== 11) return 0;
+  if (n % 10 >= 2 && n % 10 <= 4 && !(n % 100 >= 12 && n % 100 <= 14)) return 1;
+  return 2;
+}
+
+function pluralPhrase(language: ReasonLanguage, value: number, noun: string): string {
+  return `${value} ${PLURAL_FORMS[language][noun][pluralIndex(language, value)]}`;
+}
+
+/** Отрисовка одной причины. Неизвестный код — ошибка, а не пустая строка (Р1). */
+export function renderReason(item: ReasonItem, language: ReasonLanguage): string {
+  const spec = REASON_CATALOGUE[item.code];
+  if (!spec) throw new Error(`unknown reason code: ${item.code}`);
+  return spec[language].replace(/\{(\w+)(?::([^}]+))?\}/g, (_all, name: string, format?: string) => {
+    const value = item.params[name];
+    if (value === undefined) throw new Error(`reason ${item.code}: no parameter ${name}`);
+    if (format?.startsWith("plural:")) {
+      return pluralPhrase(language, value as number, format.slice("plural:".length));
+    }
+    if (format === ".2f") return (value as number).toFixed(2);
+    return String(value);
+  });
+}
+
+export function renderReasons(items: ReasonItem[], language: ReasonLanguage): string[] {
+  return items.map((item) => renderReason(item, language));
+}
+
+function step(tier: Tier, delta: number): Tier {function step(tier: Tier, delta: number): Tier {
   const index = Math.min(Math.max(LADDER.indexOf(tier) + delta, 0), LADDER.length - 1);
   return LADDER[index];
 }
@@ -343,7 +459,9 @@ export function scoreInbound(text: string, facts: LeadFacts, quotes: string[]): 
   let substantive = 0;
   if (facts.timeline_days !== null && facts.timeline_days <= URGENT_TIMELINE_DAYS) {
     substantive += 1;
-    reasons.push(`срок ${facts.timeline_days} дн. — не больше ${URGENT_TIMELINE_DAYS}`);
+    reasons.push(
+      `срок ${pluralRu(facts.timeline_days, "day")} — не больше ${pluralRu(URGENT_TIMELINE_DAYS, "day")}`,
+    );
   }
   if (facts.request_types.length >= PACKAGE_MIN_REQUEST_TYPES) {
     substantive += 1;
@@ -351,7 +469,9 @@ export function scoreInbound(text: string, facts: LeadFacts, quotes: string[]): 
   }
   if (facts.headcount !== null && facts.headcount >= TEAM_MIN_HEADCOUNT) {
     substantive += 1;
-    reasons.push(`команда ${facts.headcount} чел. — флекси не закроет визовую квоту`);
+    reasons.push(
+      `команда ${pluralRu(facts.headcount, "person")} — флекси не закроет визовую квоту`,
+    );
   }
   // Only a figure counts as a budget: "how much does it cost" is a question, not a budget.
   if (facts.budget_hint && /\d/.test(facts.budget_hint)) {
@@ -376,7 +496,9 @@ export function scoreInbound(text: string, facts: LeadFacts, quotes: string[]): 
 
   if (facts.confidence < LOW_CONFIDENCE) {
     if (LADDER.indexOf(tier) > LADDER.indexOf("MEDIUM")) tier = "MEDIUM";
-    reasons.push(`уверенность извлечения ${facts.confidence.toFixed(2)} — ниже порога`);
+    reasons.push(
+      `уверенность извлечения ${facts.confidence.toFixed(2)} — ниже порога ${LOW_CONFIDENCE.toFixed(2)}`,
+    );
   }
 
   if (tier === "HIGH" && evidence.length === 0) violations.push("HIGH без цитаты из обращения");

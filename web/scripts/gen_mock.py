@@ -35,6 +35,7 @@ sys.path.insert(0, str(REPO))
 from leadcentre.engine import extract as extract_mod
 from leadcentre.engine import reply as reply_mod
 from leadcentre.engine.facts_rules import rules_facts
+from leadcentre.engine.reasons import ReasonCode
 from leadcentre.engine.score import score, score_inbound
 from leadcentre.models import InboundMessage, Tier
 from leadcentre.sources.gleif import GleifAdapter
@@ -152,37 +153,35 @@ CATEGORY_BY_PREFIX = {
 # не может (язык обращения, уверенность извлечения), получают пустой список: третий исход
 # «не цитируется» не сворачивается в «цитата не нашлась» (Р1).
 
-REASON_NOT_QUOTABLE = ("язык обращения", "уверенность извлечения",
-                       "из текста не извлечён")
-
-
 def _facts_of(fragment: str, received_on: date) -> object:
     return rules_facts(InboundMessage(
         external_id="quote", channel="form", text=fragment, received_at=received_on,
     ))
 
 
-def link_reasons(reasons, quotes, facts, received_on: date) -> list[dict]:
-    """Для каждой причины — индексы цитат, из которых она следует."""
+def link_reasons(result, quotes, facts, received_on: date) -> list[dict]:
+    """Для каждой причины — индексы цитат, из которых она следует.
+
+    Связь идёт по КОДУ причины (`Score.reason_items`), а не по началу её текста:
+    формулировки живут в `engine/reasons.py` и переписываются, а код — контракт.
+    """
     per_quote = [_facts_of(q, received_on) for q in quotes]
+
+    def pick(test) -> list[int]:
+        return [i for i, f in enumerate(per_quote) if test(f)]
+
+    by_code = {
+        ReasonCode.URGENT_TIMELINE: lambda f: f.timeline_days == facts.timeline_days,
+        ReasonCode.PACKAGE_REQUEST: lambda f: bool(f.request_types),
+        ReasonCode.TEAM_OVER_FLEXI_QUOTA: lambda f: f.headcount == facts.headcount,
+        ReasonCode.BUDGET_NAMED: lambda f: bool(f.budget_hint),
+        ReasonCode.SPAM_OR_OFF_TOPIC: lambda f: f.is_spam,
+    }
     linked: list[dict] = []
-    for reason in reasons:
-        indices: list[int] = []
-        if reason.startswith(REASON_NOT_QUOTABLE):
-            pass
-        elif reason.startswith("срок "):
-            indices = [i for i, f in enumerate(per_quote)
-                       if f.timeline_days == facts.timeline_days]
-        elif reason.startswith("запрошено услуг"):
-            indices = [i for i, f in enumerate(per_quote) if f.request_types]
-        elif reason.startswith("команда "):
-            indices = [i for i, f in enumerate(per_quote)
-                       if f.headcount == facts.headcount]
-        elif reason.startswith("назван бюджет"):
-            indices = [i for i, f in enumerate(per_quote) if f.budget_hint]
-        elif reason.startswith("обращение помечено как спам"):
-            indices = [i for i, f in enumerate(per_quote) if f.is_spam]
-        linked.append({"text": reason, "quotes": indices})
+    for item, text in zip(result.reason_items, result.reasons, strict=True):
+        test = by_code.get(item.code)
+        linked.append({"text": text, "code": item.code.value,
+                       "quotes": pick(test) if test else []})
     return linked
 
 
@@ -239,7 +238,7 @@ def build_leads() -> list[dict]:
             "is_synthetic": message.is_synthetic,
             "tier": result.tier.value,
             "reasons": list(result.reasons),
-            "reason_links": link_reasons(result.reasons, quotes, facts, received_on),
+            "reason_links": link_reasons(result, quotes, facts, received_on),
             "evidence": [{"kind": e.kind, "value": e.value} for e in result.evidence],
             "violations": list(result.violations),
             "facts": {

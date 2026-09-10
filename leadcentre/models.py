@@ -5,6 +5,14 @@ from dataclasses import dataclass, field
 from datetime import date
 from enum import Enum
 
+from leadcentre.engine.reasons import (
+    DEFAULT_LANGUAGE,
+    Language,
+    Reason,
+    ReasonRenderError,
+    render_all,
+)
+
 
 class Tier(str, Enum):
     HIGH = "HIGH"
@@ -60,12 +68,53 @@ class Evidence:
 
 @dataclass(frozen=True)
 class Score:
+    """Приоритет и то, из чего он получился.
+
+    Причины хранятся структурно — `reason_items` (код плюс параметры). Поле `reasons`
+    осталось кортежем строк, но перестало быть самостоятельным знанием: когда есть
+    `reason_items`, оно вычисляется из них отрисовкой на русском и передавать его
+    одновременно нельзя (Е1 — двух источников текста быть не должно). Пустой
+    `reason_items` с готовыми строками остаётся ровно для одного случая: карточка,
+    поднятая из хранилища, где сохранены только строки.
+    """
+
     tier: Tier
     address_type: AddressType
     event: Event
     reasons: tuple[str, ...] = ()
     evidence: tuple[Evidence, ...] = ()
     violations: tuple[str, ...] = ()
+    reason_items: tuple[Reason, ...] = ()
+
+    def __post_init__(self) -> None:
+        if self.reason_items:
+            if self.reasons:
+                raise ValueError(
+                    "Score: причины заданы дважды — reason_items и reasons; "
+                    "строки собирает отрисовка, передавать их отдельно нельзя"
+                )
+            object.__setattr__(
+                self, "reasons", render_all(self.reason_items, DEFAULT_LANGUAGE)
+            )
+
+    def reasons_in(self, language: Language) -> tuple[str, ...]:
+        """Причины на нужном языке — это берёт интерфейс.
+
+        Три исхода, а не два (Р1): есть структурные причины — отрисуем на любом языке;
+        причин нет вовсе — пустой кортеж; есть только строки из хранилища — отрисовать
+        не на чем, и это `ReasonRenderError`, а не молчаливая подмена русским текстом.
+        """
+        if self.reason_items:
+            return render_all(self.reason_items, language)
+        if not self.reasons:
+            return ()
+        if language is DEFAULT_LANGUAGE:
+            return self.reasons
+        raise ReasonRenderError(
+            f"причины восстановлены строками без кодов: язык {language.value} "
+            f"не отрисовать (сохранено {len(self.reasons)} строк на "
+            f"{DEFAULT_LANGUAGE.value})"
+        )
 
 
 # --- входящие обращения ---

@@ -10,6 +10,11 @@ from __future__ import annotations
 import os
 
 from leadcentre.store.base import (
+    REASONS_EMPTY,
+    REASONS_INVALID,
+    REASONS_NO_CODES,
+    REASONS_OK,
+    REASONS_OUTCOMES,
     REPLY_APPROVED,
     REPLY_DRAFT,
     REPLY_REJECTED,
@@ -19,6 +24,7 @@ from leadcentre.store.base import (
     LeadCard,
     LeadRow,
     ReplyRow,
+    RestoredReasons,
     ScoreRow,
     Store,
     StoreError,
@@ -26,12 +32,21 @@ from leadcentre.store.base import (
     StoreRejected,
     StoreUnavailable,
     UpsertResult,
+    parse_reason_items,
+    reason_items_payload,
+    restore_reasons,
+    restore_score,
 )
 from leadcentre.store.local import DEFAULT_PATH, LocalStore
 from leadcentre.store.supabase import SCHEMA_PATH, SupabaseStore
 
 __all__ = [
     "DEFAULT_PATH",
+    "REASONS_EMPTY",
+    "REASONS_INVALID",
+    "REASONS_NO_CODES",
+    "REASONS_OK",
+    "REASONS_OUTCOMES",
     "REPLY_APPROVED",
     "REPLY_DRAFT",
     "REPLY_REJECTED",
@@ -43,6 +58,7 @@ __all__ = [
     "LeadRow",
     "LocalStore",
     "ReplyRow",
+    "RestoredReasons",
     "ScoreRow",
     "Store",
     "StoreError",
@@ -53,6 +69,10 @@ __all__ = [
     "UpsertResult",
     "get_store",
     "is_offline",
+    "parse_reason_items",
+    "reason_items_payload",
+    "restore_reasons",
+    "restore_score",
 ]
 
 

@@ -115,28 +115,34 @@ export default function Page() {
           (02_references.md §6.2, образец — полоса тестового режима Stripe). */}
       <div className="provenance-strip">
         <div className="provenance-inner">
-          <span className="provenance-mode">{isMock ? "Demo data" : "Live backend"}</span>
           {isMock ? (
             <>
+              <span className="provenance-mode">Demo data</span>
               <span className="provenance-item">
-                <b>{stats ? stats.leads.synthetic : leads.length}</b> invented requests —{" "}
-                <code>{stats?.leads.source ?? "data/inbound_seed.csv"}</code>
+                the requests are invented, the registry records are real
               </span>
-              <span className="provenance-item">
-                registry records are <b>real</b>: {companies.length} from{" "}
-                <code>{stats?.companies.source ?? "gleif"}</code>
-              </span>
-              <span className="provenance-item">
-                prices from a <b>demo price list</b>, not SORP&apos;s
-              </span>
-              <span className="provenance-item">
-                facts by an <b>offline heuristic</b> — no model call in this mode
-              </span>
+              <details className="details details-inline">
+                <summary className="details-summary">where it comes from</summary>
+                <div className="details-body">
+                  <div>
+                    {stats ? stats.leads.synthetic : leads.length} invented requests —{" "}
+                    <code>{stats?.leads.source ?? "data/inbound_seed.csv"}</code>
+                  </div>
+                  <div>
+                    {companies.length} real registry records — <code>{stats?.companies.source ?? "gleif"}</code>
+                  </div>
+                  <div>price ranges come from a demo price list, not SORP&apos;s</div>
+                  <div>facts come from an offline heuristic — no model is called in this mode</div>
+                </div>
+              </details>
             </>
           ) : (
-            <span className="provenance-item">
-              backend <code>{apiBase}</code> — facts extracted by the language model
-            </span>
+            <>
+              <span className="provenance-mode">Live backend</span>
+              <span className="provenance-item">
+                <code>{apiBase}</code> — facts extracted by the language model
+              </span>
+            </>
           )}
         </div>
       </div>
@@ -149,7 +155,9 @@ export default function Page() {
             <div className="stat-label">Requests scored</div>
             <div className="stat-value">
               {leads.length}
-              <span className="stat-sub"> · decided {counts.decided} of {leads.length}</span>
+              {counts.decided ? (
+                <span className="stat-sub"> · {counts.decided} decided</span>
+              ) : null}
             </div>
           </div>
           <div className="stat">

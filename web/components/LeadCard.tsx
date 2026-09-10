@@ -149,15 +149,6 @@ export default function LeadCard({
   const links = lead.reason_links ?? lead.reasons.map((text) => ({ text, quotes: [] }));
   const activeQuotes = activeReason === null ? [] : links[activeReason]?.quotes ?? [];
 
-  // "not stated" repeated four times reads as broken extraction even when it is correct
-  // (02_references.md §6.6): what was found is shown, what was not is one muted line.
-  const missing = [
-    facts.jurisdiction_hint ? null : "jurisdiction",
-    facts.budget_hint ? null : "budget",
-    facts.headcount === null ? "headcount" : null,
-    facts.timeline_days === null ? "timeline" : null,
-  ].filter(Boolean) as string[];
-
   const serving = lead.serving;
 
   return (
@@ -178,21 +169,7 @@ export default function LeadCard({
       <div className="card-body">
         <div className="card-col">
           <div className="section">
-            <div className="section-title-row">
-              <span className="section-title">Request text (as received)</span>
-              {/* Подсказка появляется только когда есть по чему кликать: при пустом
-                  списке причин она обещает действие, которого нет. */}
-              {quotes.length && links.some((item) => item.quotes.length) ? (
-                <span className="note">
-                  {quotes.length} quoted fragment{quotes.length > 1 ? "s" : ""} — click a reason to
-                  see which
-                </span>
-              ) : quotes.length ? (
-                <span className="note">
-                  {quotes.length} quoted fragment{quotes.length > 1 ? "s" : ""} highlighted
-                </span>
-              ) : null}
-            </div>
+            <div className="section-title">Request text (as received)</div>
             {/* dir="auto" — направление задаёт первый сильный символ содержимого: инбокс
                 смешанный, и глобальный dir="rtl" сломал бы русские и английские строки
                 (docs/design/03_arabic_rtl.md §2.5). */}
@@ -217,64 +194,67 @@ export default function LeadCard({
               <dt>contact in text</dt>
               <dd>{facts.has_contact ? "yes (masked before the model)" : "no"}</dd>
             </dl>
-            {missing.length ? (
-              <div className="facts-missing note">not stated: {missing.join(", ")}</div>
-            ) : null}
           </div>
 
-          <div className="section">
-            <div className="section-title">Extraction confidence</div>
-            <ConfidenceBand value={facts.confidence} />
-          </div>
+          {/* Инженерное — под одно раскрытие (владелец, 2026-09-10): в основном потоке
+              остаётся то, по чему менеджер принимает решение по лиду. Данные не выброшены:
+              они честные и нужны техническому зрителю, просто в один клик от карточки. */}
+          <details className="details section">
+            <summary className="details-summary">How this was scored</summary>
+            <div className="details-body">
+              <div className="section-title">Extraction confidence</div>
+              <ConfidenceBand value={facts.confidence} />
 
-          <div className="section">
-            <div className="section-title">Provenance — what served this lead</div>
-            <dl className="served">
-              <dt>request id</dt>
-              <dd>{lead.id}</dd>
-              <dt>received</dt>
-              <dd>{lead.received_at.replace("T", " ").replace(/\.\d+/, "").replace("Z", " UTC")}</dd>
-              <dt>seed category</dt>
-              <dd>{lead.category}</dd>
-              {serving ? (
-                <>
-                  <dt>facts by</dt>
-                  <dd>{serving.model}</dd>
-                  <dt>time</dt>
-                  <dd>
-                    {serving.latency_ms < 10
-                      ? `${serving.latency_ms.toFixed(2)} ms`
-                      : `${(serving.latency_ms / 1000).toFixed(2)} s`}
-                  </dd>
-                  <dt>cost</dt>
-                  <dd>
-                    {serving.provider === "offline"
-                      ? `$${serving.cost_usd.toFixed(4)}`
-                      : "not counted by the backend"}{" "}
-                    · {serving.input_tokens}/{serving.output_tokens} tokens
-                  </dd>
-                  <dt>live route</dt>
-                  <dd>
-                    {serving.route_model} — {serving.route_reason}
-                  </dd>
-                  {serving.live_cost_usd_per_lead ? (
-                    <>
-                      <dt>on the model</dt>
-                      <dd>
-                        ${serving.live_cost_usd_per_lead.toFixed(4)} · ~{serving.live_latency_s} s per
-                        request (measured over the whole seed, not this one)
-                      </dd>
-                    </>
-                  ) : null}
-                </>
-              ) : (
-                <>
-                  <dt>facts by</dt>
-                  <dd>{lead.facts_source}</dd>
-                </>
-              )}
-            </dl>
-          </div>
+              <div className="section-title" style={{ marginTop: 16 }}>
+                Provenance — what served this lead
+              </div>
+              <dl className="served">
+                <dt>request id</dt>
+                <dd>{lead.id}</dd>
+                <dt>received</dt>
+                <dd>{lead.received_at.replace("T", " ").replace(/\.\d+/, "").replace("Z", " UTC")}</dd>
+                <dt>seed category</dt>
+                <dd>{lead.category}</dd>
+                {serving ? (
+                  <>
+                    <dt>facts by</dt>
+                    <dd>{serving.model}</dd>
+                    <dt>time</dt>
+                    <dd>
+                      {serving.latency_ms < 10
+                        ? `${serving.latency_ms.toFixed(2)} ms`
+                        : `${(serving.latency_ms / 1000).toFixed(2)} s`}
+                    </dd>
+                    <dt>cost</dt>
+                    <dd>
+                      {serving.provider === "offline"
+                        ? `$${serving.cost_usd.toFixed(4)}`
+                        : "not counted by the backend"}{" "}
+                      · {serving.input_tokens}/{serving.output_tokens} tokens
+                    </dd>
+                    <dt>live route</dt>
+                    <dd>
+                      {serving.route_model} — {serving.route_reason}
+                    </dd>
+                    {serving.live_cost_usd_per_lead ? (
+                      <>
+                        <dt>on the model</dt>
+                        <dd>
+                          ${serving.live_cost_usd_per_lead.toFixed(4)} · ~{serving.live_latency_s} s per
+                          request (measured over the whole seed, not this one)
+                        </dd>
+                      </>
+                    ) : null}
+                  </>
+                ) : (
+                  <>
+                    <dt>facts by</dt>
+                    <dd>{lead.facts_source}</dd>
+                  </>
+                )}
+              </dl>
+            </div>
+          </details>
         </div>
 
         <div className="card-col">
@@ -297,16 +277,17 @@ export default function LeadCard({
                         onClick={() => setActiveReason(activeReason === index ? null : index)}
                       >
                         {item.text}
-                        {/* Цитата разворачивается у нажатой причины: три одинаковых
-                            цитаты под тремя причинами читаются как дефект, а не как
-                            доказательство. Ненажатые несут метку «есть цитата». */}
-                        <span className="reason-cite" dir="auto">
-                          {activeReason === index
-                            ? `“${quotes[item.quotes[0]]}”`
-                            : quotable
-                              ? `${item.quotes.length} quote${item.quotes.length > 1 ? "s" : ""} — click to show`
-                              : "whole-text property — no quote"}
-                        </span>
+                        {/* Цитата разворачивается у нажатой причины. У ненажатой не пишется
+                            ничего: объяснять механику интерфейса под каждой строкой — это
+                            служебный текст в рабочем потоке. Помечается только обратное —
+                            причина, у которой цитаты быть не может. */}
+                        {activeReason === index ? (
+                          <span className="reason-cite" dir="auto">
+                            “{quotes[item.quotes[0]]}”
+                          </span>
+                        ) : quotable ? null : (
+                          <span className="reason-cite">no quote — whole-text property</span>
+                        )}
                       </button>
                     </li>
                   );

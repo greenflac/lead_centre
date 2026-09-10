@@ -12,7 +12,20 @@
 --   POST /rest/v1/rpc/exec_sql   → 404 PGRST202 «Could not find the function public.exec_sql»
 --   GET  https://api.supabase.com/v1/projects → 401 (Management API требует отдельный PAT)
 --
--- Файл идемпотентен: повторный прогон ничего не ломает.
+-- Файл идемпотентен: повторный прогон ничего не ломает — таблицы создаются через
+-- `if not exists`, добавленные позже колонки — через `add column if not exists`,
+-- поэтому его можно накатывать поверх уже накаченной базы.
+--
+-- МИГРАЦИЯ 2026-09-10 `scores.reason_items` НЕ НАКАЧЕНА (проверено в этот день):
+--   GET /rest/v1/scores?select=reason_items → 400 42703 «column scores.reason_items
+--       does not exist»
+--   POST /rest/v1/rpc/exec_sql              → 404 PGRST202 (функции нет, DDL через
+--       PostgREST невозможен)
+--   GET  https://api.supabase.com/v1/projects → 401 (нужен отдельный PAT, его в среде нет)
+--   MCP-сервер Supabase в сессии требует авторизации и недоступен; строки подключения
+--       к Postgres (SUPABASE_DB_URL) в среде тоже нет — psql запускать не с чем.
+-- Пока миграция не накатана, живое хранилище отвечает на запись оценки
+-- StoreUnavailable «схема не применена» (PGRST204/42703), а не молча теряет причины.
 
 create extension if not exists pgcrypto;
 
@@ -40,6 +53,7 @@ create table if not exists public.scores (
     address_type   text        not null,
     event          text        not null,
     reasons        jsonb       not null default '[]'::jsonb,
+    reason_items   jsonb       not null default '[]'::jsonb,
     evidence       jsonb       not null default '[]'::jsonb,
     violations     jsonb       not null default '[]'::jsonb,
     model          text        not null default '',
@@ -50,6 +64,19 @@ create table if not exists public.scores (
     created_at     timestamptz not null default now()
 );
 create index if not exists scores_lead_id_idx on public.scores (lead_id);
+
+-- Причины приоритета — данные, а не текст: `[{"code": "urgent_timeline",
+-- "params": {"days": 14, "limit": 60}}, ...]`. Текст на русском и английском собирается
+-- из кода и параметров в `leadcentre/engine/reasons.py`; колонка `reasons` осталась
+-- готовыми русскими строками для читателей, которым хватает одного языка, но источником
+-- истины быть перестала — её пишет отрисовка. Без кодов карточка, поднятая из базы,
+-- не могла отрисовать английский, и интерфейс показывал бы русский текст под видом
+-- английского.
+-- Отдельным `alter` — чтобы файл накатывался и на уже созданную базу (create table
+-- if not exists колонку в существующую таблицу не добавляет). Старые строки получают
+-- '[]', и это читается как «кодов нет» — отдельный исход, а не пустой список причин.
+alter table public.scores
+    add column if not exists reason_items jsonb not null default '[]'::jsonb;
 
 -- Черновик ответа.
 -- lint_ok — булев, но у линтера ТРИ исхода (OK / VIOLATIONS / UNVERIFIABLE), поэтому

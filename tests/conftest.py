@@ -115,3 +115,49 @@ def make_facts(**overrides):
     }
     base.update(overrides)
     return LeadFacts(**base)
+
+
+# --- причины: сверка по коду, а не по тексту -------------------------------------
+# Причина стала данными (код плюс параметры), и тест обязан проверять сработавшее
+# правило, а не формулировку: текст правится редактором, код — миграцией. Раньше здесь
+# матчились подстроки («срок 10 дн.»), и переезд на каталог покрасил 15 тестов,
+# ни одно правило при этом не сломав. Рендеринг проверяется отдельно — tests/test_reasons.py.
+
+
+def reason_items(result) -> tuple:
+    """Причины из `Score` или прямо из кортежа, который вернул `classify_event`.
+
+    Два входа намеренно: `classify_event` отдаёт причины кортежем, `score` — внутри
+    `Score`, и заводить два набора помощников ради этого не за что.
+    """
+    return tuple(getattr(result, "reason_items", result))
+
+
+def reason_codes(result) -> list:
+    """Коды сработавших причин в порядке, в котором их выдал движок."""
+    return [item.code for item in reason_items(result)]
+
+
+def find_reason(result, code):
+    """Единственная причина с кодом `code`; нет её или их две — AssertionError.
+
+    Две причины одним кодом — это дефект движка (правило сработало дважды), а не
+    «хотя бы одна подошла», поэтому единственность проверяется здесь, а не в тесте.
+    """
+    found = [item for item in reason_items(result) if item.code is code]
+    assert found, (
+        f"нет причины {code.value}; сработали: "
+        f"{[c.value for c in reason_codes(result)]}"
+    )
+    assert len(found) == 1, f"причина {code.value} сработала {len(found)} раз(а)"
+    return found[0]
+
+
+def reason_params(result, code) -> dict:
+    """Параметры сработавшей причины: `{'days': 10, 'limit': 60}`."""
+    return find_reason(result, code).values()
+
+
+def has_reason(result, code) -> bool:
+    """Сработала ли причина с таким кодом. Для негативных контролей."""
+    return any(item.code is code for item in reason_items(result))

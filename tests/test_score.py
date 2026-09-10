@@ -10,6 +10,7 @@ from datetime import timedelta
 
 import pytest
 
+from leadcentre.engine.reasons import ReasonCode
 from leadcentre.engine.score import classify_address, classify_event, score
 from leadcentre.models import AddressType, Event, Tier
 from tests.conftest import (
@@ -18,9 +19,12 @@ from tests.conftest import (
     ADDR_OWN,
     ADDR_REGISTRAR,
     TODAY,
+    has_reason,
     lapsed_company,
     make_company,
     new_company,
+    reason_codes,
+    reason_params,
     renewal_company,
 )
 
@@ -58,21 +62,31 @@ def test_registrar_marker_wins_over_business_centre():
 
 
 @pytest.mark.parametrize(
-    ("overdue_days", "expected"),
+    ("overdue_days", "expected", "expected_code"),
     [
-        (0, Event.LAPSED),    # ровно сегодня истёк
-        (1, Event.LAPSED),
-        (45, Event.LAPSED),   # середина
-        (90, Event.LAPSED),   # ровно порог LAPSED_FRESH_DAYS — ещё повод
-        (91, Event.NONE),     # на день дальше — повода нет
-        (400, Event.NONE),
+        (0, Event.LAPSED, ReasonCode.LEI_LAPSED_FRESH),    # ровно сегодня истёк
+        (1, Event.LAPSED, ReasonCode.LEI_LAPSED_FRESH),
+        (45, Event.LAPSED, ReasonCode.LEI_LAPSED_FRESH),   # середина
+        # ровно порог LAPSED_FRESH_DAYS — ещё повод
+        (90, Event.LAPSED, ReasonCode.LEI_LAPSED_FRESH),
+        # на день дальше — повода нет, и причина уже другая
+        (91, Event.NONE, ReasonCode.LEI_LAPSED_LONG_AGO),
+        (400, Event.NONE, ReasonCode.LEI_LAPSED_LONG_AGO),
     ],
 )
-def test_lapsed_threshold_is_90_days(overdue_days, expected):
+def test_lapsed_threshold_is_90_days(overdue_days, expected, expected_code):
+    """Порог 90 наблюдаем и в поводе, и в коде причины.
+
+    Причина сверяется кодом и параметром, а не текстом: формулировка «просрочена на N
+    дней» — дело каталога (tests/test_reasons.py), а здесь проверяется, какое правило
+    сработало и с каким числом.
+    """
     event, reasons = classify_event(lapsed_company(overdue_days), TODAY)
     assert event is expected
-    assert reasons, "причина обязана быть напечатана в обоих исходах просрочки"
-    assert str(overdue_days) in reasons[0]
+    assert reason_codes(reasons) == [expected_code], (
+        "причина обязана быть названа в обоих исходах просрочки"
+    )
+    assert reason_params(reasons, expected_code) == {"days": overdue_days}
 
 
 def test_lapsed_in_future_is_not_an_event():
@@ -193,7 +207,8 @@ def test_high_outside_dubai_is_downgraded_to_medium():
     company = lapsed_company(10, city="Sharjah", address_lines=ADDR_REGISTRAR)
     result = score(company, TODAY)
     assert result.tier is Tier.MEDIUM
-    assert any("город вне целевых" in r for r in result.reasons)
+    assert reason_params(result, ReasonCode.CITY_OFF_TARGET) == {"city": "Sharjah"}
+    assert not has_reason(result, ReasonCode.CITY_NOT_SET)
 
 
 def test_high_stays_high_in_dubai_case_insensitive():
@@ -206,7 +221,7 @@ def test_inactive_entity_is_low():
     company = lapsed_company(10, address_lines=ADDR_REGISTRAR, entity_active=False)
     result = score(company, TODAY)
     assert result.tier is Tier.LOW
-    assert "юрлицо неактивно" in result.reasons
+    assert has_reason(result, ReasonCode.ENTITY_INACTIVE)
     assert result.violations == ()
 
 
