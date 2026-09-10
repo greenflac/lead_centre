@@ -35,7 +35,7 @@ sys.path.insert(0, str(REPO))
 from leadcentre.engine import extract as extract_mod
 from leadcentre.engine import reply as reply_mod
 from leadcentre.engine.facts_rules import rules_facts
-from leadcentre.engine.reasons import Language, ReasonCode
+from leadcentre.engine.reasons import Language, ReasonCode, render as render_reason
 from leadcentre.engine.score import score, score_inbound
 from leadcentre.models import InboundMessage, Tier
 from leadcentre.sources.gleif import GleifAdapter
@@ -229,13 +229,11 @@ def build_leads() -> list[dict]:
         result = score_inbound(message, facts)
         drafted = reply_mod.draft(message, facts, result.tier, prices)
         chosen = extract_mod.route(message)
-        # Подпись маршрута — служебная строка английского интерфейса, поэтому она
-        # собирается здесь из тех же чисел, а не берётся русским текстом из route().
-        long_request = len(text) > extract_mod.LONG_MESSAGE_CHARS
-        route_reason = (
-            f"{'long' if long_request else 'short'} request: {len(text)} chars "
-            f"{'>' if long_request else '<='} {extract_mod.LONG_MESSAGE_CHARS}"
-        )
+        # Подпись маршрута берётся из каталога движка на языке интерфейса, а не собирается
+        # здесь (Е1): своя английская формулировка была вторым источником текста и разошлась
+        # бы с русской при первой же правке. `Route.reason` остаётся русской строкой для
+        # отчётов, но помнит свой код — из кода и отрисовывается английский.
+        route_reason = render_reason(chosen.reason_item, UI_LANGUAGE)
         quotes = [e.value for e in result.evidence if e.kind == "quote"]
         leads.append({
             "id": external_id,
