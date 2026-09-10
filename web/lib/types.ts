@@ -68,6 +68,14 @@ export interface Lead {
   is_synthetic: boolean;
   tier: Tier;
   reasons: string[];
+  /**
+   * Language the strings in `reasons` are actually in — what happened, not what was meant
+   * (Е2). The interface is English, so anything but "en" has to be visible on the card:
+   * a lead scored before the engine kept reason codes can only be shown as stored (RU).
+   */
+  reasons_language?: string;
+  /** Why the reasons are not in the interface language. Empty when they are. */
+  reasons_note?: string;
   /** reasons[i] with the indices of evidence[] that prove it. */
   reason_links?: ReasonLink[];
   evidence: Evidence[];
