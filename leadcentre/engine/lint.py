@@ -140,6 +140,14 @@ CHECK_LENGTH = "длина"
 CHECK_SLOP = "слоп-фразы"
 CHECK_DEADLINE = "обещания сроков"
 CHECK_PRICES = "числа AED в диапазоне прайса"
+CHECK_MONEY_VERBATIM = "денежная вставка не переписана"
+CHECK_ASCII_DIGITS = "цифры в сумме европейские"
+
+# Арабо-индийские и персидские цифры. ИЗМЕРЕНО 2026-09-10 (docs/design/03_arabic_rtl.md):
+# в арабском абзаце диапазон «35 000–60 000 درهم» без латинского якоря показывается
+# читателю как «60 000–35 000» — то есть клиент видит цену задом наперёд. Проверки ниже
+# смотрят на СЫРОЕ тело: normalize() стирает подмену раньше, чем её успевают заметить.
+NON_ASCII_DIGITS = "٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹"
 
 STATUS_OK = "OK"
 STATUS_VIOLATIONS = "VIOLATIONS"
@@ -233,6 +241,40 @@ def _check_prices(
     return amounts
 
 
+def _check_money_verbatim(reply: Reply, prices: dict[str, PriceItem], violations: list[str]) -> None:
+    """Денежная вставка обязана стоять в тексте ровно так, как её собрал код.
+
+    Модель переписывает вставку: заменяет AED на درهم, теряет метки направления. Латинское
+    «AED» — единственное, что якорит число в арабской строке; без него диапазон
+    переворачивается, а проверка диапазонов этого не видит, потому что числа сами по себе
+    остаются в прайсе. Поэтому сверяем посимвольно.
+    """
+    from leadcentre.engine.reply import price_fragment
+
+    for key in reply.used_prices:
+        item = prices.get(key)
+        if item is None:
+            continue
+        if price_fragment(item) not in reply.body:
+            violations.append(
+                f"{CHECK_MONEY_VERBATIM}: вставка для «{key}» переписана — "
+                "без латинского AED и меток направления диапазон перевернётся"
+            )
+
+
+def _check_ascii_digits(body: str, violations: list[str]) -> None:
+    """В сумме не должно быть арабо-индийских цифр.
+
+    Деловая переписка в ОАЭ ведётся европейскими цифрами (ИЗМЕРЕНО по CLDR и живым
+    сайтам ОАЭ, docs/design/03_arabic_rtl.md §4), и наш прайс собирается ими же.
+    """
+    found = sorted({ch for ch in body if ch in NON_ASCII_DIGITS})
+    if found:
+        violations.append(
+            f"{CHECK_ASCII_DIGITS}: в тексте арабо-индийские цифры {''.join(found)}"
+        )
+
+
 def lint(
     reply: Reply,
     prices: dict[str, PriceItem] | None = None,
@@ -269,6 +311,10 @@ def lint(
     if prices is not None:
         amounts = _check_prices(reply, prices, violations)
         done.append(CHECK_PRICES)
+        _check_money_verbatim(reply, prices, violations)
+        done.append(CHECK_MONEY_VERBATIM)
+    _check_ascii_digits(reply.body, violations)
+    done.append(CHECK_ASCII_DIGITS)
 
     if failed:
         status = STATUS_UNVERIFIABLE
