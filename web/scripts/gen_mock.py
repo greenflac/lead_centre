@@ -25,17 +25,36 @@ import csv
 import json
 import re
 import sys
+import time
 from datetime import UTC, date, datetime
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
+from leadcentre.engine import extract as extract_mod
 from leadcentre.engine import reply as reply_mod
 from leadcentre.engine.facts_rules import rules_facts
 from leadcentre.engine.score import score, score_inbound
 from leadcentre.models import InboundMessage, Tier
 from leadcentre.sources.gleif import GleifAdapter
+
+# --- чем обслужен лид (README обещает это в карточке) ---
+#
+# В mock-режиме модель НЕ вызывается: факты даёт офлайн-эвристика rules_facts. Поэтому в
+# карточку идёт то, что действительно исполнилось (Е2): имя эвристики, её замеренное время
+# и нулевая стоимость. Отдельной строкой — решение маршрутизатора: какую модель выбрал бы
+# живой контур для этого текста. Решение настоящее, его принимает extract.route() по длине
+# обращения, до всякой сети, поэтому его можно показать честно и назвать «маршрут», а не
+# «обслужено».
+OFFLINE_MODEL = "rules_facts (офлайн-эвристика)"
+
+# ИЗМЕРЕНО, прогон набора на живом контуре, записан в README §«Measured»:
+# $0.0033 за обращение при холодном кэше; задержка извлечения — 35.1 с на 8 обращений.
+# Числа сюда попадают как справка «сколько стоит то же самое на модели», и в карточке
+# помечены как замер по набору, а не как замер этого обращения.
+LIVE_COST_USD_PER_LEAD = 0.0033
+LIVE_LATENCY_S = 35.1 / 8
 
 SEED_CSV = REPO / "data" / "inbound_seed.csv"
 OUT_DIR = REPO / "web" / "mock"
@@ -124,6 +143,49 @@ CATEGORY_BY_PREFIX = {
 }
 
 
+
+# --- какая цитата доказывает какую причину (02_references.md §6.3) ---
+#
+# Связь не выводится из формулировки причины руками: по каждой цитате прогоняется тот же
+# извлекатель rules_facts, что дал факты, и цитата признаётся доказательством, если из неё
+# самой следует тот же факт (Е1 — никаких копий маркеров). Причины, у которых цитаты быть
+# не может (язык обращения, уверенность извлечения), получают пустой список: третий исход
+# «не цитируется» не сворачивается в «цитата не нашлась» (Р1).
+
+REASON_NOT_QUOTABLE = ("язык обращения", "уверенность извлечения",
+                       "из текста не извлечён")
+
+
+def _facts_of(fragment: str, received_on: date) -> object:
+    return rules_facts(InboundMessage(
+        external_id="quote", channel="form", text=fragment, received_at=received_on,
+    ))
+
+
+def link_reasons(reasons, quotes, facts, received_on: date) -> list[dict]:
+    """Для каждой причины — индексы цитат, из которых она следует."""
+    per_quote = [_facts_of(q, received_on) for q in quotes]
+    linked: list[dict] = []
+    for reason in reasons:
+        indices: list[int] = []
+        if reason.startswith(REASON_NOT_QUOTABLE):
+            pass
+        elif reason.startswith("срок "):
+            indices = [i for i, f in enumerate(per_quote)
+                       if f.timeline_days == facts.timeline_days]
+        elif reason.startswith("запрошено услуг"):
+            indices = [i for i, f in enumerate(per_quote) if f.request_types]
+        elif reason.startswith("команда "):
+            indices = [i for i, f in enumerate(per_quote)
+                       if f.headcount == facts.headcount]
+        elif reason.startswith("назван бюджет"):
+            indices = [i for i, f in enumerate(per_quote) if f.budget_hint]
+        elif reason.startswith("обращение помечено как спам"):
+            indices = [i for i, f in enumerate(per_quote) if f.is_spam]
+        linked.append({"text": reason, "quotes": indices})
+    return linked
+
+
 def build_leads() -> list[dict]:
     prices = reply_mod.load_prices()
     rows = list(csv.DictReader(SEED_CSV.open(encoding="utf-8")))
@@ -146,6 +208,7 @@ def build_leads() -> list[dict]:
             is_synthetic=row["is_synthetic"].strip().lower() == "true",
         )
         # Общая с измерительным стендом эвристика (Е1): своя копия расходилась.
+        started = time.perf_counter()
         facts = rules_facts(
             InboundMessage(
                 external_id=external_id,
@@ -154,8 +217,11 @@ def build_leads() -> list[dict]:
                 received_at=date.fromisoformat(row["received_at"][:10]),
             )
         )
+        heuristic_ms = (time.perf_counter() - started) * 1000
         result = score_inbound(message, facts)
         drafted = reply_mod.draft(message, facts, result.tier, prices)
+        chosen = extract_mod.route(message)
+        quotes = [e.value for e in result.evidence if e.kind == "quote"]
         leads.append({
             "id": external_id,
             "channel": message.channel,
@@ -166,6 +232,7 @@ def build_leads() -> list[dict]:
             "is_synthetic": message.is_synthetic,
             "tier": result.tier.value,
             "reasons": list(result.reasons),
+            "reason_links": link_reasons(result.reasons, quotes, facts, received_on),
             "evidence": [{"kind": e.kind, "value": e.value} for e in result.evidence],
             "violations": list(result.violations),
             "facts": {
@@ -180,12 +247,27 @@ def build_leads() -> list[dict]:
                 "confidence": facts.confidence,
             },
             "facts_source": "offline_heuristic",
+            # Чем обслужен лид: исполнилось — офлайн-эвристика; маршрут — настоящее
+            # решение extract.route() по длине текста.
+            "serving": {
+                "provider": "offline",
+                "model": OFFLINE_MODEL,
+                "latency_ms": round(heuristic_ms, 2),
+                "input_tokens": 0,
+                "output_tokens": 0,
+                "cost_usd": 0.0,
+                "route_model": chosen.model,
+                "route_reason": chosen.reason,
+                "live_cost_usd_per_lead": LIVE_COST_USD_PER_LEAD,
+                "live_latency_s": round(LIVE_LATENCY_S, 1),
+            },
             "reply": {
                 "body": drafted.body,
                 "language": drafted.language,
                 "outcome": drafted.outcome,
                 "needs_human": drafted.needs_human,
                 "used_prices": list(drafted.used_prices),
+                "notice": drafted.notice,
             },
             "status": "new",
         })

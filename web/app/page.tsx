@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { apiBase, apiMode, getCompanies, getLeads, getStats, isMock } from "../lib/api";
+import { apiBase, getCompanies, getLeads, getStats, isMock } from "../lib/api";
 import { ApiError, type Company, type Lead, type Stats } from "../lib/types";
 import DiscoveredView from "../components/DiscoveredView";
 import InboxView from "../components/InboxView";
@@ -98,54 +98,73 @@ export default function Page() {
     <>
       <header className="topbar">
         <div className="topbar-inner">
-          <div className="brand">
-            <span className="brand-name">SORP Lead Centre</span>
-            <span className="brand-sub">inbound triage &amp; registry watchlist</span>
-          </div>
-          <div className="topbar-spacer" />
-          <span className={`mode-pill ${isMock ? "" : "live"}`} title={isMock ? "No backend attached: data generated from repository files by web/scripts/gen_mock.py" : `Live backend: ${apiBase}`}>
-            {apiMode} data
-          </span>
+          <span className="brand-name">SORP Lead Centre</span>
+          <span className="brand-sub">inbound triage &amp; registry watchlist</span>
         </div>
       </header>
 
+      {/* Один постоянный индикатор режима данных вместо пяти оговорок по экрану
+          (02_references.md §6.2, образец — полоса тестового режима Stripe). */}
+      <div className="provenance-strip">
+        <div className="provenance-inner">
+          <span className="provenance-mode">{isMock ? "Demo data" : "Live backend"}</span>
+          {isMock ? (
+            <>
+              <span className="provenance-item">
+                <b>{stats ? stats.leads.synthetic : leads.length}</b> invented requests —{" "}
+                <code>{stats?.leads.source ?? "data/inbound_seed.csv"}</code>
+              </span>
+              <span className="provenance-item">
+                registry records are <b>real</b>: {companies.length} from{" "}
+                <code>{stats?.companies.source ?? "gleif"}</code>
+              </span>
+              <span className="provenance-item">
+                prices from a <b>demo price list</b>, not SORP&apos;s
+              </span>
+              <span className="provenance-item">
+                facts by an <b>offline heuristic</b> — no model call in this mode
+              </span>
+            </>
+          ) : (
+            <span className="provenance-item">
+              backend <code>{apiBase}</code> — facts extracted by the language model
+            </span>
+          )}
+        </div>
+      </div>
+
       <main className="shell">
+        {/* Три числа, а не пять равновесных плиток (02_references.md §6.1). Watchlist уехал
+            во вкладку Discovered, где он и живёт; режим данных — в полосу выше. */}
         <div className="stats">
           <div className="stat">
             <div className="stat-label">Requests scored</div>
             <div className="stat-value">
-              {leads.length} <small>{counts.decided ? `· ${counts.decided} decided` : "· none decided yet"}</small>
+              {leads.length}
+              <span className="stat-sub"> · decided {counts.decided} of {leads.length}</span>
             </div>
           </div>
           <div className="stat">
-            <div className="stat-label">High / medium / low</div>
+            <div className="stat-label">Hot, waiting for an answer</div>
             <div className="stat-value">
-              {counts.byTier.HIGH} / {counts.byTier.MEDIUM} / {counts.byTier.LOW}
+              {counts.byTier.HIGH}
+              <span className="stat-sub">
+                {" "}
+                · medium {counts.byTier.MEDIUM} · low {counts.byTier.LOW}
+              </span>
             </div>
           </div>
           <div className="stat">
             <div className="stat-label">Not scored (invariant)</div>
             <div className="stat-value">
-              {counts.byTier.INVALID} <small>· {stats?.leads.violations ?? 0} violations</small>
-            </div>
-          </div>
-          <div className="stat">
-            <div className="stat-label">Watchlist companies</div>
-            <div className="stat-value">
-              {companies.length}{" "}
-              <small>· {companies.filter((item) => item.tier === "HIGH").length} high</small>
-            </div>
-          </div>
-          <div className="stat">
-            <div className="stat-label">Data</div>
-            <div className="stat-value">
-              <small>
-                {stats
-                  ? `${stats.leads.synthetic} synthetic / ${stats.leads.real} real requests · ${stats.companies.source}`
-                  : statsFailed
-                    ? "counters unavailable — /stats did not answer"
-                    : "loading…"}
-              </small>
+              {counts.byTier.INVALID}
+              <span className="stat-sub">
+                {" "}
+                ·{" "}
+                {statsFailed
+                  ? "violations unavailable — /stats did not answer"
+                  : `${stats?.leads.violations ?? 0} violations`}
+              </span>
             </div>
           </div>
         </div>

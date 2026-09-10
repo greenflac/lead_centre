@@ -9,7 +9,9 @@
 // exists only because a browser cannot run Python with no backend attached, and it must be
 // re-checked against those three files whenever the rubric moves. Last synced against
 // commit ae00357 ("одна эвристика фактов на всех; горизонт срочности расширен до 60 дней")
-// plus SIGNALS_FOR_HIGH = 2.
+// plus SIGNALS_FOR_HIGH = 2. Re-synced 2026-09-10 against RequestType.RENEWAL, the
+// sentence-quote rule (facts_rules.hit / _sentence_around) and _drop_setup_inside_renewal;
+// the cross-check of 10 requests through both paths is in web/scripts/crosscheck.py.
 // When NEXT_PUBLIC_API_URL is set, nothing in this file runs: the Python engine decides.
 
 import type { Evidence, LeadFacts, Tier } from "./types";
@@ -28,6 +30,23 @@ const LADDER: Tier[] = ["LOW", "MEDIUM", "HIGH"];
 const INBOUND_BASE: Tier = "MEDIUM";
 const INBOUND_BASE_NO_REQUEST: Tier = "LOW";
 
+// --- routing, mirrored from leadcentre/engine/extract.py ---
+const LONG_MESSAGE_CHARS = 600;
+const SHORT_MODEL = "claude-haiku-4-5-20251001";
+const LONG_MODEL = "claude-opus-5";
+
+/**
+ * Which model the live pipeline would pick for this text, and why. The decision is made by
+ * message length before any network call, so the mock can state it honestly — it is the
+ * routing rule, not a claim that a model ran.
+ */
+export function routeForText(text: string): { model: string; reason: string } {
+  const length = text.length;
+  return length > LONG_MESSAGE_CHARS
+    ? { model: LONG_MODEL, reason: `длинное обращение: ${length} символов > ${LONG_MESSAGE_CHARS}` }
+    : { model: SHORT_MODEL, reason: `короткое обращение: ${length} символов <= ${LONG_MESSAGE_CHARS}` };
+}
+
 // --- markers mirrored from leadcentre/engine/facts_rules.py ---
 const URGENT_DEFAULT_DAYS = 14;
 const RULES_CONFIDENCE_MATCHED = 1.0;
@@ -41,18 +60,28 @@ const SPAM_MARKERS = [
 ];
 
 const TYPE_MARKERS: [string, string[]][] = [
-  ["office", ["офис", "office", "кабинет", "рабочих мест", "рабочие места", "seats", "desk",
+  ["office", ["офис", "office", "кабинет", "рабочих мест", "рабочие места", "рабочее место",
+    "seats", "desk", "переговорн",
     "флекси", "flexi", "помещение", "кв.м", "sqm", "переговорк", "unit at"]],
-  ["setup", ["лицензи", "licence", "license", "регистрац", "регистрируем", "register",
-    "открыть компанию", "открываем", "open company", "company formation", "фризон",
+  ["setup", ["лицензи", "licence", "license", "регистрац", "регистрируем", "зарегистр", "register",
+    "открыть компанию", "открытие компании", "открываем", "open company",
+    "company formation", "incorporation", "фризон",
     "фриз зона", "freezone", "free zone", "mainland", "мейнленд", "юрлиц", "филиал",
     "холдинг", "تأسيس"]],
   ["visa", ["виз", "visa", "emirates id", "резидентств", "residence", "golden"]],
-  ["accounting", ["бухгалт", "accounting", "bookkeeping", "аудит", "audit", "налог", " tax",
-    "vat", "отчётност", "отчетност"]],
-  ["bank", ["банк", "bank", "счёт в банке", "счет в банке", "платёжный шлюз",
-    "payment gateway"]],
+  ["accounting", ["бухгалт", "бухучёт", "бухучет", "accounting", "bookkeeping", "аудит", "audit",
+    "налог", " tax", "vat",
+    "отчётност", "отчетност"]],
+  ["renewal", ["продлен", "продли", "продлева", "renew", "истекает", "истекл", "истёк", "истек",
+    "заканчивается", "expires", "expiry", "expiring", "ежегодн", "annual fee"]],
+  ["bank", ["банк", "bank", "счёт в банке", "счет в банке", "открыть счёт", "открыть счет",
+    "открытие счёта", "открытие счета", "open an account", "current account",
+    "платёжный шлюз", "payment gateway"]],
 ];
+
+// Слова о лицензии звучат одинаково при первичной регистрации и при продлении.
+// Порт facts_rules.LICENCE_MARKERS / _drop_setup_inside_renewal.
+const LICENCE_MARKERS = ["лицензи", "licence", "license"];
 
 const BUDGET_MARKERS = [
   "бюджет", "budget", "aed", "дирхам", "готовы подписать", "договор на", "цена устроит",
@@ -75,14 +104,42 @@ const MONTHS: [string, number][] = [
 
 const NUM_DAYS_RE = /(?:через|in|within)\s+(\d+)\s*(?:дн|дней|day|days)/i;
 const NUM_WEEKS_RE = /(?:через|in|within)\s+(\d+)\s*(?:недел|week)/i;
-const EXPIRES_RE = /(?:expires?|истека\w*|заканчива\w*|слетает)\D{0,25}(\d+)\s*(дн|day|week|недел)/i;
-const HEADCOUNT_RE = /(\d+)\s*(?:[а-яёa-z]+\s+)?(?:человек|чел\b|людей|people|ppl|persons|seats|мест\b|сотрудник\w*|staff)/i;
+const EXPIRES_RE = /(?:expires?|истека[а-яё]*|заканчива[а-яё]*|слетает)\D{0,25}(\d+)\s*(дн|day|week|недел)/i;
+// \b и \w в JavaScript считают словом только ASCII, а в Python — и кириллицу тоже.
+// ИЗМЕРЕНО сверкой (web/scripts/crosscheck.py): из-за этого «12 рабочих мест» давало
+// headcount=12 в Python и null в TS, и обращение urg-02 расходилось по приоритету
+// HIGH против MEDIUM. Границы слова записаны явным просмотром вперёд.
+const WORD_TAIL = "(?![0-9A-Za-z_\\u0400-\\u04ff])";
+const HEADCOUNT_RE = new RegExp(
+  `(\\d+)\\s*(?:[а-яёa-z]+\\s+)?(?:человек|чел${WORD_TAIL}|людей|people|ppl${WORD_TAIL}|persons|seats|мест${WORD_TAIL}|сотрудник[а-яё]*|staff)`,
+  "i",
+);
 const MONEY_RE = /\d[\d\s.,]*\s*(?:aed|дирхам|тысяч|k\b)/i;
 
 // scrub_pii's detectors, used here only to answer "is there a contact in the text".
 const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 const PHONE_RE = /(?<![\w])\+?\d[\d\-\s().]{5,}\d(?![\w])/;
 const MIN_PHONE_DIGITS = 9;
+
+// Границы предложения в чате: перевод строки считается концом наравне с точкой.
+const SENTENCE_BOUNDARIES = ".!?\n;";
+const MAX_QUOTE_CHARS = 160;
+
+/** Порт facts_rules._sentence_around: предложение, внутри которого лежит совпадение. */
+function sentenceAround(text: string, start: number, end: number): string {
+  let left = -1;
+  for (const ch of SENTENCE_BOUNDARIES) left = Math.max(left, text.lastIndexOf(ch, start - 1));
+  let right = text.length;
+  for (const ch of SENTENCE_BOUNDARIES) {
+    const pos = text.indexOf(ch, end);
+    if (pos >= 0) right = Math.min(right, pos);
+  }
+  const fragment = text.slice(left + 1, right).trim();
+  if (fragment.length <= MAX_QUOTE_CHARS) return fragment;
+  const head = Math.max(left + 1, start - Math.floor(MAX_QUOTE_CHARS / 2));
+  const cut = text.slice(head, head + MAX_QUOTE_CHARS).trim();
+  return cut.includes(" ") ? `${cut.slice(0, cut.lastIndexOf(" "))}…` : cut;
+}
 
 function step(tier: Tier, delta: number): Tier {
   const index = Math.min(Math.max(LADDER.indexOf(tier) + delta, 0), LADDER.length - 1);
@@ -132,6 +189,29 @@ function timelineDays(text: string, receivedAt: Date): number | null {
   return null;
 }
 
+/**
+ * Port of facts_rules._drop_setup_inside_renewal. "Renew the licence" is not registering a
+ * company: SETUP is dropped when it was lit only by a licence word standing next to a
+ * renewal word in the same sentence. Measured on urg-13, where markers said setup and the
+ * model said renewal — and the model was right.
+ */
+function dropSetupInsideRenewal(
+  low: string,
+  types: string[],
+  fired: Record<string, string[]>,
+): string[] {
+  if (!types.includes("setup") || !types.includes("renewal")) return types;
+  const setupMarkers = fired.setup ?? [];
+  if (setupMarkers.some((marker) => !LICENCE_MARKERS.includes(marker))) return types;
+  const renewalMarkers = fired.renewal ?? [];
+  for (const sentence of low.split(/[.!?\n;]/)) {
+    const hasLicence = setupMarkers.some((marker) => sentence.includes(marker));
+    const hasRenewal = renewalMarkers.some((marker) => sentence.includes(marker));
+    if (hasLicence && !hasRenewal) return types;
+  }
+  return types.filter((kind) => kind !== "setup");
+}
+
 export interface ExtractionResult {
   facts: LeadFacts;
   quotes: string[];
@@ -145,28 +225,33 @@ export function extractFacts(text: string, receivedAt: Date = new Date()): Extra
   const low = text.toLowerCase();
   const quotes: string[] = [];
 
-  // Quote what actually matched, not our retelling of it.
+  // The proof is the sentence the customer wrote, not the stem our matcher found:
+  // a quote «регистрац» reads as a stemmer bug, not as evidence (facts_rules.hit).
   const hit = (marker: string): boolean => {
     const index = low.indexOf(marker);
     if (index < 0) return false;
-    const fragment = text.slice(index, index + marker.length);
-    if (!quotes.includes(fragment)) quotes.push(fragment);
+    const fragment = sentenceAround(text, index, index + marker.length);
+    if (fragment && !quotes.includes(fragment)) quotes.push(fragment);
     return true;
   };
 
-  const types: string[] = [];
+  let types: string[] = [];
+  const fired: Record<string, string[]> = {};
   for (const [kind, markers] of TYPE_MARKERS) {
     let matched = false;
-    for (const marker of markers) matched = hit(marker) || matched;
+    for (const marker of markers) {
+      if (low.includes(marker)) (fired[kind] ??= []).push(marker);
+      matched = hit(marker) || matched;
+    }
     if (matched) types.push(kind);
   }
+  types = dropSetupInsideRenewal(low, types, fired);
 
   let headcount: number | null = null;
   const head = low.match(HEADCOUNT_RE);
   if (head && head.index !== undefined) {
     headcount = parseInt(head[1], 10);
-    const fragment = text.slice(head.index, head.index + head[0].length);
-    if (!quotes.includes(fragment)) quotes.push(fragment);
+    quotes.push(text.slice(head.index, head.index + head[0].length));
   }
 
   // budget_hint carries the text itself, not a paraphrase: the rubric looks for a figure
@@ -176,7 +261,7 @@ export function extractFacts(text: string, receivedAt: Date = new Date()): Extra
   if (money && money.index !== undefined) {
     const fragment = text.slice(money.index, money.index + money[0].length).trim();
     budgetParts.push(fragment);
-    if (!quotes.includes(fragment)) quotes.push(fragment);
+    quotes.push(fragment);
   }
   for (const marker of BUDGET_MARKERS) {
     if (hit(marker)) {
@@ -209,6 +294,32 @@ export interface ScoreResult {
   reasons: string[];
   evidence: Evidence[];
   violations: string[];
+}
+
+/**
+ * Which quotes prove which reason. Same method as web/scripts/gen_mock.py: the extractor is
+ * run over each quote, and a quote counts as proof when the same fact follows from it alone
+ * — no second copy of the markers (Е1). Reasons that cannot have a quote (language of the
+ * whole text, extraction confidence) get an empty list, and that third outcome is not
+ * folded into "no quote found" (Р1).
+ */
+export function linkReasons(
+  reasons: string[],
+  quotes: string[],
+  facts: LeadFacts,
+  receivedAt: Date = new Date(),
+): { text: string; quotes: number[] }[] {
+  const perQuote = quotes.map((quote) => extractFacts(quote, receivedAt).facts);
+  const pick = (test: (f: LeadFacts) => boolean) =>
+    perQuote.map((f, index) => (test(f) ? index : -1)).filter((index) => index >= 0);
+  return reasons.map((text) => {
+    if (text.startsWith("срок ")) return { text, quotes: pick((f) => f.timeline_days === facts.timeline_days) };
+    if (text.startsWith("запрошено услуг")) return { text, quotes: pick((f) => f.request_types.length > 0) };
+    if (text.startsWith("команда ")) return { text, quotes: pick((f) => f.headcount === facts.headcount) };
+    if (text.startsWith("назван бюджет")) return { text, quotes: pick((f) => Boolean(f.budget_hint)) };
+    if (text.startsWith("обращение помечено как спам")) return { text, quotes: pick((f) => f.is_spam) };
+    return { text, quotes: [] };
+  });
 }
 
 /** Port of score.score_inbound. Three outcomes: INVALID is never folded into LOW. */

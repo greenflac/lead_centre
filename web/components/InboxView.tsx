@@ -3,14 +3,40 @@
 import { useMemo, useState } from "react";
 import type { ApiError, Lead, Tier } from "../lib/types";
 import LeadCard from "./LeadCard";
-import { CHANNEL_LABEL, EmptyState, ErrorNotice, LoadingRows, SyntheticTag, TierChip, timeAgo } from "./ui";
+import { CHANNEL_LABEL, EmptyState, ErrorNotice, isRtlText, LoadingRows, TierChip, timeAgo } from "./ui";
 
 const TIERS: Tier[] = ["HIGH", "MEDIUM", "LOW", "INVALID"];
 
+const PREVIEW_CHARS = 130;
+// Изоляты направления, которые ставит наш черновик и часто ставят почтовые клиенты.
+const ISOLATE_OPEN = /[\u2066\u2067\u2068]/g;
+const ISOLATE_CLOSE = /\u2069/g;
+
+/**
+ * Превью строки списка. Обрезка по кодовым единицам может разрезать текст внутри изолята
+ * направления, а непарный LRI/RLI действует до конца абзаца и утаскивает в свой ран весь
+ * следующий текст — измерено в docs/design/03_arabic_rtl.md §2.6. Поэтому после обрезки
+ * недостающие PDI дописываются.
+ */
 function preview(text: string): string {
   const flat = text.replace(/\s+/g, " ").trim();
   if (!flat) return "— empty message —";
-  return flat.length > 130 ? `${flat.slice(0, 130)}…` : flat;
+  if (flat.length <= PREVIEW_CHARS) return flat;
+  const cut = flat.slice(0, PREVIEW_CHARS);
+  const unclosed = (cut.match(ISOLATE_OPEN) ?? []).length - (cut.match(ISOLATE_CLOSE) ?? []).length;
+  return `${cut}${"\u2069".repeat(Math.max(0, unclosed))}…`;
+}
+
+/** The reason without its threshold half: "срок 14 дн. — не больше 60" → "срок 14 дн." */
+function shortReason(reason: string): string {
+  return reason.split(" — ")[0].split(", но ")[0];
+}
+
+/** One line of "why", so the manager decides what to open without opening it (Einstein). */
+function whyLine(lead: Lead): string {
+  const parts = lead.reasons.filter((item) => !item.startsWith("язык обращения")).map(shortReason);
+  const line = (parts.length ? parts : lead.reasons.map(shortReason)).slice(0, 3).join(" · ");
+  return line;
 }
 
 export default function InboxView({
@@ -35,9 +61,18 @@ export default function InboxView({
   const [tierFilter, setTierFilter] = useState<Tier | null>(null);
   const [query, setQuery] = useState("");
 
+  // Позиция в списке — самостоятельный канал приоритета (01_material.md §3.2) и ответ на
+  // вопрос «что делать сейчас», а не «что у нас есть» (02_references.md §1.8). Внутри тира
+  // порядок по свежести: два обращения одного тира разделяет только время ожидания.
+  const TIER_ORDER: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2, INVALID: 3 };
+
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return leads.filter((lead) => {
+    return [...leads].sort((a, b) => {
+      const byTier = (TIER_ORDER[a.tier] ?? 9) - (TIER_ORDER[b.tier] ?? 9);
+      if (byTier !== 0) return byTier;
+      return new Date(b.received_at).getTime() - new Date(a.received_at).getTime();
+    }).filter((lead) => {
       if (tierFilter && lead.tier !== tierFilter) return false;
       if (!needle) return true;
       return (
@@ -72,7 +107,7 @@ export default function InboxView({
       <div className="panel">
         <div className="panel-head">
           <span className="panel-title">Inbox</span>
-          <span className="panel-note">
+          <span className="note">
             {loading ? "loading…" : `${filtered.length} of ${leads.length}`}
           </span>
           <input
@@ -111,8 +146,27 @@ export default function InboxView({
             <LoadingRows rows={8} />
           ) : filtered.length === 0 ? (
             <EmptyState
-              title="Nothing matches this filter"
-              hint="Clear the priority filter or the search box."
+              title={
+                tierFilter === "INVALID"
+                  ? "No request was refused a priority"
+                  : "Nothing matches this filter"
+              }
+              hint={
+                tierFilter === "INVALID"
+                  ? "«Not scored» is a third outcome, not a low priority: the engine returns it when an invariant is broken — for example HIGH without a quote from the request text. On this seed no request hit that, and an empty list here is the honest result, not a missing screen."
+                  : "Clear the priority filter or the search box."
+              }
+              action={
+                <button
+                  className="btn"
+                  onClick={() => {
+                    setTierFilter(null);
+                    setQuery("");
+                  }}
+                >
+                  Show all {leads.length}
+                </button>
+              }
             />
           ) : (
             filtered.map((lead) => (
@@ -125,11 +179,19 @@ export default function InboxView({
                 <div className="lead-row-top">
                   <TierChip tier={lead.tier} />
                   <span className="channel">{CHANNEL_LABEL[lead.channel] ?? lead.channel}</span>
-                  {lead.status === "approved" ? <span className="chip chip-status-approved">in CRM</span> : null}
-                  {lead.status === "rejected" ? <span className="chip chip-status-rejected">disagreed</span> : null}
+                  {lead.status === "approved" ? <span className="chip chip-status">in CRM</span> : null}
+                  {lead.status === "rejected" ? <span className="chip chip-status">disagreed</span> : null}
                   <span className="lead-row-meta">{now ? timeAgo(lead.received_at, now) : ""}</span>
                 </div>
-                <div className="lead-row-preview">{preview(lead.text)}</div>
+                {/* dir="auto": арабская строка обязана начинаться справа, соседняя русская —
+                    слева (docs/design/03_arabic_rtl.md §2.5). */}
+                <div
+                  className={`lead-row-preview${isRtlText(lead.text) ? " rtl-block" : ""}`}
+                  dir="auto"
+                >
+                  {preview(lead.text)}
+                </div>
+                {whyLine(lead) ? <div className="lead-row-why">{whyLine(lead)}</div> : null}
               </button>
             ))
           )}
@@ -148,10 +210,6 @@ export default function InboxView({
             <EmptyState title="No request selected" hint="Pick a request on the left to open its card." />
           </div>
         )}
-        <div className="footnote">
-          Every card here is built from <code>data/inbound_seed.csv</code> — invented requests, marked{" "}
-          <SyntheticTag /> in the card. SORP has no real request log yet, and we do not pretend otherwise.
-        </div>
       </div>
     </div>
   );
