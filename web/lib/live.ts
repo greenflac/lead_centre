@@ -48,6 +48,36 @@ export function normalizeFacts(value: unknown): LeadFacts {
   };
 }
 
+/**
+ * Reasons in the language of the interface, with three outcomes kept apart (Р1).
+ *
+ * The engine stores a reason as a code plus parameters and renders it on demand, so the
+ * API hands over `reasons_by_language` — and it contains ONLY the languages it could
+ * actually assemble. A missing "en" key is therefore the machine-readable "do not pass the
+ * Russian text off as English": rows written before reason codes existed
+ * (`reasons_outcome: "no_codes"`) can never be rendered in English, because there is no way
+ * back from a finished string to a code.
+ *
+ *   ok        → the English rendering of the very reason the engine produced;
+ *   empty     → no reasons at all, and that is not a failure;
+ *   otherwise → the stored Russian text, marked as stored, never relabelled as English.
+ */
+export function uiReasons(score: Json): Pick<Lead, "reasons" | "reasons_language" | "reasons_note"> {
+  const byLanguage = asObject(score.reasons_by_language);
+  const english = asStrings(byLanguage.en);
+  const stored = asStrings(score.reasons);
+  if (english.length) return { reasons: english, reasons_language: "en", reasons_note: "" };
+  if (!stored.length) return { reasons: [], reasons_language: "en", reasons_note: "" };
+  const russian = asStrings(byLanguage.ru);
+  return {
+    reasons: russian.length ? russian : stored,
+    reasons_language: "ru",
+    reasons_note:
+      "Shown as stored, in Russian: this lead was scored before the engine kept reason " +
+      "codes, so its reasons cannot be rendered in English. Rescore it to get them.",
+  };
+}
+
 function normalizeReply(value: unknown): Reply {
   const reply = asObject(value);
   return {
@@ -84,7 +114,7 @@ export function normalizeCard(value: unknown): Lead {
     received_at: asString(lead.created_at) || `${asString(lead.received_at, "")}T00:00:00Z`,
     is_synthetic: asBool(lead.is_synthetic),
     tier: scored ? asTier(score.tier) : "INVALID",
-    reasons: scored ? asStrings(score.reasons) : [],
+    ...(scored ? uiReasons(score) : { reasons: [], reasons_language: "en", reasons_note: "" }),
     evidence: asEvidence(score.evidence),
     violations: scored ? asStrings(score.violations) : ["карточка без оценки: score отсутствует"],
     facts,
@@ -108,8 +138,8 @@ export function normalizePostedLead(value: unknown, text: string, channel: strin
     category: "typed in demo",
     received_at: new Date().toISOString(),
     is_synthetic: asBool(body.is_synthetic),
+    ...uiReasons(score),
     tier: asTier(score.tier),
-    reasons: asStrings(score.reasons),
     evidence: asEvidence(score.evidence),
     violations: asStrings(score.violations),
     facts,
