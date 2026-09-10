@@ -98,7 +98,17 @@ HEADCOUNT_RE = re.compile(
     r"|партнёр\w*|партнер\w*|виз\w*|visas?)",
     re.IGNORECASE,
 )
-MONEY_RE = re.compile(r"\d[\d\s.,]*\s*(?:aed|дирхам|тысяч|k\b)", re.IGNORECASE)
+# Сумма берётся целиком, а не одним последним числом. Цитата — обещание дословности:
+# «120-150 тысяч дирхам», урезанные до «150 тысяч», превращают диапазон в точку, а «до
+# 180k AED» без «до» — потолок в ориентир. И то и другое читатель ловит по тексту рядом.
+MONEY_QUALIFIERS = r"(?:до|от|около|примерно|порядка|up\s+to|around|about)\s+"
+MONEY_UNITS = r"(?:aed|дирхам\w*|тысяч\w*|k\b)"
+MONEY_RE = re.compile(
+    rf"(?:{MONEY_QUALIFIERS})?"
+    rf"\d[\d\s.,]*(?:\s*[-–—]\s*\d[\d\s.,]*)?\s*{MONEY_UNITS}"
+    rf"(?:\s+(?:aed|дирхам\w*))?",
+    re.IGNORECASE,
+)
 
 
 def _timeline_days(text: str, received_at: date) -> int | None:

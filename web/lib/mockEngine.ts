@@ -114,7 +114,15 @@ const HEADCOUNT_RE = new RegExp(
   `(\\d+)\\s*(?:[а-яёa-z]+\\s+){0,2}?(?:человек|чел${WORD_TAIL}|людей|people|ppl${WORD_TAIL}|persons|seats|мест${WORD_TAIL}|сотрудник[а-яё]*|staff|партнёр[а-яё]*|партнер[а-яё]*|виз[а-яё]*|visas?)`,
   "gi",
 );
-const MONEY_RE = /\d[\d\s.,]*\s*(?:aed|дирхам|тысяч|k\b)/i;
+// Порт facts_rules.MONEY_RE: сумма цитируется целиком — с диапазоном, с «до»/«от» и с
+// валютой. Урезанная до последнего числа, цитата меняет смысл: диапазон становится точкой.
+const MONEY_QUALIFIERS = "(?:до|от|около|примерно|порядка|up\\s+to|around|about)\\s+";
+const MONEY_UNITS = "(?:aed|дирхам[а-яё]*|тысяч[а-яё]*|k\\b)";
+const MONEY_RE = new RegExp(
+  `(?:${MONEY_QUALIFIERS})?\\d[\\d\\s.,]*(?:\\s*[-–—]\\s*\\d[\\d\\s.,]*)?\\s*${MONEY_UNITS}` +
+    `(?:\\s+(?:aed|дирхам[а-яё]*))?`,
+  "i",
+);
 
 // scrub_pii's detectors, used here only to answer "is there a contact in the text".
 const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
