@@ -114,6 +114,12 @@ prints `checked N, violations M, could not K`. Zero violations out of zero check
 pass. The same rule holds for the store (`success` / `rejected` / `unavailable`), the CRM
 sink (`sent` / `rejected` / `unavailable` / `skipped`) and the reply linter.
 
+![The dashboard against the live backend: facts extracted by the model](web/screenshots/08-live-backend.png)
+
+*Shot against the real API, not the demo data: the bar names the backend address and the
+facts came from the model. The 21-day deadline is the client's own, even though the same
+message says "today" — that word counts as urgency, not as a date.*
+
 ![Provider budget error: a readable message, the raw server detail and a retry button](web/screenshots/06-error-provider-budget.png)
 
 *The failure path is part of the product. When the model provider refuses on budget or rate
