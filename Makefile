@@ -15,7 +15,7 @@ discover: ## скоринг с живым GLEIF
 fetch: ## обновить кэш из GLEIF
 	python -m leadcentre.cli fetch
 
-demo: ## сквозная проверка обещания из README: четыре обращения, 31 проверка
+demo: ## сквозная проверка обещания из README: четыре обращения, около 32 проверок
 	PYTHONPATH=. OFFLINE=1 python scripts/e2e_demo.py
 
 check-web: ## приборы дашборда: контраст, свойства системы, сверка порта с движком

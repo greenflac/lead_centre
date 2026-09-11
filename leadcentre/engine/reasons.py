@@ -427,6 +427,16 @@ CATALOGUE: dict[ReasonCode, ReasonSpec] = {
                          "{threshold:.2f} threshold",
         },
     ),
+    ReasonCode.CONFIDENCE_NOT_MEASURED: ReasonSpec(
+        # Третий исход рядом с LOW_CONFIDENCE: «не измеряли» — не «измерили и мало».
+        # Отдельный код, а не ноль в том же тексте: ноль на видном месте карточки
+        # читается как измерение, которого не было (офлайн-заглушка, OFFLINE=1).
+        params=(),
+        texts={
+            Language.RU: "уверенность извлечения не измерялась — ступень не поднимаем",
+            Language.EN: "extraction confidence was not measured — tier not raised",
+        },
+    ),
 }
 
 

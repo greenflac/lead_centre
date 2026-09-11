@@ -213,6 +213,48 @@
   "is_synthetic": false
  },
  {
+  "id": "984500B4C5F005A39847",
+  "name": "Imaga L.L.C-FZ",
+  "city": "Nad Al Sheba",
+  "country": "AE",
+  "address_lines": [
+   "Business Center 1, M Floor, The Meydan Hotel"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "2270000000242198201",
+  "created_on": "2024-08-27",
+  "next_renewal_on": "2026-08-26",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "HIGH",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "LEI registration lapsed 14 days ago"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500B4C5F005A39847"
+   },
+   {
+    "kind": "license_no",
+    "value": "2270000000242198201"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-26"
+   },
+   {
+    "kind": "created_on",
+    "value": "2024-08-27"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
   "id": "98450099F5P1FBE9D726",
   "name": "Kaizen Capital L.L.C-FZ",
   "city": "Dubai",
@@ -334,6 +376,48 @@
    {
     "kind": "created_on",
     "value": "2022-08-09"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500F4061P413C0N91",
+  "name": "MRC MARKETING SERVICES - FZCO",
+  "city": "Dubai Silicon Oasis",
+  "country": "AE",
+  "address_lines": [
+   "DSO-IFZA, IFZA Properties"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "63242",
+  "created_on": "2025-05-20",
+  "next_renewal_on": "2026-08-29",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "HIGH",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "LEI registration lapsed 11 days ago"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500F4061P413C0N91"
+   },
+   {
+    "kind": "license_no",
+    "value": "63242"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-29"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-05-20"
    }
   ],
   "violations": [],
@@ -469,6 +553,48 @@
   "is_synthetic": false
  },
  {
+  "id": "984500FA1F94E6FODF89",
+  "name": "SQUARE GOLD TRADING L.L.C",
+  "city": "دبي",
+  "country": "AE",
+  "address_lines": [
+   "ملك الشيخ محمد بن خليفة بن سعيد ال مكتوم - الراس 098F مكتب رقم"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "2010000000000820073",
+  "created_on": "2018-11-27",
+  "next_renewal_on": "2026-08-23",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "HIGH",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "LEI registration lapsed 17 days ago"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500FA1F94E6FODF89"
+   },
+   {
+    "kind": "license_no",
+    "value": "2010000000000820073"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-23"
+   },
+   {
+    "kind": "created_on",
+    "value": "2018-11-27"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
   "id": "254900C3Y0UWZWK17G32",
   "name": "White Sky Enterprises - FZCO",
   "city": "DUBAI",
@@ -505,6 +631,48 @@
    {
     "kind": "created_on",
     "value": "2025-01-20"
+   }
+  ],
+  "violations": [],
+  "source": "gleif",
+  "is_synthetic": false
+ },
+ {
+  "id": "984500460CB2FAA89D74",
+  "name": "ZEROBACT L.L.C-FZ",
+  "city": "Nad Al Sheba",
+  "country": "AE",
+  "address_lines": [
+   "usiness Center 1, M Floor, The Meydan Hotel"
+  ],
+  "registrar_id": "RA000752",
+  "license_no": "2280000000253520101",
+  "created_on": "2025-08-01",
+  "next_renewal_on": "2026-08-29",
+  "registration_status": "LAPSED",
+  "entity_active": true,
+  "tier": "HIGH",
+  "address_type": "A1_registrar",
+  "event": "B1_lapsed",
+  "reasons": [
+   "LEI registration lapsed 11 days ago"
+  ],
+  "evidence": [
+   {
+    "kind": "lei",
+    "value": "984500460CB2FAA89D74"
+   },
+   {
+    "kind": "license_no",
+    "value": "2280000000253520101"
+   },
+   {
+    "kind": "next_renewal_on",
+    "value": "2026-08-29"
+   },
+   {
+    "kind": "created_on",
+    "value": "2025-08-01"
    }
   ],
   "violations": [],
@@ -1602,49 +1770,6 @@
   "is_synthetic": false
  },
  {
-  "id": "984500B4C5F005A39847",
-  "name": "Imaga L.L.C-FZ",
-  "city": "Nad Al Sheba",
-  "country": "AE",
-  "address_lines": [
-   "Business Center 1, M Floor, The Meydan Hotel"
-  ],
-  "registrar_id": "RA000752",
-  "license_no": "2270000000242198201",
-  "created_on": "2024-08-27",
-  "next_renewal_on": "2026-08-26",
-  "registration_status": "LAPSED",
-  "entity_active": true,
-  "tier": "MEDIUM",
-  "address_type": "A1_registrar",
-  "event": "B1_lapsed",
-  "reasons": [
-   "LEI registration lapsed 14 days ago",
-   "city outside the target list (Nad Al Sheba) — tier lowered"
-  ],
-  "evidence": [
-   {
-    "kind": "lei",
-    "value": "984500B4C5F005A39847"
-   },
-   {
-    "kind": "license_no",
-    "value": "2270000000242198201"
-   },
-   {
-    "kind": "next_renewal_on",
-    "value": "2026-08-26"
-   },
-   {
-    "kind": "created_on",
-    "value": "2024-08-27"
-   }
-  ],
-  "violations": [],
-  "source": "gleif",
-  "is_synthetic": false
- },
- {
   "id": "984500BF27568F894E50",
   "name": "KAILASH OVERSEAS TRADING FZCO",
   "city": "دبي",
@@ -1901,49 +2026,6 @@
    {
     "kind": "created_on",
     "value": "2025-08-04"
-   }
-  ],
-  "violations": [],
-  "source": "gleif",
-  "is_synthetic": false
- },
- {
-  "id": "984500F4061P413C0N91",
-  "name": "MRC MARKETING SERVICES - FZCO",
-  "city": "Dubai Silicon Oasis",
-  "country": "AE",
-  "address_lines": [
-   "DSO-IFZA, IFZA Properties"
-  ],
-  "registrar_id": "RA000752",
-  "license_no": "63242",
-  "created_on": "2025-05-20",
-  "next_renewal_on": "2026-08-29",
-  "registration_status": "LAPSED",
-  "entity_active": true,
-  "tier": "MEDIUM",
-  "address_type": "A1_registrar",
-  "event": "B1_lapsed",
-  "reasons": [
-   "LEI registration lapsed 11 days ago",
-   "city outside the target list (Dubai Silicon Oasis) — tier lowered"
-  ],
-  "evidence": [
-   {
-    "kind": "lei",
-    "value": "984500F4061P413C0N91"
-   },
-   {
-    "kind": "license_no",
-    "value": "63242"
-   },
-   {
-    "kind": "next_renewal_on",
-    "value": "2026-08-29"
-   },
-   {
-    "kind": "created_on",
-    "value": "2025-05-20"
    }
   ],
   "violations": [],
@@ -2263,49 +2345,6 @@
   "is_synthetic": false
  },
  {
-  "id": "984500FA1F94E6FODF89",
-  "name": "SQUARE GOLD TRADING L.L.C",
-  "city": "دبي",
-  "country": "AE",
-  "address_lines": [
-   "ملك الشيخ محمد بن خليفة بن سعيد ال مكتوم - الراس 098F مكتب رقم"
-  ],
-  "registrar_id": "RA000752",
-  "license_no": "2010000000000820073",
-  "created_on": "2018-11-27",
-  "next_renewal_on": "2026-08-23",
-  "registration_status": "LAPSED",
-  "entity_active": true,
-  "tier": "MEDIUM",
-  "address_type": "A1_registrar",
-  "event": "B1_lapsed",
-  "reasons": [
-   "LEI registration lapsed 17 days ago",
-   "city outside the target list (دبي) — tier lowered"
-  ],
-  "evidence": [
-   {
-    "kind": "lei",
-    "value": "984500FA1F94E6FODF89"
-   },
-   {
-    "kind": "license_no",
-    "value": "2010000000000820073"
-   },
-   {
-    "kind": "next_renewal_on",
-    "value": "2026-08-23"
-   },
-   {
-    "kind": "created_on",
-    "value": "2018-11-27"
-   }
-  ],
-  "violations": [],
-  "source": "gleif",
-  "is_synthetic": false
- },
- {
   "id": "254900R5A0X1IU2SIG74",
   "name": "SUBLIME COMMERCIAL INVESTMENT - SOLE PROPRIETORSHIP L.L.C.",
   "city": "Abu Dhabi",
@@ -2515,49 +2554,6 @@
    {
     "kind": "created_on",
     "value": "2025-05-01"
-   }
-  ],
-  "violations": [],
-  "source": "gleif",
-  "is_synthetic": false
- },
- {
-  "id": "984500460CB2FAA89D74",
-  "name": "ZEROBACT L.L.C-FZ",
-  "city": "Nad Al Sheba",
-  "country": "AE",
-  "address_lines": [
-   "usiness Center 1, M Floor, The Meydan Hotel"
-  ],
-  "registrar_id": "RA000752",
-  "license_no": "2280000000253520101",
-  "created_on": "2025-08-01",
-  "next_renewal_on": "2026-08-29",
-  "registration_status": "LAPSED",
-  "entity_active": true,
-  "tier": "MEDIUM",
-  "address_type": "A1_registrar",
-  "event": "B1_lapsed",
-  "reasons": [
-   "LEI registration lapsed 11 days ago",
-   "city outside the target list (Nad Al Sheba) — tier lowered"
-  ],
-  "evidence": [
-   {
-    "kind": "lei",
-    "value": "984500460CB2FAA89D74"
-   },
-   {
-    "kind": "license_no",
-    "value": "2280000000253520101"
-   },
-   {
-    "kind": "next_renewal_on",
-    "value": "2026-08-29"
-   },
-   {
-    "kind": "created_on",
-    "value": "2025-08-01"
    }
   ],
   "violations": [],

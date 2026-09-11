@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import pytest
 
-from leadcentre.engine.reasons import ReasonCode
+from leadcentre.engine.reasons import Language, ReasonCode
 from leadcentre.engine.score import score_inbound
 from leadcentre.models import AddressType, Event, RequestType, Tier
 from tests.conftest import (
@@ -381,6 +381,48 @@ def test_low_confidence_does_not_lower_below_the_base():
     medium = score_inbound(make_message(), make_facts(confidence=0.1))
     assert medium.tier is Tier.MEDIUM
     low = score_inbound(make_message(), make_facts(request_types=(), confidence=0.1))
+    assert low.tier is Tier.LOW
+
+
+def test_unmeasured_confidence_is_its_own_outcome_not_a_measured_zero():
+    """Исходов по уверенности три: измерили мало, измерили достаточно, не измеряли.
+
+    Дефект, ради которого тест написан: на офлайн-заглушке (`OFFLINE=1`) факты приходят
+    с `confidence=0.0` — меткой «моделью не смотрено», — а карточка печатала
+    «уверенность извлечения 0.00 — ниже порога 0.50», то есть выдавала отсутствие
+    измерения за измерение. Ступень так же не поднимается, но причина честная.
+    """
+    facts = make_facts(timeline_days=7, headcount=10, confidence=0.0,
+                       confidence_measured=False)
+    result = score_inbound(make_message(), facts)
+    assert result.tier is Tier.MEDIUM
+    assert has_reason(result, ReasonCode.CONFIDENCE_NOT_MEASURED)
+    assert not has_reason(result, ReasonCode.LOW_CONFIDENCE)
+    assert result.reasons_in(Language.RU)[-1] == (
+        "уверенность извлечения не измерялась — ступень не поднимаем"
+    )
+
+
+def test_a_measured_zero_still_reports_the_number():
+    """Негативный контроль к предыдущему: измеренный ноль остаётся измеренным нулём.
+
+    Если бы новый код вытеснил старый, исчез бы уже не третий исход, а второй.
+    """
+    facts = make_facts(timeline_days=7, headcount=10, confidence=0.0)
+    result = score_inbound(make_message(), facts)
+    assert result.tier is Tier.MEDIUM
+    assert reason_params(result, ReasonCode.LOW_CONFIDENCE) == {
+        "confidence": 0.0,
+        "threshold": 0.5,
+    }
+    assert not has_reason(result, ReasonCode.CONFIDENCE_NOT_MEASURED)
+
+
+def test_unmeasured_confidence_does_not_lower_below_the_base():
+    """Потолок MEDIUM, а не шаг вниз — то же правило, что у измеренной низкой."""
+    low = score_inbound(
+        make_message(), make_facts(request_types=(), confidence_measured=False)
+    )
     assert low.tier is Tier.LOW
 
 
