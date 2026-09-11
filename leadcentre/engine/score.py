@@ -285,9 +285,15 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
     if enough_signals or rescued_from_low:
         tier = _step(tier, 1)
 
-    # Понижающие. Низкая уверенность извлечения не даёт подняться выше среднего:
-    # приоритет, выведенный из ненадёжных фактов, дороже пропущенного лида.
-    if facts.confidence < rubric.LOW_CONFIDENCE:
+    # Понижающие. Исходов по уверенности три, а не два: измерили и мало, измерили и
+    # достаточно, не измеряли вовсе (офлайн-заглушка). Первый и третий одинаково не
+    # дают подняться выше среднего — приоритет из ненадёжных фактов дороже пропущенного
+    # лида, — но причины у них разные: число, которого не измеряли, нельзя печатать
+    # рядом с порогом, как будто его измерили.
+    if not facts.confidence_measured:
+        tier = min(tier, Tier.MEDIUM, key=rubric.TIER_LADDER.index)
+        reasons.append(reason(ReasonCode.CONFIDENCE_NOT_MEASURED))
+    elif facts.confidence < rubric.LOW_CONFIDENCE:
         tier = min(tier, Tier.MEDIUM, key=rubric.TIER_LADDER.index)
         reasons.append(reason(
             ReasonCode.LOW_CONFIDENCE,

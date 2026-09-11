@@ -90,11 +90,65 @@ const BUDGET_MARKERS = [
   "approved",
 ];
 
-const URGENT_MARKERS = [
-  "срочно", "urgent", "asap", "в этом месяце", "this month", "до конца месяца",
-  "до пятницы", "сегодня", "today", "как можно быстрее", "лишь бы быстро",
-  "на этой неделе",
+// Порт extract.DEADLINE_MARKERS / VAGUE_URGENCY_MARKERS. Раньше здесь лежал один список
+// вперемешку, и «срочно» стояло рядом с «в этом месяце» — а это разные вещи: первое даты
+// не содержит, второе содержит и считается от даты ОБРАЩЕНИЯ, а не от сегодняшнего дня.
+const FRIDAY = 4; // индекс пятницы в getUTCDay() после сдвига: понедельник = 0
+
+/** До последнего дня месяца обращения. «В этом месяце» 31-го числа — ноль дней. */
+function daysToEndOfMonth(at: Date): number {
+  const last = Date.UTC(at.getUTCFullYear(), at.getUTCMonth() + 1, 0);
+  return Math.round((last - Date.UTC(at.getUTCFullYear(), at.getUTCMonth(), at.getUTCDate())) / 86400000);
+}
+
+/** Понедельник = 0, как в Python `date.weekday()`; JS считает с воскресенья. */
+function weekdayMondayFirst(at: Date): number {
+  return (at.getUTCDay() + 6) % 7;
+}
+
+/** До конца недели обращения. Неделя ISO: понедельник-воскресенье. */
+function daysToEndOfWeek(at: Date): number {
+  return 6 - weekdayMondayFirst(at);
+}
+
+/** До ближайшей пятницы, считая день обращения: обращение в пятницу — ноль. */
+function daysToNextFriday(at: Date): number {
+  return (FRIDAY - weekdayMondayFirst(at) + 7) % 7;
+}
+
+const DEADLINE_MARKERS: [string, (at: Date) => number][] = [
+  ["в этом месяце", daysToEndOfMonth],
+  ["до конца месяца", daysToEndOfMonth],
+  ["до конца этого месяца", daysToEndOfMonth],
+  ["this month", daysToEndOfMonth],
+  ["на этой неделе", daysToEndOfWeek],
+  ["this week", daysToEndOfWeek],
+  ["до пятницы", daysToNextFriday],
+  ["by friday", daysToNextFriday],
+  ["сегодня", () => 0],
+  ["today", () => 0],
 ];
+
+const VAGUE_URGENCY_MARKERS = [
+  "срочно", "urgent", "asap", "как можно быстрее", "лишь бы быстро",
+];
+
+/** Порт extract.deadline_days: сработало несколько маркеров — берётся ближайший срок. */
+function deadlineDays(low: string, receivedAt: Date): number | null {
+  const found = DEADLINE_MARKERS.filter(([m]) => low.includes(m)).map(([, rule]) => rule(receivedAt));
+  return found.length ? Math.min(...found) : null;
+}
+
+/**
+ * Порт extract.wordless_urgency. Инвариант разделения: срок и словесная срочность —
+ * разные признаки, и одно обращение не получает оба сразу, иначе карточка пишет
+ * «даты клиент не назвал» на обращении, где дата названа.
+ */
+function wordlessUrgency(low: string, timelineDaysValue: number | null): boolean {
+  if (timelineDaysValue !== null) return false;
+  if (DEADLINE_MARKERS.some(([m]) => low.includes(m))) return false;
+  return VAGUE_URGENCY_MARKERS.some((m) => low.includes(m));
+}
 
 const MONTHS: [string, number][] = [
   ["январ", 1], ["феврал", 2], ["марта", 3], ["апрел", 4], ["мая", 5], ["июн", 6],
@@ -318,9 +372,9 @@ function timelineDays(text: string, receivedAt: Date): number | null {
     if (delta >= 0 && (best === null || delta < best)) best = delta;
   }
   if (best !== null) return best;
-  // Слово «срочно» — не дата: раньше здесь подставлялись две недели, и карточка
-  // показывала выдуманное число как извлечённый факт. Признак ушёл в urgency_stated.
-  return null;
+  // Срок, названный словами: «в этом месяце», «до пятницы». Считается от даты обращения.
+  // Слово «срочно» даты не содержит и сюда не попадает — оно уходит в urgency_stated.
+  return deadlineDays(low, receivedAt);
 }
 
 /**
@@ -430,7 +484,7 @@ export function extractFacts(text: string, receivedAt: Date = new Date()): Extra
     jurisdiction_hint: null,
     headcount,
     timeline_days: timelineDays(text, receivedAt),
-    urgency_stated: URGENT_MARKERS.some((marker) => low.includes(marker)),
+    urgency_stated: wordlessUrgency(low, timelineDays(text, receivedAt)),
     budget_hint: budget,
     language: detectLanguage(text),
     is_spam: isSpam,

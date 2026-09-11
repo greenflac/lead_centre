@@ -294,6 +294,29 @@ def test_offline_extraction_names_the_stub_not_a_real_model(monkeypatch):
     assert extraction.route_reason == "OFFLINE: модель не вызывалась"
 
 
+def test_offline_stub_says_confidence_was_not_measured(monkeypatch):
+    """Ноль заглушки — метка «не смотрено», и она обязана быть отличима от измерения.
+
+    Дефект: карточка на офлайн-заглушке печатала «уверенность извлечения 0.00 — ниже
+    порога 0.50», то есть выдавала отсутствие измерения за измеренную низкую
+    уверенность. Признак стоит на самой заглушке, иначе отличить нечем.
+    """
+    monkeypatch.setenv("OFFLINE", "1")
+    facts = extract_detailed(make_message("нужен офис")).facts
+    assert facts.confidence_measured is False
+    assert facts.confidence == 0.0
+
+
+def test_a_real_extraction_reports_a_measured_confidence(_online):
+    """Негативный контроль: у настоящего извлечения признак обратный.
+
+    Без него предыдущий тест зеленел бы и на поле, в которое зашито одно значение.
+    """
+    provider = _FakeProvider(_FakeResponse(HAIKU))
+    facts = extract_detailed(make_message("нужен офис"), provider=provider).facts
+    assert facts.confidence_measured is True
+
+
 def test_cache_write_counter_comes_from_usage(_online):
     """Первый запрос префикс записывает: записано > 0, прочитано 0 — числа из usage, не флаг."""
     provider = _FakeProvider(_FakeResponse("claude-opus-5", cache_read=0, cache_write=3162))

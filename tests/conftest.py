@@ -111,6 +111,7 @@ def make_facts(**overrides):
         "is_spam": False,
         "has_contact": True,
         "confidence": 0.9,
+        "confidence_measured": True,
         "quotes": ("нужен офис",),
     }
     base.update(overrides)

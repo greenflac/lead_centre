@@ -245,6 +245,9 @@ def _facts_payload(facts) -> dict[str, Any]:
         "is_spam": facts.is_spam,
         "has_contact": facts.has_contact,
         "confidence": facts.confidence,
+        # Рядом с числом — мерили ли его вообще: ноль «моделью не смотрено»
+        # и измеренный ноль в JSON выглядят одинаково, а значат разное.
+        "confidence_measured": facts.confidence_measured,
         "quotes": list(facts.quotes),
     }
 

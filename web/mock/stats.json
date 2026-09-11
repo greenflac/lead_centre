@@ -16,8 +16,8 @@
  "companies": {
   "checked": 60,
   "by_tier": {
-   "HIGH": 12,
-   "MEDIUM": 48,
+   "HIGH": 16,
+   "MEDIUM": 44,
    "LOW": 0,
    "INVALID": 0
   },

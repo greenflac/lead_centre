@@ -55,7 +55,7 @@
    "jurisdiction_hint": null,
    "headcount": 14,
    "timeline_days": 21,
-   "urgency_stated": true,
+   "urgency_stated": false,
    "budget_hint": null,
    "language": "en",
    "is_spam": false,
@@ -66,7 +66,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.15,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -146,7 +146,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.11,
+   "latency_ms": 0.16,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -177,15 +177,15 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "urgency stated in words, no date given",
+   "needed in 21 days — inside the hot window of 60 days",
    "2 services asked about — this is a package, not a single line item",
    "team of 8 — flexi desk will not cover the visa quota",
    "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "urgency stated in words, no date given",
-    "code": "urgent_stated",
+    "text": "needed in 21 days — inside the hot window of 60 days",
+    "code": "urgent_timeline",
     "quotes": [
      0
     ]
@@ -229,8 +229,8 @@
    ],
    "jurisdiction_hint": null,
    "headcount": 8,
-   "timeline_days": null,
-   "urgency_stated": true,
+   "timeline_days": 21,
+   "urgency_stated": false,
    "budget_hint": null,
    "language": "ru",
    "is_spam": false,
@@ -241,7 +241,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.16,
+   "latency_ms": 0.28,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -251,7 +251,7 @@
    "live_latency_s": 4.4
   },
   "reply": {
-   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — ⁦AED 35 000⁠–⁠60 000⁩ в год.\nОриентир по рынку: рабочая виза под ключ, на человека — ⁦AED 3 500⁠–⁠7 000⁩ за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nК какому сроку нужно, чтобы всё было готово?",
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — ⁦AED 35 000⁠–⁠60 000⁩ в год.\nОриентир по рынку: рабочая виза под ключ, на человека — ⁦AED 3 500⁠–⁠7 000⁩ за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nСмотрите mainland или фризону — или как раз хотите сравнить два варианта?",
    "language": "ru",
    "outcome": "draft",
    "needs_human": true,
@@ -299,7 +299,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.11,
+   "latency_ms": 0.16,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -364,7 +364,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.26,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -429,7 +429,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.16,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -494,7 +494,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.04,
+   "latency_ms": 0.05,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -523,15 +523,15 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "urgency stated in words, no date given",
+   "needed in 1 day — inside the hot window of 60 days",
    "2 services asked about — this is a package, not a single line item",
    "team of 15 — flexi desk will not cover the visa quota",
    "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "urgency stated in words, no date given",
-    "code": "urgent_stated",
+    "text": "needed in 1 day — inside the hot window of 60 days",
+    "code": "urgent_timeline",
     "quotes": []
    },
    {
@@ -583,8 +583,8 @@
    ],
    "jurisdiction_hint": null,
    "headcount": 15,
-   "timeline_days": null,
-   "urgency_stated": true,
+   "timeline_days": 1,
+   "urgency_stated": false,
    "budget_hint": null,
    "language": "ru",
    "is_spam": false,
@@ -595,7 +595,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.23,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -605,7 +605,7 @@
    "live_latency_s": 4.4
   },
   "reply": {
-   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — ⁦AED 35 000⁠–⁠60 000⁩ в год.\nОриентир по рынку: рабочая виза под ключ, на человека — ⁦AED 3 500⁠–⁠7 000⁩ за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nК какому сроку нужно, чтобы всё было готово?",
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — ⁦AED 35 000⁠–⁠60 000⁩ в год.\nОриентир по рынку: рабочая виза под ключ, на человека — ⁦AED 3 500⁠–⁠7 000⁩ за визу.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nВижу, что сроки сжатые: возьмём в работу сегодня — во сколько удобно созвониться?",
    "language": "ru",
    "outcome": "draft",
    "needs_human": true,
@@ -657,7 +657,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.13,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -721,7 +721,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -776,7 +776,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.15,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -842,7 +842,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.13,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -874,17 +874,16 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "urgency stated in words, no date given",
+   "needed in 0 days — inside the hot window of 60 days",
    "team of 5 — flexi desk will not cover the visa quota",
    "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "urgency stated in words, no date given",
-    "code": "urgent_stated",
+    "text": "needed in 0 days — inside the hot window of 60 days",
+    "code": "urgent_timeline",
     "quotes": [
-     0,
-     1
+     0
     ]
    },
    {
@@ -922,8 +921,8 @@
    ],
    "jurisdiction_hint": null,
    "headcount": 5,
-   "timeline_days": null,
-   "urgency_stated": true,
+   "timeline_days": 0,
+   "urgency_stated": false,
    "budget_hint": null,
    "language": "ru",
    "is_spam": false,
@@ -934,7 +933,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.14,
+   "latency_ms": 0.2,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -944,7 +943,7 @@
    "live_latency_s": 4.4
   },
   "reply": {
-   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — ⁦AED 15 000⁠–⁠35 000⁩ разово.\nОриентир по рынку: регистрация компании во фризоне (пакет) — ⁦AED 12 500⁠–⁠27 000⁩ разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nК какому сроку нужно, чтобы всё было готово?",
+   "body": "Здравствуйте!\nПо регистрации: считаем оба варианта — mainland и фризона, выбор зависит от вида деятельности и того, нужны ли визы.\nОриентир по рынку: регистрация компании mainland (лицензия и госсборы, пакет) — ⁦AED 15 000⁠–⁠35 000⁩ разово.\nОриентир по рынку: регистрация компании во фризоне (пакет) — ⁦AED 12 500⁠–⁠27 000⁩ разово.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nВижу, что сроки сжатые: возьмём в работу сегодня — во сколько удобно созвониться?",
    "language": "ru",
    "outcome": "draft",
    "needs_human": true,
@@ -1005,7 +1004,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.23,
+   "latency_ms": 0.3,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1077,7 +1076,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.16,
+   "latency_ms": 0.22,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1143,7 +1142,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.15,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1209,7 +1208,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.14,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1304,7 +1303,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.17,
+   "latency_ms": 0.34,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1370,7 +1369,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.11,
+   "latency_ms": 0.15,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1435,7 +1434,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.13,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1504,7 +1503,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.15,
+   "latency_ms": 0.19,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1570,7 +1569,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.27,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1646,7 +1645,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.14,
+   "latency_ms": 0.21,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1717,7 +1716,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.13,
+   "latency_ms": 0.19,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1780,7 +1779,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.13,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1850,7 +1849,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.04,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1905,7 +1904,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.13,
+   "latency_ms": 0.17,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -1937,14 +1936,14 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "urgency stated in words, no date given",
+   "needed in 13 days — inside the hot window of 60 days",
    "team of 25 — flexi desk will not cover the visa quota",
    "written in ru — core audience"
   ],
   "reason_links": [
    {
-    "text": "urgency stated in words, no date given",
-    "code": "urgent_stated",
+    "text": "needed in 13 days — inside the hot window of 60 days",
+    "code": "urgent_timeline",
     "quotes": [
      0
     ]
@@ -1980,8 +1979,8 @@
    ],
    "jurisdiction_hint": null,
    "headcount": 25,
-   "timeline_days": null,
-   "urgency_stated": true,
+   "timeline_days": 13,
+   "urgency_stated": false,
    "budget_hint": "готовы подписать",
    "language": "ru",
    "is_spam": false,
@@ -1992,7 +1991,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.11,
+   "latency_ms": 0.17,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2002,7 +2001,7 @@
    "live_latency_s": 4.4
   },
   "reply": {
-   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — ⁦AED 35 000⁠–⁠60 000⁩ в год.\nОриентир по рынку: флекси-деск — ⁦AED 6 000⁠–⁠15 000⁩ в год.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nК какому сроку нужно, чтобы всё было готово?",
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — ⁦AED 35 000⁠–⁠60 000⁩ в год.\nОриентир по рынку: флекси-деск — ⁦AED 6 000⁠–⁠15 000⁩ в год.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nСмотрите mainland или фризону — или как раз хотите сравнить два варианта?",
    "language": "ru",
    "outcome": "draft",
    "needs_human": true,
@@ -2063,7 +2062,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.18,
+   "latency_ms": 0.21,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2151,7 +2150,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.21,
+   "latency_ms": 0.27,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2226,7 +2225,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.13,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2292,7 +2291,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.14,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2357,7 +2356,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.1,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2454,7 +2453,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.76,
+   "latency_ms": 1.31,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2539,7 +2538,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.15,
+   "latency_ms": 0.24,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2605,7 +2604,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.14,
+   "latency_ms": 0.22,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2670,7 +2669,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2736,7 +2735,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.14,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2794,7 +2793,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.14,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2860,7 +2859,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.11,
+   "latency_ms": 0.15,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2889,13 +2888,13 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "urgency stated in words, no date given",
+   "needed in 6 days — inside the hot window of 60 days",
    "team of 20 — flexi desk will not cover the visa quota"
   ],
   "reason_links": [
    {
-    "text": "urgency stated in words, no date given",
-    "code": "urgent_stated",
+    "text": "needed in 6 days — inside the hot window of 60 days",
+    "code": "urgent_timeline",
     "quotes": []
    },
    {
@@ -2928,8 +2927,8 @@
    ],
    "jurisdiction_hint": null,
    "headcount": 20,
-   "timeline_days": null,
-   "urgency_stated": true,
+   "timeline_days": 6,
+   "urgency_stated": false,
    "budget_hint": "договор на",
    "language": "mixed",
    "is_spam": false,
@@ -2940,7 +2939,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.15,
+   "latency_ms": 0.25,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -2950,7 +2949,7 @@
    "live_latency_s": 4.4
   },
   "reply": {
-   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — ⁦AED 35 000⁠–⁠60 000⁩ в год.\nОриентир по рынку: флекси-деск — ⁦AED 6 000⁠–⁠15 000⁩ в год.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nК какому сроку нужно, чтобы всё было готово?",
+   "body": "Здравствуйте!\nПо офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы и флекси-десками закрываем визовую квоту.\nОриентир по рынку: мини-офис в бизнес-центре — ⁦AED 35 000⁠–⁠60 000⁩ в год.\nОриентир по рынку: флекси-деск — ⁦AED 6 000⁠–⁠15 000⁩ в год.\nЭто рыночный диапазон, итог зависит от вида деятельности и числа виз — посчитаем точно после короткого разговора.\nВижу, что сроки сжатые: возьмём в работу сегодня — во сколько удобно созвониться?",
    "language": "ru",
    "outcome": "draft",
    "needs_human": true,
@@ -2998,7 +2997,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.14,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3062,7 +3061,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.04,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3130,7 +3129,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.14,
+   "latency_ms": 0.2,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3196,7 +3195,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.13,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3261,7 +3260,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.12,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3318,7 +3317,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.13,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3328,7 +3327,7 @@
    "live_latency_s": 4.4
   },
   "reply": {
-   "body": "‏وعليكم السلام ورحمة الله، وشكرًا لتواصلكم بشأن تأسيس شركة لتجارة المواد الغذائية في دبي.\n‏تبدأ الخطوات بتحديد الشكل القانوني والجهة المرخِّصة، ثم حجز الاسم التجاري واعتماد النشاط، وبعدها إصدار الرخصة وتوثيق عقد التأسيس، مع ترتيب العنوان أو المكتب، ثم فتح الحساب البنكي وإجراءات الإقامة؛ ونشاط المواد الغذائية يتطلب كذلك موافقة بلدية دبي على النشاط والمخزن.\n‏أما المدة فهي مرتبطة بالجهات الحكومية وموافقاتها، ولا يمكننا الالتزام بها من جانبنا.\n‏كمؤشر أولي، تتراوح تكلفة التأسيس في البر الرئيسي حول ⁦AED 15 000⁠–⁠35 000⁩، وفي المناطق الحرة حول ⁦AED 12 500⁠–⁠27 000⁩.\n‏والرقم النهائي يُحسب بعد حوار قصير نفهم فيه نشاطكم بدقة وعدد الإقامات المطلوبة وطبيعة المقر.\n‏هل تفضّلون العمل في البر الرئيسي مع إمكانية التوريد للسوق المحلي، أم في منطقة حرة؟",
+   "body": "‏وعليكم السلام ورحمة الله، شكرًا لتواصلكم معنا بخصوص تأسيس شركة لتجارة المواد الغذائية في دبي.\n‏تبدأ الخطوات باختيار الشكل القانوني والنشاط المناسب وحجز الاسم التجاري، ثم تقديم طلب الرخصة واستكمال متطلبات المقر، مع مراعاة أن تجارة المواد الغذائية تتطلب موافقات إضافية من الجهات المختصة، أما المدة فهي مرتبطة بالجهات الحكومية ولا يمكننا تحديدها نيابةً عنها.\n‏كمؤشر مبدئي، يتراوح تأسيس شركة في البر الرئيسي ضمن ⁦AED 15 000⁠–⁠35 000⁩، بينما يتراوح التأسيس في المناطق الحرة ضمن ⁦AED 12 500⁠–⁠27 000⁩.\n‏تبقى هذه الأرقام إرشادية، ويُحتسب المبلغ النهائي بعد حديث مباشر معكم لتحديد النشاط وعدد التأشيرات ومتطلبات المقر.\n‏هل تفضّلون العمل في البر الرئيسي مع إمكانية التوريد داخل السوق المحلي، أم في إحدى المناطق الحرة؟",
    "language": "ar",
    "outcome": "draft",
    "needs_human": true,
@@ -3384,7 +3383,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.13,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3525,7 +3524,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.18,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3591,7 +3590,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.14,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3659,7 +3658,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.16,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3731,7 +3730,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.13,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3797,7 +3796,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.16,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3863,7 +3862,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.19,
+   "latency_ms": 0.18,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -3943,7 +3942,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.14,
+   "latency_ms": 0.22,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4017,7 +4016,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.15,
+   "latency_ms": 0.24,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4088,7 +4087,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.03,
+   "latency_ms": 0.07,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4165,7 +4164,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.16,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4197,17 +4196,11 @@
   "is_synthetic": true,
   "tier": "HIGH",
   "reasons": [
-   "urgency stated in words, no date given",
    "3 services asked about — this is a package, not a single line item",
    "team of 9 — flexi desk will not cover the visa quota",
    "budget named: до 180k AED"
   ],
   "reason_links": [
-   {
-    "text": "urgency stated in words, no date given",
-    "code": "urgent_stated",
-    "quotes": []
-   },
    {
     "text": "3 services asked about — this is a package, not a single line item",
     "code": "package_request",
@@ -4261,7 +4254,7 @@
    "jurisdiction_hint": null,
    "headcount": 9,
    "timeline_days": 72,
-   "urgency_stated": true,
+   "urgency_stated": false,
    "budget_hint": "до 180k AED",
    "language": "mixed",
    "is_spam": false,
@@ -4272,7 +4265,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.18,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4347,7 +4340,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.09,
+   "latency_ms": 0.14,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4405,7 +4398,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.08,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4470,7 +4463,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.08,
+   "latency_ms": 0.18,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4533,7 +4526,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.07,
+   "latency_ms": 0.11,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4603,7 +4596,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.14,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4691,7 +4684,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.12,
+   "latency_ms": 0.18,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4772,7 +4765,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.1,
+   "latency_ms": 0.18,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4843,7 +4836,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.06,
+   "latency_ms": 0.17,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -4915,7 +4908,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.14,
+   "latency_ms": 0.16,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
@@ -5009,7 +5002,7 @@
   "serving": {
    "provider": "offline",
    "model": "rules_facts (offline heuristic)",
-   "latency_ms": 0.13,
+   "latency_ms": 0.22,
    "input_tokens": 0,
    "output_tokens": 0,
    "cost_usd": 0.0,
