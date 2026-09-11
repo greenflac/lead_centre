@@ -2,7 +2,7 @@
 // module that knows the wire envelope, so components keep seeing one flat Lead type.
 // Why INVALID and not LOW for a missing score: "could not judge" is a third outcome.
 
-import { ApiError, type Company, type Evidence, type Lead, type LeadFacts, type Reply, type Stats, type Tier } from "./types";
+import { ApiError, type Company, type Evidence, type Lead, type LeadFacts, type ReasonLink, type Reply, type Stats, type Tier } from "./types";
 
 type Json = Record<string, unknown>;
 
@@ -84,6 +84,35 @@ const STATUS_BY_REPLY: Record<string, Lead["status"]> = {
 };
 
 /** A card from GET /leads or GET /leads/{id}: {lead, score, reply}. */
+/**
+ * Links reasons to the quotes proving them, zipped with the reasons already chosen for the
+ * interface language. The backend sends codes and quote indices only, so the text has one
+ * source and the link has another, and neither can drift into the other's job.
+ *
+ * Returns undefined when the backend could not link -- the card then falls back to showing
+ * reasons without quotes, which is a different state from "linked to nothing".
+ */
+export function reasonLinks(score: Json, reasons: string[]): ReasonLink[] | undefined {
+  const raw = Array.isArray(score.reason_links) ? score.reason_links : null;
+  if (!raw || raw.length !== reasons.length) return undefined;
+  return raw.map((item, index) => {
+    const link = asObject(item);
+    return {
+      text: reasons[index],
+      code: asString(link.code),
+      quotes: Array.isArray(link.quotes)
+        ? link.quotes.map((q) => asNumber(q) ?? -1).filter((q) => q >= 0)
+        : [],
+    };
+  });
+}
+
+/** The reasons block plus its quote links, so both normalizers build them the same way. */
+function withLinks(score: Json): Pick<Lead, "reasons" | "reasons_language" | "reasons_note" | "reason_links"> {
+  const shown = uiReasons(score);
+  return { ...shown, reason_links: reasonLinks(score, shown.reasons) };
+}
+
 export function normalizeCard(value: unknown): Lead {
   const card = asObject(value);
   const lead = asObject(card.lead);
@@ -101,7 +130,7 @@ export function normalizeCard(value: unknown): Lead {
     received_at: asString(lead.created_at) || `${asString(lead.received_at, "")}T00:00:00Z`,
     is_synthetic: asBool(lead.is_synthetic),
     tier: scored ? asTier(score.tier) : "INVALID",
-    ...(scored ? uiReasons(score) : { reasons: [], reasons_language: "en", reasons_note: "" }),
+    ...(scored ? withLinks(score) : { reasons: [], reasons_language: "en", reasons_note: "" }),
     evidence: asEvidence(score.evidence),
     violations: scored
       ? asStrings(score.violations)
@@ -127,7 +156,7 @@ export function normalizePostedLead(value: unknown, text: string, channel: strin
     category: "typed in demo",
     received_at: new Date().toISOString(),
     is_synthetic: asBool(body.is_synthetic),
-    ...uiReasons(score),
+    ...withLinks(score),
     tier: asTier(score.tier),
     evidence: asEvidence(score.evidence),
     violations: asStrings(score.violations),

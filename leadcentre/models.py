@@ -170,3 +170,21 @@ class LeadFacts:
     # Why a separate flag: a measured zero and an unmeasured zero look identical.
     confidence_measured: bool = True
     quotes: tuple[str, ...] = field(default_factory=tuple)  # verbatim evidence
+
+
+def facts_from_dict(raw: dict) -> LeadFacts:
+    """Rebuilds facts from their stored form; defined here so every reader shares one way."""
+    return LeadFacts(
+        request_types=tuple(RequestType(v) for v in raw.get("request_types", ())),
+        jurisdiction_hint=raw.get("jurisdiction_hint"),
+        headcount=raw.get("headcount"),
+        timeline_days=raw.get("timeline_days"),
+        urgency_stated=bool(raw.get("urgency_stated")),
+        budget_hint=raw.get("budget_hint"),
+        language=raw.get("language", "en"),
+        is_spam=bool(raw.get("is_spam")),
+        has_contact=bool(raw.get("has_contact")),
+        confidence=float(raw.get("confidence") or 0.0),
+        confidence_measured=bool(raw.get("confidence_measured", True)),
+        quotes=tuple(raw.get("quotes", ())),
+    )
