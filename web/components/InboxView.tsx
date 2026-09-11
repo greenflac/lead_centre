@@ -5,26 +5,17 @@ import type { ApiError, Lead, Tier } from "../lib/types";
 import LeadCard from "./LeadCard";
 import { CHANNEL_LABEL, EmptyState, ErrorNotice, isRtlText, LoadingRows, TierChip, timeAgo } from "./ui";
 
-/**
- * Позиция в списке — самостоятельный канал приоритета (01_material.md §3.2) и ответ на
- * вопрос «что делать сейчас», а не «что у нас есть» (02_references.md §1.8). Внутри тира
- * порядок по свежести: два обращения одного тира разделяет только время ожидания.
- */
+/** Sort order: position in the list is itself a priority channel; within a tier, freshest first. */
 const TIER_ORDER: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2, INVALID: 3 };
 
 const TIERS: Tier[] = ["HIGH", "MEDIUM", "LOW", "INVALID"];
 
 const PREVIEW_CHARS = 130;
-// Изоляты направления, которые ставит наш черновик и часто ставят почтовые клиенты.
+// Direction isolates our drafter emits and mail clients often do.
 const ISOLATE_OPEN = /[\u2066\u2067\u2068]/g;
 const ISOLATE_CLOSE = /\u2069/g;
 
-/**
- * Превью строки списка. Обрезка по кодовым единицам может разрезать текст внутри изолята
- * направления, а непарный LRI/RLI действует до конца абзаца и утаскивает в свой ран весь
- * следующий текст — так ведут себя двунаправленные строки в браузере. Поэтому после обрезки
- * недостающие PDI дописываются.
- */
+/** One-line preview. Why the PDI repair: an unpaired LRI/RLI runs to the end of the paragraph. */
 function preview(text: string): string {
   const flat = text.replace(/\s+/g, " ").trim();
   if (!flat) return "— empty message —";
@@ -34,43 +25,25 @@ function preview(text: string): string {
   return `${cut}${"\u2069".repeat(Math.max(0, unclosed))}…`;
 }
 
-/**
- * The reason without its threshold half:
- * "needed in 14 days — inside the hot window of 60 days" → "needed in 14 days".
- * Both dashes are the catalogue's own separators, in either language.
- */
+/** The reason without its threshold half, cut at the catalogue's own separators. */
 function shortReason(reason: string): string {
   return reason.split(" — ")[0].split(", но ")[0].split(", but ")[0];
 }
 
-/**
- * Reasons that say nothing in a one-line preview: the language of the request is already
- * shown as its own chip on the row.
- *
- * Matched by CODE, never by the text of the reason. The text is bilingual and gets
- * rewritten; a filter reading `startsWith("язык обращения")` silently stopped working the
- * day the interface switched to English, and "written in ru — core audience" started
- * taking one of the three preview slots.
- */
+/** Reasons that say nothing in a preview. Why by code: reason text is bilingual and gets rewritten. */
 const PREVIEW_SKIPPED_CODES = new Set(["target_language", "target_language_alone"]);
 
-/**
- * Язык, на котором причины лежат на самом деле, если он не язык интерфейса. Е2: судим по
- * тому, что записано (`reasons_language`), а не по тому, что предполагалось. Карточка
- * помечает такие причины нотой; строка списка обязана делать это тоже — честная пометка
- * в одном месте из двух хуже, чем её отсутствие (кадр 08-live-backend.png).
- */
+/** The language reasons are actually stored in, when it is not the interface language. */
 export function storedReasonLanguage(lead: Lead): string | null {
   const language = lead.reasons_language;
   if (!language || language === "en") return null;
   return language.toUpperCase();
 }
 
-/** One line of "why", so the manager decides what to open without opening it (Einstein). */
+/** One line of "why", so the manager decides what to open without opening it. */
 function whyLine(lead: Lead): string {
   const links = lead.reason_links;
-  // Без кодов (старая строка из хранилища) отбросить нечего — берём всё, а не наугад по
-  // тексту: третий исход «не знаем кодов» не притворяется отбором.
+  // With no codes there is nothing to drop: the third outcome does not pose as a filter.
   const kept = links
     ? links.filter((item) => !PREVIEW_SKIPPED_CODES.has(item.code ?? "")).map((item) => item.text)
     : lead.reasons;
@@ -82,7 +55,6 @@ interface InboxViewProps {
   leads: Lead[];
   loading: boolean;
   error: ApiError | null;
-  /** Clock the "3 h ago" column is measured against; null until the client has mounted. */
   now: Date | null;
   selectedId: string | null;
   onSelect: (id: string) => void;
@@ -121,9 +93,7 @@ export default function InboxView({
     });
   }, [leads, tierFilter, query]);
 
-  // Карточка берётся из отфильтрованного списка, а не из полного: иначе выбранное
-  // обращение переживало опустевший фильтр, и экран сам себе противоречил — слева
-  // «Nothing matches this filter», справа развёрнутая карточка (кадр 07-empty-state.png).
+  // Why from `filtered`: a selection taken from the full list outlives an emptied filter.
   const selected = filtered.find((lead) => lead.id === selectedId) ?? filtered[0] ?? null;
 
   if (error) {
@@ -238,8 +208,7 @@ export default function InboxView({
                     title={lead.reasons_note || undefined}
                     lang={storedReasonLanguage(lead) ? lead.reasons_language : undefined}
                   >
-                    {/* Пометка идёт первой: строка режется с конца, и метка языка,
-                        поставленная в хвост, исчезала бы ровно на длинных причинах. */}
+                    {/* Why first: the line clips from the end, so a trailing mark would vanish. */}
                     {storedReasonLanguage(lead) ? (
                       <span className="why-lang">{storedReasonLanguage(lead)}, as stored · </span>
                     ) : null}

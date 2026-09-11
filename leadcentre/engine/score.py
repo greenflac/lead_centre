@@ -1,13 +1,8 @@
-"""Детерминированный расчёт приоритета. Модель извлекает факты, приоритет считает код.
+"""Deterministic priority scoring: the model extracts facts, this code assigns the tier.
 
-Исходов три: годный tier, LOW и INVALID — «не смогли оценить». INVALID
-не сворачивается в LOW: это разные вещи для отчёта и для менеджера.
-
-Текста здесь нет и быть не должно — ни у причин, ни у нарушений инвариантов: модуль
-называет код и параметры, формулировки на русском и английском живут в
-`engine/reasons.py`. `Score.violations` остаётся кортежем строк на русском, но
-строки эти собирает отрисовка каталога, а не этот модуль; на английский те же нарушения
-отдаёт `reasons.texts_in(score.violations, Language.EN)`.
+INVALID ("could not score") is a separate outcome and never collapses into LOW.
+This module names reason codes and parameters only; the wording for both languages
+lives in engine/reasons.py, and the thresholds in engine/rubric.py.
 """
 from __future__ import annotations
 
@@ -39,7 +34,7 @@ from leadcentre.models import (
 
 
 def classify_address(company: Company) -> AddressType:
-    """Ось A по тексту адреса и органу регистрации."""
+    """Returns axis A from the address lines and the registration authority."""
     haystack = " ".join(company.address_lines).lower()
     if any(m in haystack for m in rubric.REGISTRAR_ADDRESS_MARKERS):
         return AddressType.REGISTRAR
@@ -53,11 +48,9 @@ def classify_address(company: Company) -> AddressType:
 
 
 def normalize_city(value: str) -> str:
-    """Строка города, приведённая к виду, в котором её сравнивают со списками.
+    """Folds a city string for comparison: lower case, one alef form, collapsed spaces.
 
-    Нижний регистр, одна форма арабского алефа, схлопнутые пробелы. Нормализуются обе
-    стороны сравнения — и вход, и маркер из `rubric`, — иначе в списке пришлось бы
-    держать по два написания на каждую букву с хамзой («أبو ظبي» и «ابو ظبي»).
+    Both sides of the comparison are folded, so the marker lists need one spelling per name.
     """
     folded = value.strip().lower()
     for form in rubric.CITY_ALEF_FORMS:
@@ -66,11 +59,10 @@ def normalize_city(value: str) -> str:
 
 
 def _city_parts(normalized: str) -> tuple[str, ...]:
-    """Части адресной строки города: «jumeirah lakes towers, dubai» -> две части.
+    """Splits a city field written as an address line into its parts.
 
-    Реестр пишет в поле города и адрес целиком, и город с эмиратом через косую черту.
-    Части нужны там, где сравнение идёт по названию целиком (районы): подстрокой
-    район искать нельзя, «al ain» нашёлся бы внутри чужого слова.
+    Districts are matched against whole parts, since as a substring "al ain" would be
+    found inside unrelated words.
     """
     parts = [normalized]
     for separator in rubric.CITY_PART_SEPARATORS:
@@ -80,26 +72,21 @@ def _city_parts(normalized: str) -> tuple[str, ...]:
 
 @cache
 def _normalized(markers: tuple[str, ...]) -> frozenset[str]:
-    """Маркеры из `rubric`, приведённые тем же нормализатором, что и вход.
+    """Folds rubric markers with the same normaliser as the input.
 
-    Кэш по самому кортежу, а не заранее посчитанная константа: списки в `rubric` —
-    данные, и подмена их в тесте (мутация правила) обязана доезжать до сравнения.
+    Cached on the tuple rather than precomputed, so that replacing a rubric list in a
+    mutation test still reaches the comparison.
     """
     return frozenset(normalize_city(m) for m in markers)
 
 
 def classify_city(city: str) -> CityMatch:
-    """Целевой ли город, по написанию из реестра. Исходов четыре, и это не два.
+    """Classifies a registry city string into one of four outcomes.
 
-    Порядок проверок — само правило, поэтому он здесь, а не размазан по условиям:
-
-    1. Пустая строка — `NOT_SET`: решать не по чему.
-    2. Район чужого эмирата (`NON_TARGET_DISTRICTS`) — `OFF_TARGET`. Первым, потому что
-       «Al Reem Island» это Абу-Даби, и попасть в «не узнали» он не должен.
-    3. Имя чужого эмирата подстрокой — `OFF_TARGET`. Раньше целевых: любой признак
-       другого эмирата важнее; поднять до HIGH по догадке дороже, чем не поднять.
-    4. Район Дубая целиком (`TARGET_DISTRICTS`) или имя Дубая подстрокой — `TARGET`.
-    5. Всё остальное — `UNRECOGNISED`: реестр написал что-то, чего в списках нет.
+    The order of the checks is the rule itself: off-target districts, then off-target
+    city names, then target districts, then target city names, else UNRECOGNISED.
+    Off-target wins over target because raising to HIGH on a guess costs more than
+    not raising.
     """
     normalized = normalize_city(city)
     if not normalized:
@@ -116,8 +103,8 @@ def classify_city(city: str) -> CityMatch:
     return CityMatch.UNRECOGNISED
 
 
-#: Какую причину печатать на каждый исход по городу. Словарь, а не цепочка if: исходов
-#: четыре, и «забыли ветку» здесь превратилось бы в ступень без объяснения.
+#: Reason per city outcome. A table, not an if-chain: a missing branch would be a tier
+#: without an explanation.
 CITY_REASON: dict[CityMatch, ReasonCode] = {
     CityMatch.OFF_TARGET: ReasonCode.CITY_OFF_TARGET,
     CityMatch.UNRECOGNISED: ReasonCode.CITY_UNRECOGNISED,
@@ -126,28 +113,16 @@ CITY_REASON: dict[CityMatch, ReasonCode] = {
 
 
 def normalize_status(value: str) -> str:
-    """Статус реестра в виде, в котором его сравнивают со списком.
-
-    Регистр и пробелы снимаются с обеих сторон сравнения: `"lapsed"` и `" LAPSED "` —
-    тот же статус, а не «слово, которого мы не знаем». Сам GLEIF пишет верхним
-    регистром (ИЗМЕРЕНО 2026-09-11, 120 записей выборки), но `registration_status` —
-    поле общей модели, и второй источник в него кладёт что хочет.
-    """
+    """Folds a registry status for comparison; another source may not use upper case."""
     return value.strip().upper()
 
 
 def status_reason(company: Company) -> Reason | None:
-    """Что сказать про статус регистрации, если по нему повода не вышло. Исхода три.
+    """Explains why the registration status produced no event; None when it did.
 
-    * статус пустой — `REGISTRATION_STATUS_NOT_SET`: решать не по чему;
-    * статус не из перечня реестра — `REGISTRATION_STATUS_UNKNOWN`: «не смогли
-      определить», а не «повода нет»;
-    * статус известный, но ось B по нему поводов не считает (RETIRED, DUPLICATE,
-      ANNULLED, MERGED, PENDING_TRANSFER, PENDING_ARCHIVAL) —
-      `REGISTRATION_STATUS_NO_EVENT`: решение принято и названо вслух.
-
-    Ступень эта причина не двигает: повод по оси B от неё не появляется и не исчезает,
-    она делает видимым уже принятое решение.
+    Three outcomes: status not set, status outside the registry vocabulary ("could not
+    determine"), and a known status that axis B counts no event for. None of them moves
+    the tier; they only make an already taken decision visible.
     """
     raw = company.registration_status.strip()
     status = normalize_status(raw)
@@ -161,12 +136,7 @@ def status_reason(company: Company) -> Reason | None:
 
 
 def classify_event(company: Company, today: date) -> tuple[Event, tuple[Reason, ...]]:
-    """Ось B: самый сильный из поводов плюс причины кодами и параметрами.
-
-    Статус регистрации сравнивается со списком `rubric.KNOWN_REGISTRATION_STATUSES`, а
-    не с двумя литералами: раньше любое третье слово реестра молча означало «повода
-    нет», и «повода нет» было не отличить от «слова мы не знаем» (см. `status_reason`).
-    """
+    """Returns axis B: the strongest event plus its reasons as codes and parameters."""
     reasons: list[Reason] = []
     status = normalize_status(company.registration_status)
     if status == rubric.STATUS_LAPSED and company.next_renewal_on:
@@ -187,8 +157,7 @@ def classify_event(company: Company, today: date) -> tuple[Event, tuple[Reason, 
         if 0 <= left <= rubric.RENEWAL_SOON_DAYS:
             reasons.append(reason(ReasonCode.LEI_RENEWAL_SOON, days=left))
             return Event.RENEWAL_SOON, tuple(reasons)
-    # Повода не вышло — говорим, почему именно: «не смогли прочитать статус» и
-    # «статус прочитан, повода по нему нет» здесь расходятся.
+    # Why: no event still needs a named cause; see status_reason.
     about_status = status_reason(company)
     if about_status is not None:
         reasons.append(about_status)
@@ -196,6 +165,7 @@ def classify_event(company: Company, today: date) -> tuple[Event, tuple[Reason, 
 
 
 def collect_evidence(company: Company) -> tuple[Evidence, ...]:
+    """Returns the registry facts that back a company score."""
     items = [Evidence("lei", company.external_id)]
     if company.license_no:
         items.append(Evidence("license_no", company.license_no))
@@ -207,16 +177,15 @@ def collect_evidence(company: Company) -> tuple[Evidence, ...]:
 
 
 def score(company: Company, today: date) -> Score:
+    """Scores a company from the registry: matrix tier, then modifiers and invariants."""
     address_type = classify_address(company)
     event, event_reasons = classify_event(company, today)
     tier = rubric.MATRIX[(address_type, event)]
     reasons: list[Reason] = list(event_reasons)
     violations: list[Violation] = []
 
-    # Модификаторы. Город из реестра приходит в четырёх видах написания, поэтому
-    # сравнение вынесено в `classify_city`, а его исход выбирает причину по словарю.
-    # Ступень понижается на всех исходах, кроме целевого, — но причина у каждого своя:
-    # «другой эмират» и «написание не узнали» читаются по-разному и считаются отдельно.
+    # Why every non-target outcome lowers the tier but keeps its own reason: "another
+    # emirate" and "spelling not recognised" read differently and are counted apart.
     city_match = classify_city(company.city)
     if tier is Tier.HIGH and city_match is not CityMatch.TARGET:
         tier = Tier.MEDIUM
@@ -226,13 +195,8 @@ def score(company: Company, today: date) -> Score:
             reason(code) if code is ReasonCode.CITY_NOT_SET else reason(code, city=city)
         )
 
-    # Инварианты. Нарушение — не LOW, а INVALID. Нарушение — такой же код с
-    # параметрами, как причина: текст ему собирает каталог, оба языка сразу.
-    # Статус юрлица: исхода три, а не два. Раньше здесь стояло `not entity_active`, и
-    # всё, что не равно слову ACTIVE, объявлялось неактивным — включая слово NULL,
-    # которым реестр сообщает «статус мне не передали» (36 записей по ОАЭ на 2026-09-11).
-    # Приговор юрлицу выносит только явное INACTIVE; молчание реестра ступень ограничивает
-    # средней — как неизмеренная уверенность в `score_inbound`, — но лид не хоронит.
+    # Why only an explicit INACTIVE condemns the entity: the registry also says NULL,
+    # meaning "status not reported", and silence caps the tier without burying the lead.
     if company.entity_status is EntityStatus.INACTIVE:
         tier = Tier.LOW
         reasons.append(reason(ReasonCode.ENTITY_INACTIVE))
@@ -264,23 +228,18 @@ def score(company: Company, today: date) -> Score:
     )
 
 
-# --- входящие обращения: ось C поверх базового уровня ---
-
-
 def _step(tier: Tier, delta: int) -> Tier:
-    """Сдвиг на ступень по лестнице приоритетов, без выхода за края."""
+    """Moves one step along the tier ladder, clamped at both ends."""
     ladder = rubric.TIER_LADDER
     index = min(max(ladder.index(tier) + delta, 0), len(ladder) - 1)
     return ladder[index]
 
 
 def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
-    """Приоритет входящего обращения.
+    """Scores an inbound request: axis C modifiers over a base tier.
 
-    Модель извлекла факты, дальше решает код: повышают срочность, пакет услуг и язык,
-    понижают отсутствие деталей и низкая уверенность извлечения. Спам и обращение без
-    единого извлечённого запроса — это LOW, а не «не смогли»: текст прочитан.
-    Нарушение инварианта — INVALID, отдельный третий исход.
+    Spam and a request with no recognised type are LOW, not "could not score" — the text
+    was read. A broken invariant is INVALID, the separate third outcome.
     """
     reasons: list[Reason] = []
     violations: list[Violation] = []
@@ -307,9 +266,7 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
             limit=rubric.URGENT_TIMELINE_DAYS,
         ))
     elif facts.urgency_stated:
-        # Слово «срочно» — содержательный признак наравне со сроком, но не дата.
-        # Раньше здесь стоял выдуманный срок в две недели, и карточка показывала его
-        # как извлечённый факт. Признак остался, придуманное число ушло.
+        # Why a signal but no date: "срочно" counts as substance, yet invents no deadline.
         bumps += 1
         reasons.append(reason(ReasonCode.URGENT_STATED))
     if len(facts.request_types) >= rubric.PACKAGE_MIN_REQUEST_TYPES:
@@ -318,15 +275,15 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
     if facts.headcount is not None and facts.headcount >= rubric.TEAM_MIN_HEADCOUNT:
         bumps += 1
         reasons.append(reason(ReasonCode.TEAM_OVER_FLEXI_QUOTA, headcount=facts.headcount))
-    # Бюджетом считается только сумма. Модель охотно кладёт в это поле сам вопрос
-    # «сколько стоит» — из вопроса о цене горячий лид не следует, скорее наоборот.
+    # Why a digit is required: the model readily puts the question "how much" in this
+    # field, and asking a price does not make a lead hot.
     if facts.budget_hint and any(ch.isdigit() for ch in facts.budget_hint):
         bumps += 1
         reasons.append(reason(ReasonCode.BUDGET_NAMED, budget=facts.budget_hint[:40]))
 
     substantive = bumps
 
-    # Язык — довесок, а не самостоятельный повод (см. LANGUAGE_NEEDS_ANOTHER_SIGNAL).
+    # Why: language is an add-on, not a signal of its own.
     if facts.language in rubric.TARGET_LANGUAGES:
         if substantive or not rubric.LANGUAGE_NEEDS_ANOTHER_SIGNAL:
             reasons.append(reason(ReasonCode.TARGET_LANGUAGE, language=facts.language))
@@ -335,21 +292,15 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
                 reason(ReasonCode.TARGET_LANGUAGE_ALONE, language=facts.language)
             )
 
-    # Горячим делает только набор содержательных признаков: одного мало, иначе HIGH
-    # достаётся половине входящих и перестаёт что-либо значить (см. SIGNALS_FOR_HIGH).
-    # Две разные причины подняться на ступень, намеренно не слитые в одно условие:
-    # набор признаков делает обращение горячим, а один признак вытаскивает из LOW
-    # обращение, где не распознан тип запроса. Слияние через or прячет вторую причину.
+    # Why two named conditions instead of one `or`: a set of signals makes a request hot,
+    # while a single signal only rescues one whose request type went unrecognised.
     enough_signals = substantive >= rubric.SIGNALS_FOR_HIGH
     rescued_from_low = bool(substantive) and tier is Tier.LOW
     if enough_signals or rescued_from_low:
         tier = _step(tier, 1)
 
-    # Понижающие. Исходов по уверенности три, а не два: измерили и мало, измерили и
-    # достаточно, не измеряли вовсе (офлайн-заглушка). Первый и третий одинаково не
-    # дают подняться выше среднего — приоритет из ненадёжных фактов дороже пропущенного
-    # лида, — но причины у них разные: число, которого не измеряли, нельзя печатать
-    # рядом с порогом, как будто его измерили.
+    # Why three confidence outcomes: measured-and-low and never-measured both cap the
+    # tier, but an unmeasured number must not be printed next to a threshold.
     if not facts.confidence_measured:
         tier = min(tier, Tier.MEDIUM, key=rubric.TIER_LADDER.index)
         reasons.append(reason(ReasonCode.CONFIDENCE_NOT_MEASURED))

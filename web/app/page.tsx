@@ -15,12 +15,10 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "discovered", label: "Discovered" },
 ];
 
-/** Anything thrown by the API layer, narrowed to the type the UI knows how to explain. */
 function toApiError(caught: unknown): ApiError {
   return caught instanceof ApiError ? caught : new ApiError("unknown", String(caught));
 }
 
-/** The whole dashboard: the three counters, the tab bar and the active tab. */
 export default function Page(): React.JSX.Element {
   const [tab, setTab] = useState<TabKey>("inbox");
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -32,8 +30,7 @@ export default function Page(): React.JSX.Element {
   const [loadingLeads, setLoadingLeads] = useState(true);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  // Wall clock is read after mount only: rendering it on the server would make the
-  // "3 h ago" column differ between server and client markup.
+  // Why after mount: a server-rendered clock makes "3 h ago" differ between the two markups.
   const [now, setNow] = useState<Date | null>(null);
 
   const loadLeads = useCallback(async () => {
@@ -42,8 +39,7 @@ export default function Page(): React.JSX.Element {
     try {
       const data = await getLeads();
       setLeads(data);
-      // По умолчанию открыт самый горячий, а не самый свежий: список отсортирован по
-      // приоритету, и открытая карточка обязана быть той, что стоит первой строкой.
+      // The open card must be the first row, and the list is sorted by priority.
       const order: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2, INVALID: 3 };
       const first = [...data].sort(
         (a, b) =>
@@ -113,8 +109,7 @@ export default function Page(): React.JSX.Element {
         </div>
       </header>
 
-      {/* Один постоянный индикатор режима данных вместо пяти оговорок по экрану
-          (02_references.md §6.2, образец — полоса тестового режима Stripe). */}
+      {/* One standing indicator of the data mode, instead of five caveats across the screen. */}
       <div className="provenance-strip">
         <div className="provenance-inner">
           {isMock ? (
@@ -150,8 +145,7 @@ export default function Page(): React.JSX.Element {
       </div>
 
       <main className="shell">
-        {/* Три числа, а не пять равновесных плиток (02_references.md §6.1): watchlist
-            живёт во вкладке Discovered, режим данных — в полосе выше. */}
+        {/* Three numbers, not five equal tiles. */}
         <div className="stats">
           <div className="stat">
             <div className="stat-label">Requests scored</div>
@@ -179,7 +173,7 @@ export default function Page(): React.JSX.Element {
               <span className="stat-sub">
                 {" "}
                 ·{" "}
-                {/* Третий исход: «не смогли узнать» не сворачивается в «ноль». */}
+                {/* Third outcome: "could not read it" is never folded into "zero". */}
                 {statsFailed
                   ? "could not read how many failed the engine's own checks"
                   : `${stats?.leads.violations ?? 0} failed the engine's own checks`}

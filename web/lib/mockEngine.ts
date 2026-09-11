@@ -481,6 +481,12 @@ export function linkReasons(
 }
 
 /** Port of score.score_inbound. Three outcomes: INVALID is never folded into LOW. */
+/** Mirror of reasons.VIOLATION_CATALOGUE, English rendering. Checked by crosscheck.py. */
+export const VIOLATION_TEXTS = {
+  high_without_quote: "HIGH without a quote from the message",
+  high_on_empty_text: "HIGH on an empty message text",
+} as const;
+
 export function scoreInbound(text: string, facts: LeadFacts, quotes: string[]): ScoreResult {
   const reasons: ReasonItem[] = [];
   const violations: string[] = [];
@@ -545,8 +551,10 @@ export function scoreInbound(text: string, facts: LeadFacts, quotes: string[]): 
     });
   }
 
-  if (tier === "HIGH" && evidence.length === 0) violations.push("HIGH без цитаты из обращения");
-  if (tier === "HIGH" && !text.trim()) violations.push("HIGH на пустом тексте обращения");
+  // Why English: these strings land on an English card. The engine renders the same two
+  // codes in both languages; the port is the UI side, so it mirrors the English rendering.
+  if (tier === "HIGH" && evidence.length === 0) violations.push(VIOLATION_TEXTS.high_without_quote);
+  if (tier === "HIGH" && !text.trim()) violations.push(VIOLATION_TEXTS.high_on_empty_text);
   if (violations.length) tier = "INVALID";
 
   return { tier, reasonItems: reasons, evidence, violations };

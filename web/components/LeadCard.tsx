@@ -15,7 +15,6 @@ import {
   timeAgo,
 } from "./ui";
 
-/** Request-type codes as words on the card. An unknown code is printed raw, never hidden. */
 const REQUEST_LABEL: Record<string, string> = {
   office: "office",
   setup: "company setup",
@@ -26,7 +25,7 @@ const REQUEST_LABEL: Record<string, string> = {
   other: "other",
 };
 
-/** One line under the draft saying which of the four drafting outcomes this card got. */
+/** Which of the four drafting outcomes this card got. */
 const OUTCOME_NOTE: Record<string, string> = {
   draft: "Draft reply — prices are ranges from the demo price list, never a quote.",
   questions: "Too few facts for numbers: the engine asks instead of guessing a price.",
@@ -34,7 +33,7 @@ const OUTCOME_NOTE: Record<string, string> = {
   no_draft_needs_human: "No draft: the engine refused rather than send something it cannot check.",
 };
 
-/** How many quotes are shown before the list is folded. ВЫБРАНО: a card is read, not scrolled. */
+/** How many quotes show before the list folds. CHOSEN: a card is read, not scrolled. */
 const EVIDENCE_SHOWN = 3;
 
 interface Span {
@@ -43,12 +42,7 @@ interface Span {
   active: boolean;
 }
 
-/**
- * The request text with the quotes marked inside it (02_references.md §6.3: the proof
- * stands next to the claim, not in a separate list). Quotes are slices of this very text,
- * so they are located by search rather than by an offset we would have to trust; the
- * trailing ellipsis of a trimmed quote is dropped before searching.
- */
+/** The request text with its quotes marked inside it, located by search rather than by offset. */
 function markQuotes(text: string, quotes: string[], activeIndices: number[]): React.ReactNode {
   const spans: Span[] = [];
   quotes.forEach((quote, index) => {
@@ -60,8 +54,7 @@ function markQuotes(text: string, quotes: string[], activeIndices: number[]): Re
   });
   if (!spans.length) return text;
 
-  // Quotes overlap (one sentence can prove several facts), and nested <mark> elements
-  // would nest highlights: overlapping spans are merged into one.
+  // Why merged: one sentence can prove several facts, and nested <mark> nests highlights.
   spans.sort((a, b) => a.start - b.start);
   const merged: Span[] = [];
   for (const span of spans) {
@@ -89,7 +82,7 @@ function markQuotes(text: string, quotes: string[], activeIndices: number[]): Re
   return out;
 }
 
-/** One `dt`/`dd` pair, or nothing at all when the fact is not there — never an empty row. */
+/** One `dt`/`dd` pair, or nothing when the fact is absent — never an empty row. */
 function factRow(
   label: string,
   value: string | number | null | undefined,
@@ -109,15 +102,11 @@ function factRow(
 
 interface LeadCardProps {
   lead: Lead;
-  /** Clock the "3 h ago" column is measured against; null until the client has mounted. */
   now: Date | null;
   onChanged: (lead: Lead) => void;
 }
 
-/**
- * One request in full: its text with the quotes marked inside it, the extracted facts, the
- * reasons behind the priority, the draft reply, and the two decision buttons.
- */
+/** One request in full: text, facts, reasons, draft reply and the two decision buttons. */
 export default function LeadCard({ lead, now, onChanged }: LeadCardProps): React.JSX.Element {
   const [busy, setBusy] = useState<"approve" | "disagree" | null>(null);
   const [showReason, setShowReason] = useState(false);
@@ -160,8 +149,8 @@ export default function LeadCard({ lead, now, onChanged }: LeadCardProps): React
 
   const serving = lead.serving;
 
-  // Измеряем сам факт обрезки, а не предполагаем его по длине строки: перенос зависит от
-  // ширины колонки, языка и подсветки цитаты, и любая оценка «по символам» врёт.
+  // Why measured: wrapping depends on column width, language and highlighting, so any
+  // estimate by character count lies.
   const textRef = useRef<HTMLDivElement>(null);
   const [textClipped, setTextClipped] = useState(false);
   useEffect(() => {
@@ -174,9 +163,7 @@ export default function LeadCard({ lead, now, onChanged }: LeadCardProps): React
       <div className="card-head">
         <div className="card-head-row">
           <TierChip tier={lead.tier} />
-          {/* Машинного id в шапке нет намеренно: моноширинный `edge-02` на самом видном
-              месте читается как лог и выдаёт внутренние имена тест-кейсов. Значение
-              лежит в раскрытии «How this was scored» как `request id`. */}
+          {/* Why no id here: a monospace id in the most visible place reads as a log. */}
           <Chip title="Channel the request arrived from">{CHANNEL_LABEL[lead.channel] ?? lead.channel}</Chip>
           <Chip title="Language detected in the request text">{lead.language}</Chip>
           {lead.is_synthetic ? <SyntheticTag /> : null}
@@ -190,8 +177,6 @@ export default function LeadCard({ lead, now, onChanged }: LeadCardProps): React
         <div className="card-col">
           <div className="section">
             <div className="section-title">Request text (as received)</div>
-            {/* dir="auto" — направление задаёт первый сильный символ содержимого: инбокс
-                смешанный, и глобальный dir="rtl" сломал бы русские и английские строки. */}
             <div
               ref={textRef}
               className={`message-text${isRtlText(lead.text) ? " rtl-block" : ""}`}
@@ -199,11 +184,7 @@ export default function LeadCard({ lead, now, onChanged }: LeadCardProps): React
             >
               {lead.text.trim() ? markQuotes(lead.text, quotes, activeQuotes) : "— empty message —"}
             </div>
-            {/* Обрезка обязана быть видна. Коробка и раньше прокручивалась, но кончалась
-                на половине строки и без единого признака, что текст продолжается: на
-                кадре 07 это читалось как ошибка вёрстки, и обрыв приходился ровно на
-                вопрос клиента. Высота теперь кратна строке, а факт обрезки — измеряется
-                и подписывается, а не подразумевается. */}
+            {/* Clipping has to be visible: a box ending mid-line reads as a layout bug. */}
             {textClipped ? (
               <div className="note" style={{ marginTop: 4 }}>
                 The request is longer than the box — scroll inside it to read the rest.
@@ -243,9 +224,7 @@ export default function LeadCard({ lead, now, onChanged }: LeadCardProps): React
             />
           </div>
 
-          {/* Инженерное — под одно раскрытие (владелец, 2026-09-10): в основном потоке
-              остаётся то, по чему менеджер принимает решение по лиду. Данные не выброшены:
-              они честные и нужны техническому зрителю, просто в один клик от карточки. */}
+          {/* Engineering detail one click away; the main flow carries only what decides the lead. */}
           <details className="details section">
             <summary className="details-summary">How this was scored</summary>
             <div className="details-body">
@@ -324,10 +303,7 @@ export default function LeadCard({ lead, now, onChanged }: LeadCardProps): React
                         onClick={() => setActiveReason(activeReason === index ? null : index)}
                       >
                         {item.text}
-                        {/* Цитата разворачивается у нажатой причины. У ненажатой не пишется
-                            ничего: объяснять механику интерфейса под каждой строкой — это
-                            служебный текст в рабочем потоке. Помечается только обратное —
-                            причина, у которой цитаты быть не может. */}
+                        {/* Only the opposite is labelled: a reason that can have no quote at all. */}
                         {activeReason === index ? (
                           <span className="reason-cite" dir="auto">
                             “{quotes[item.quotes[0]]}”
@@ -343,9 +319,7 @@ export default function LeadCard({ lead, now, onChanged }: LeadCardProps): React
             ) : (
               <div className="note">Base level, no modifier applied.</div>
             )}
-            {/* Причины на языке интерфейса — обязательство карточки, и невыполнимость
-                этого обязательства видна, а не спрятана: у лида, оценённого до того,
-                как движок начал хранить коды причин, английского текста не существует. */}
+            {/* When the card cannot keep its promise of English reasons, it says so. */}
             {lead.reasons_note ? (
               <div className="note" style={{ marginTop: 8 }}>{lead.reasons_note}</div>
             ) : null}

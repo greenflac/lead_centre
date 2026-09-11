@@ -6,7 +6,6 @@ import { ApiError, type Lead } from "../lib/types";
 import LeadCard from "./LeadCard";
 import { ErrorNotice } from "./ui";
 
-/** Channels a request can be marked as arriving from. */
 const CHANNELS: { value: string; label: string }[] = [
   { value: "form", label: "Website form" },
   { value: "jivo", label: "Jivo chat" },
@@ -47,16 +46,12 @@ const SAMPLES: { label: string; text: string; channel: string }[] = [
 ];
 
 interface NewLeadViewProps {
-  /** Clock the "3 h ago" column is measured against; null until the client has mounted. */
   now: Date | null;
   onCreated: (lead: Lead) => void;
   onLeadChanged: (lead: Lead) => void;
 }
 
-/**
- * The form a reviewer drives: any text in, one real card out, scored by the same rubric as
- * every card in the inbox.
- */
+/** The form a reviewer drives: any text in, one real card out, same rubric as the inbox. */
 export default function NewLeadView({
   now,
   onCreated,
@@ -67,8 +62,7 @@ export default function NewLeadView({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
   const [result, setResult] = useState<Lead | null>(null);
-  // Сколько шагов конвейера действительно отработало. Шаг зажигается по факту исполнения,
-  // а не по таймеру: индикатор, который движется сам по себе, измеряет не работу.
+  // Why by fact and not by timer: an indicator moving on its own measures nothing.
   const [step, setStep] = useState<number>(-1);
 
   async function submit(): Promise<void> {
