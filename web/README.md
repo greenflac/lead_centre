@@ -29,7 +29,7 @@ NEXT_PUBLIC_API_URL=            # empty or unset → mock mode, reads web/mock/*
 NEXT_PUBLIC_API_URL=https://…   # live mode, all six calls go to the backend
 ```
 
-The active mode is shown in the header (`DEMO DATA` / `LIVE BACKEND`), so nobody mistakes
+The active mode is shown in a strip under the header (`DEMO DATA` / `LIVE BACKEND`), so nobody mistakes
 demo numbers for production ones. `lib/api.ts` is the only module that knows which mode is on;
 components call six functions and nothing else:
 
@@ -66,11 +66,11 @@ Requests typed into **New request** in mock mode are scored in the browser by
 `lib/mockEngine.ts` and `lib/mockReply.ts` — TypeScript ports of the Python scoring rules and
 reply builder, needed because a browser cannot run Python with no backend attached. They are
 checked against Python rather than trusted: `PYTHONPATH=. python3 web/scripts/crosscheck.py`
-runs ten seed requests through both paths and compares field by field in both languages —
-facts, tier, reasons, draft, and which quote is offered as proof of which reason — with
-planted mismatches as a negative control. Last run (2026-09-10): 10 requests, 144 fields,
-144 matched, 0 mismatches, 4 of 4 planted mismatches caught. In live mode neither file is
-executed.
+runs a sample of seed requests through both paths and compares field by field in both
+languages — facts, tier, reasons, draft, and which quote is offered as proof of which
+reason — with planted mismatches as a negative control. Last run (2026-09-11): 12 requests,
+174 fields, 174 matched, 0 mismatches, 4 of 4 planted mismatches caught. In live mode
+neither file is executed.
 
 `budget_hint` is the customer's own words, not the list of markers that fired: a figure in
 the text displaces the markers, and only when there is no figure does the first matching
@@ -182,12 +182,12 @@ They print numbers rather than a verdict, and CI runs all three on every push
 
 * `python3 web/scripts/contrast.py` — WCAG contrast of every colour pair in both schemes, with
   a negative control on the instrument itself (white on white must give 1.00, black on white
-  21.00). 38 pairs checked, 0 below threshold, 2 pairs with no threshold to check against.
+  21.00). Last run (2026-09-11): 38 pairs checked, 0 below threshold, 2 with no threshold.
 * `python3 web/scripts/css_audit.py` — counts font sizes, weights, spacing values off the 4 px
-  grid, radii, shadows and physical (non-logical) properties. 4 sizes (12 / 14 / 15 / 16 px,
-  15 px for Arabic blocks only), 2 weights, 0 off-grid spacings, 0 shadows, 0 physical
-  properties.
-* `python3 web/scripts/crosscheck.py` — runs the same 10 requests through the Python engine
+  grid, radii, shadows and physical (non-logical) properties. Last run (2026-09-11): 4 sizes
+  (12 / 14 / 15 / 16 px, 15 px for Arabic blocks only), 2 weights, 0 off-grid spacings,
+  0 shadows, 0 physical properties.
+* `python3 web/scripts/crosscheck.py` — runs the same 12 requests through the Python engine
   and through this TypeScript port and compares every field of both results, including the
-  reasons rendered in both languages. 144 fields, 144 matched, 0 disagreements, and 4 planted
+  reasons rendered in both languages. 174 fields, 174 matched, 0 disagreements, and 4 planted
   disagreements the instrument has to catch — without them a run of zeros would prove nothing.

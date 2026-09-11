@@ -1,28 +1,10 @@
-"""Извлечение фактов из текста обращения языковой моделью. Модель предлагает — код решает.
+"""Fact extraction from request text by a language model: the model proposes, code decides.
 
-Провайдер сменный, как источник компаний в `sources/base.py`: движок про провайдера знает
-только то, что тот вернёт текст. `LLM_PROVIDER` = `anthropic` (structured outputs) или
-`pollinations` (OpenAI-совместимый шлюз). Демо не должно останавливаться из-за того, у кого
-из провайдеров кончились деньги.
-
-Исходы ровно три, и третий не сворачивается в первые два:
-  * `LeadFacts` — извлекли, факты годные (в том числе `is_spam=True` — это тоже результат);
-  * `LeadFacts` из режима OFFLINE — детерминированная заглушка, `confidence=0.0`;
-  * исключение — извлечь не смогли; `ProviderBudgetError` («кончились деньги/бюджет»)
-    отделён от прочих `ExtractionError`, потому что чинится он не кодом, а кошельком.
-Пустой `LeadFacts` вместо ошибки не возвращается никогда.
-
-Общее для всех провайдеров лежит в конвейере, а не в провайдере:
-  * вырезание телефонов и почты (`scrub_pii`) — свойство конвейера, не провайдера;
-  * валидация ответа и сборка `LeadFacts` (`parse_facts`) — одна на всех провайдеров;
-  * `has_contact` определяет код по факту вырезанного, а не модель: контактов она
-    не видит и видеть не должна.
-
-Причина маршрута (`Route.reason`, `Extraction.route_reason`) текстом здесь не собирается:
-модуль называет код и параметры, формулировки на обоих языках живут в `engine/reasons.py`.
-Строка остаётся русской, как её читают отчёты и хранилище, но помнит свой код, поэтому
-интерфейс берёт английский через `Extraction.route_reason_in(Language.EN)`, а не держит
-собственный перевод.
+The provider is swappable (`LLM_PROVIDER`); everything shared — PII scrubbing, response
+validation and LeadFacts assembly — lives in the pipeline, not in the provider.
+Three outcomes, and the third never collapses into the first two: extracted facts,
+the deterministic OFFLINE stub, or an exception. An empty LeadFacts is never returned
+in place of an error. Reason wording lives in engine/reasons.py.
 """
 from __future__ import annotations
 
@@ -49,66 +31,56 @@ from leadcentre.engine.reasons import (
 )
 from leadcentre.models import InboundMessage, LeadFacts, RequestType
 
-# --- константы-решения ---
-
-DEFAULT_PROVIDER = "anthropic"           # переопределяется LLM_PROVIDER
-# Извлечение фактов из короткого сообщения — простая работа, а чат-канал обещает ответ
-# за секунды: по времени и цене на лид выигрывает младшая модель. Старшая включается
-# переменной LLM_MODEL, а не правкой кода.
+DEFAULT_PROVIDER = "anthropic"
+# Why the small model by default: extraction from a short message is simple work and the
+# chat channel promises an answer in seconds.
 ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
-ANTHROPIC_EFFORT = "low"                 # задача простая; переопределяется LLM_EFFORT
-ANTHROPIC_THINKING = "off"               # рассуждать не над чем; переопределяется LLM_THINKING
-# Длина текста, начиная с которой обращение уходит на старшую модель; ровно
-# LONG_MESSAGE_CHARS — ещё короткое. Медиана длины обращения в наборе — около 100 символов,
-# а младшая модель путается в относительных датах («с 20 числа») именно на длинных
-# простынях, которые начинаются заметно дальше медианы.
+ANTHROPIC_EFFORT = "low"
+ANTHROPIC_THINKING = "off"
+# Why 600: the small model loses relative dates ("с 20 числа") on long walls of text,
+# which start well past the median request length. Exactly 600 still counts as short.
 LONG_MESSAGE_CHARS = 600
-LONG_MODEL = "claude-opus-5"             # на длинных обращениях даёт воспроизводимый разбор
-# `output_config.effort` и adaptive-мышление принимают только перечисленные модели,
-# остальные отвечают на эти параметры 400. Список ведётся по факту проверки запросом.
+LONG_MODEL = "claude-opus-5"
+# Why a list: other models answer 400 to `output_config.effort` and adaptive thinking.
 EFFORT_MODELS = ("claude-opus-5", "claude-opus-4-", "claude-sonnet-5", "claude-sonnet-4-6",
                  "claude-fable-")
-POLLINATIONS_MODEL = "openai"            # алиас GPT-OSS 20B в выдаче GET /models шлюза
+POLLINATIONS_MODEL = "openai"            # gateway alias for GPT-OSS 20B
 POLLINATIONS_URL = "https://text.pollinations.ai/openai"
 USER_AGENT = "leadcentre/0.1 (+Lead Centre)"
-MAX_TOKENS = 4096                        # ответ — один JSON-объект, взято с запасом
-TIMEOUT_S = 60.0                         # чат-канал, дольше ждать смысла нет
-MAX_RETRIES = 2                          # столько же, сколько по умолчанию у SDK
-HEADCOUNT_MIN = 1                        # «ноль человек» — не факт, а мусор в ответе
-TIMELINE_MIN = 0                         # срок в прошлом модель придумала
-MIN_PHONE_DIGITS = 9                     # короче — не телефон, а «8 человек» или дата
-# Доля второго алфавита, ниже которой это не «mixed», а имя собственное латиницей
-# внутри русской фразы (TECOM, IFZA).
+MAX_TOKENS = 4096
+TIMEOUT_S = 60.0
+MAX_RETRIES = 2
+HEADCOUNT_MIN = 1                        # Why 1: "zero people" is noise, not a fact.
+TIMELINE_MIN = 0                         # Why 0: a deadline in the past was invented.
+MIN_PHONE_DIGITS = 9                     # Why 9: shorter runs are counts or dates.
+# Why a share, not any occurrence: below this it is a Latin proper noun inside a Russian
+# phrase (TECOM, IFZA), not a mixed-language request.
 MIXED_SHARE = 0.2
 
-# Версия в имени файла: прежние промпты лежат рядом и остаются доступны для сравнения.
+# Why versioned by filename: earlier prompts stay alongside for comparison.
 PROMPT_VERSION = "extract_v5"
 PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / f"{PROMPT_VERSION}.md"
 
 PHONE_MASK = "[phone]"
 EMAIL_MASK = "[email]"
 
-# Порядок: почта раньше телефона, иначе хвост номера внутри адреса маскируется как телефон.
+# Why email first: otherwise a digit tail inside an address is masked as a phone.
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
 PHONE_RE = re.compile(r"(?<![\w])\+?\d[\d\-\s().]{5,}\d(?![\w])")
 FENCE_RE = re.compile(r"^\s*```(?:json)?\s*|\s*```\s*$")
 
 
 class ExtractionError(RuntimeError):
-    """Извлечь не смогли. В пустой LeadFacts не сворачивается: это отдельный исход."""
+    """Extraction failed; never collapsed into an empty LeadFacts."""
 
 
 class ProviderBudgetError(ExtractionError):
-    """Провайдер недоступен по лимитам: деньги/бюджет ключа, а не сеть и не код.
-
-    Отдельный тип, потому что и лечится отдельно: кодом это не чинится, повторять запрос
-    бессмысленно, а сообщение должно говорить человеку, куда идти.
-    """
+    """The provider refused on billing limits; retrying will not help."""
 
 
 @dataclass(frozen=True)
 class Scrubbed:
-    """Текст без персональных данных и счётчики вырезанного — числами, а не флагом."""
+    """Text with personal data removed, plus counts of what was removed."""
 
     text: str
     phones: int
@@ -116,27 +88,29 @@ class Scrubbed:
 
     @property
     def has_contact(self) -> bool:
+        """True when a phone or an email was actually cut out of the text."""
         return bool(self.phones or self.emails)
 
     def summary(self) -> str:
+        """Returns a one-line summary of what was removed."""
         return f"вырезано: телефонов {self.phones}, адресов почты {self.emails}"
 
 
 @dataclass(frozen=True)
 class Completion:
-    """Ответ провайдера, приведённый к общему виду. Дальше конвейер про провайдера не знает."""
+    """A provider response in the common shape the pipeline works with."""
 
     text: str
     model: str
     input_tokens: int
     output_tokens: int
-    cache_read_tokens: int = 0     # из кэша (дёшево); 0 у провайдеров без кэша
-    cache_write_tokens: int = 0    # записано в кэш (дороже обычного входа)
+    cache_read_tokens: int = 0     # 0 for providers without a cache
+    cache_write_tokens: int = 0
 
 
 @dataclass(frozen=True)
 class Extraction:
-    """Факты плюс то, чем они получены: для отчёта, логов и счёта за токены."""
+    """Facts plus how they were obtained: for reports, logs and the token bill."""
 
     facts: LeadFacts
     provider: str
@@ -148,29 +122,18 @@ class Extraction:
     cache_write_tokens: int
     offline: bool
     scrubbed: Scrubbed
-    dropped_quotes: int      # цитат, которых в обращении нет: модель их придумала
-    route_reason: str = ""   # почему выбрана эта модель — в карточку, для демонстрации
-    #: Что модель сказала про `timeline_days` до того, как срок пересчитал код. Поле
-    #: приборное: без него «код заменил число модели» неотличимо от «модель так и
-    #: ответила», и замер расхождения режимов делать нечем (П1 — счётчик раньше ручки).
+    dropped_quotes: int      # quotes absent from the request: the model invented them
+    route_reason: str = ""
+    #: What the model said about `timeline_days` before code recomputed it. Without this
+    #: "code replaced the model number" is indistinguishable from "the model said so".
     timeline_from_model: int | None = None
 
     def route_reason_in(self, language: Language = DEFAULT_LANGUAGE) -> str:
-        """Причина маршрута на нужном языке — это берёт интерфейс.
-
-        Исходов три: строка помнит свой код — отрисовывается на любом языке; причины нет
-        вовсе (провайдер не anthropic) — пусто; строка пришла без кода (поднята из
-        хранилища) — на другой язык её не отрисовать, и это `ReasonRenderError`, а не
-        молчаливая подмена русским текстом.
-        """
+        """Returns the route reason in the given language; a code-less string raises."""
         return text_in(self.route_reason, language)
 
     def served_by(self) -> str:
-        """Одной строкой: чем фактически обслужен лид.
-
-        Имя модели берётся из ответа API, а не из намерения: подмену модели на стороне
-        провайдера видно в отчёте.
-        """
+        """Returns one line naming what actually served the lead, per the API response."""
         cache = ""
         if self.cache_read_tokens or self.cache_write_tokens:
             cache = (f", кэш: прочитано {self.cache_read_tokens}, "
@@ -180,26 +143,24 @@ class Extraction:
                 f"{cache})")
 
 
-# --- минимизация персональных данных (общая для всех провайдеров) ---
-
-
 def _mask_phone(match: re.Match[str]) -> str:
-    """Маскируем только то, где хватает цифр на номер: «8 человек» и «2026-09» — не телефон."""
+    """Masks a match only when it holds enough digits to be a phone number."""
     digits = sum(c.isdigit() for c in match.group(0))
     if digits < MIN_PHONE_DIGITS:
         return match.group(0)
-    # Пробелы по краям захвата возвращаем на место, иначе слова слипнутся.
+    # Why the edges are restored: without them neighbouring words run together.
     head = match.group(0)[: len(match.group(0)) - len(match.group(0).lstrip())]
     tail = match.group(0)[len(match.group(0).rstrip()):]
     return f"{head}{PHONE_MASK}{tail}"
 
 
 def scrub_pii(text: str) -> Scrubbed:
-    """Вырезает телефоны и адреса почты. Всё, что уходит в любую модель, проходит через это."""
+    """Removes phones and emails; everything sent to any model passes through here."""
     without_email, emails = EMAIL_RE.subn(EMAIL_MASK, text)
     phones = 0
 
     def replace(match: re.Match[str]) -> str:
+        """Masks one phone match and counts it."""
         nonlocal phones
         masked = _mask_phone(match)
         if PHONE_MASK in masked:
@@ -210,11 +171,8 @@ def scrub_pii(text: str) -> Scrubbed:
     return Scrubbed(text=without_phone, phones=phones, emails=emails)
 
 
-# --- схема ответа: поле в поле с LeadFacts ---
-
-
 def _schema() -> dict:
-    """JSON-схема ответа модели; набор полей повторяет LeadFacts."""
+    """Returns the JSON schema of the model response; its fields mirror LeadFacts."""
     return {
         "type": "object",
         "properties": {
@@ -223,9 +181,8 @@ def _schema() -> dict:
                 "items": {"type": "string", "enum": [t.value for t in RequestType]},
             },
             "jurisdiction_hint": {"type": ["string", "null"]},
-            # Structured outputs не принимает `minimum`/`maximum` у целых полей и отвечает
-            # на них 400, поэтому границы держит parse_facts после разбора
-            # (HEADCOUNT_MIN / TIMELINE_MIN), а не схема.
+            # Why no bounds here: structured outputs answers 400 to minimum/maximum, so
+            # parse_facts enforces HEADCOUNT_MIN / TIMELINE_MIN after parsing.
             "headcount": {"type": ["integer", "null"]},
             "timeline_days": {"type": ["integer", "null"]},
             "budget_hint": {"type": ["string", "null"]},
@@ -252,7 +209,7 @@ def _schema() -> dict:
 
 
 def load_prompt() -> str:
-    """Читает промпт: он живёт файлом с версией в имени, в коде — только загрузка."""
+    """Reads the prompt file; unreadable raises ExtractionError."""
     try:
         return PROMPT_PATH.read_text(encoding="utf-8")
     except OSError as exc:
@@ -260,9 +217,9 @@ def load_prompt() -> str:
 
 
 def user_content(message: InboundMessage, scrubbed: Scrubbed) -> str:
-    """Пользовательская часть запроса. Текст сюда попадает только после `scrub_pii`."""
-    # Дата обращения идёт явной строкой: без опоры модель отсчитывает «с 20 числа»
-    # от произвольного дня, и timeline_days перестаёт быть воспроизводимым.
+    """Builds the user half of the request; the text arrives here only after scrub_pii."""
+    # Why the date is spelled out: without an anchor the model counts "с 20 числа" from an
+    # arbitrary day and timeline_days stops being reproducible.
     return (
         f"Обращение получено: {message.received_at.isoformat()}\n"
         f"Канал: {message.channel}\n"
@@ -272,25 +229,24 @@ def user_content(message: InboundMessage, scrubbed: Scrubbed) -> str:
 
 @dataclass(frozen=True)
 class Route:
-    """Куда отправлять этот лид. Решение принимается по длине текста, до всякой сети."""
+    """Where this lead is sent; decided from the text length, before any network call."""
 
     model: str
-    effort: str          # "" — не слать параметр
-    thinking: str        # "" — не слать параметр
-    reason: str          # русский текст из каталога, помнящий свой код (RenderedText)
-    reason_item: RouteReason | None = None   # тот же код с параметрами, без текста
+    effort: str          # "" means: do not send the parameter at all
+    thinking: str        # "" means: do not send the parameter at all
+    reason: str          # rendered text that remembers its own code
+    reason_item: RouteReason | None = None
 
 
 def _route(model: str, effort: str, thinking: str, item: RouteReason) -> Route:
-    """Собирает маршрут; текст причины отрисовывает каталог reasons.py, и только он."""
+    """Builds a route; only the reasons.py catalogue renders the reason text."""
     return Route(model, effort, thinking, rendered(item), item)
 
 
 def route(message: InboundMessage) -> Route:
-    """Короткие обращения — дешёвая модель, длинные — дорогая и стабильная.
+    """Routes short requests to the cheap model, long ones to the stable model.
 
-    `LLM_MODEL` выключает маршрутизацию: заданная руками модель идёт на всё, иначе
-    оператор не смог бы прогнать набор на одной модели для сравнения.
+    `LLM_MODEL` disables routing so a whole set can be run on one model.
     """
     forced = os.environ.get("LLM_MODEL")
     if forced:
@@ -306,11 +262,7 @@ def route(message: InboundMessage) -> Route:
 
 
 class Provider(Protocol):
-    """Сменный адаптер модели.
-
-    Тело запроса и разбор ответа — дело адаптера; вырезание персональных данных,
-    валидация фактов и сборка LeadFacts — дело конвейера, одинаковое для всех.
-    """
+    """Swappable model adapter: request body and response parsing only."""
 
     name: str
 
@@ -322,26 +274,25 @@ class Provider(Protocol):
 
 
 def anthropic_client():
-    """Клиент Anthropic. Ключ — из CLAUDE_KEY, запасной ANTHROPIC_API_KEY.
+    """Returns an Anthropic client; the key is read here and only here.
 
-    Функция публичная, потому что этим же клиентом ходит translit.py: ключ читается
-    в одном месте, иначе два способа его получить неизбежно разъедутся.
+    Public because translit.py shares it: two ways to obtain the key would drift apart.
     """
     api_key = os.environ.get("CLAUDE_KEY") or os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise ExtractionError("нет ключа: ни CLAUDE_KEY, ни ANTHROPIC_API_KEY не заданы")
     try:
         import anthropic
-    except ImportError as exc:  # отсутствие пакета ловится до похода в сеть
+    except ImportError as exc:  # caught before any network call
         raise ExtractionError("нет пакета anthropic: pip install anthropic") from exc
     return anthropic.Anthropic(api_key=api_key, timeout=TIMEOUT_S, max_retries=MAX_RETRIES)
 
 
 def anthropic_error(exc: Exception) -> ExtractionError:
-    """Ошибка API → наш тип. Лимиты отделены от сети: чинятся они по-разному."""
+    """Converts an API error into our type, keeping billing limits apart from network."""
     text = str(exc)
-    # 400 «credit balance is too low» приходит обычным BadRequestError — по коду ответа
-    # его от опечатки в теле не отличить, отличаем по тексту.
+    # Why matched on text: a low credit balance arrives as an ordinary BadRequestError,
+    # indistinguishable by status code from a typo in the body.
     if "credit balance" in text or "billing" in text.lower():
         return ProviderBudgetError(
             "anthropic: кончились деньги на аккаунте — API отвечает 400 "
@@ -353,12 +304,12 @@ def anthropic_error(exc: Exception) -> ExtractionError:
 
 
 class AnthropicProvider:
-    """Claude через официальный SDK. Схему держит сам API (structured outputs)."""
+    """Claude through the official SDK; the API itself enforces the schema."""
 
     name = "anthropic"
 
     def __init__(self, route_: Route | None = None) -> None:
-        # Маршрут задаётся на лид; без него — прежнее поведение по переменным среды.
+        """Builds the provider, falling back to the environment when no route is given."""
         self.route = route_ or Route(
             os.environ.get("LLM_MODEL") or ANTHROPIC_MODEL,
             os.environ.get("LLM_EFFORT", ANTHROPIC_EFFORT),
@@ -367,9 +318,11 @@ class AnthropicProvider:
         )
 
     def model(self) -> str:
+        """Returns the routed model name."""
         return self.route.model
 
     def build_body(self, system: str, content: str) -> dict:
+        """Builds an Anthropic request body with structured outputs."""
         model = self.model()
         supports_effort = model.startswith(EFFORT_MODELS)
         body = {
@@ -377,17 +330,14 @@ class AnthropicProvider:
             "max_tokens": MAX_TOKENS,
             "system": system,
             "messages": [{"role": "user", "content": content}],
-            # Системный промпт и схема одинаковы для каждого лида, поэтому префикс
-            # кэшируется, а волатильное (текст обращения, дата) идёт после него в messages.
-            # У моделей с высоким порогом кэширования префикс до него не дотягивает и кэш
-            # молча не включается; параметр безвреден, а сработал ли он, видно по счётчикам
-            # cache_read/cache_write в Extraction.
+            # Why cached: system prompt and schema are identical per lead, while the
+            # volatile parts follow in messages. Whether it engaged is visible in the
+            # cache_read/cache_write counters on Extraction.
             "cache_control": {"type": "ephemeral"},
             "output_config": {"format": {"type": "json_schema", "schema": _schema()}},
         }
-        # Уровень усилий и мышление — конфигурация, а не константа в коде. `none`/`off`
-        # означает «не слать параметр вовсе»: у моделей, которые его не принимают,
-        # он не должен появляться в теле даже пустым.
+        # Why the empty value is dropped rather than sent: models that reject the
+        # parameter must not see it in the body at all.
         effort = self.route.effort.strip().lower()
         if effort not in ("", "none") and supports_effort:
             body["output_config"]["effort"] = effort
@@ -402,6 +352,7 @@ class AnthropicProvider:
         return anthropic_client()
 
     def complete(self, body: dict) -> Completion:
+        """Calls the SDK and returns the response in the common shape."""
         client = self._client()
         try:
             response = client.messages.create(**body)
@@ -425,19 +376,16 @@ class AnthropicProvider:
 
 
 class OpenAICompatibleProvider:
-    """Шлюз формата OpenAI chat completions (у нас — Pollinations).
-
-    Structured outputs здесь нет, поэтому схему держим сами: кладём её в системный промпт
-    и валидируем ответ тем же `parse_facts`, что и у Anthropic. `response_format`
-    просим, но на него не рассчитываем — невалидный ответ будет `ExtractionError`.
-    """
+    """An OpenAI chat-completions gateway; the schema rides in the system prompt."""
 
     name = "pollinations"
 
     def model(self) -> str:
+        """Returns the gateway model name."""
         return os.environ.get("LLM_MODEL") or POLLINATIONS_MODEL
 
     def build_body(self, system: str, content: str) -> dict:
+        """Builds a chat-completions body with the schema appended to the system prompt."""
         schema_note = (
             "\n\n## Формат ответа\n\n"
             "Верни РОВНО один JSON-объект по этой JSON-схеме, без пояснений, "
@@ -447,7 +395,7 @@ class OpenAICompatibleProvider:
         return {
             "model": self.model(),
             "max_tokens": MAX_TOKENS,
-            "temperature": 0,     # извлечение фактов: разнообразие ответов тут вредно
+            "temperature": 0,     # Why 0: variety in fact extraction is harmful.
             "response_format": {"type": "json_object"},
             "messages": [
                 {"role": "system", "content": system + schema_note},
@@ -456,6 +404,7 @@ class OpenAICompatibleProvider:
         }
 
     def complete(self, body: dict) -> Completion:
+        """Posts the body to the gateway and returns the response in the common shape."""
         api_key = os.environ.get("POLLINATIONS_API_KEY")
         if not api_key:
             raise ExtractionError("нет ключа POLLINATIONS_API_KEY")
@@ -465,8 +414,8 @@ class OpenAICompatibleProvider:
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
-                # Шлюз стоит за Cloudflare и отвечает 403 на дефолтный python-urllib:
-                # собственный User-Agent обязателен.
+                # Why required: the gateway sits behind Cloudflare and answers 403 to
+                # the default python-urllib agent.
                 "User-Agent": USER_AGENT,
             },
             method="POST",
@@ -524,7 +473,7 @@ def _default_is_anthropic() -> bool:
 
 
 def get_provider(name: str | None = None) -> Provider:
-    """Провайдер по имени или по `LLM_PROVIDER`. Неизвестное имя — ошибка, а не тихий дефолт."""
+    """Returns a provider by name or by `LLM_PROVIDER`; an unknown name raises."""
     key = (name or os.environ.get("LLM_PROVIDER") or DEFAULT_PROVIDER).strip().lower()
     if key not in PROVIDERS:
         raise ExtractionError(
@@ -533,17 +482,12 @@ def get_provider(name: str | None = None) -> Provider:
     return PROVIDERS[key]()
 
 
-# --- конвейер: одинаковый для всех провайдеров ---
-
-
 def build_request_body(
     message: InboundMessage, provider: Provider | None = None
 ) -> tuple[dict, Scrubbed]:
-    """Собирает тело запроса к выбранному провайдеру и возвращает его вместе с Scrubbed.
+    """Builds the request body and returns it with the Scrubbed text.
 
-    Вынесено отдельной функцией, чтобы тест проверял ровно то, что уходит в сеть.
-    Вырезание персональных данных стоит здесь, а не в провайдере: неочищенный текст
-    до провайдера физически не доходит.
+    Scrubbing happens here, so unscrubbed text physically cannot reach a provider.
     """
     provider = provider or get_provider()
     scrubbed = scrub_pii(message.text)
@@ -554,18 +498,10 @@ def build_request_body(
 def parse_facts(
     text: str, scrubbed: Scrubbed, received_at: date
 ) -> tuple[LeadFacts, int, int | None]:
-    """Текст ответа любого провайдера → `LeadFacts`, число отброшенных цитат и срок модели.
+    """Converts any provider response into facts, dropped-quote count and model deadline.
 
-    Валидация одна на всех провайдеров. Невалидный ответ — `ExtractionError`, а не пустой
-    `LeadFacts`. Цитаты сличаются с текстом, который уходил в модель: чего в нём нет,
-    то модель придумала, и такая цитата отбрасывается.
-
-    `received_at` обязателен и не имеет значения по умолчанию: срок, названный словами,
-    считается от даты ОБРАЩЕНИЯ, и подставить сюда «сегодня» — значит тихо получить
-    другое число на обращении недельной давности.
-
-    Третьим элементом возвращается срок, названный самой моделью, — до того, как его
-    заменил код (см. `coded_deadline_wins`).
+    Quotes absent from the sent text were invented and are dropped. `received_at` has no
+    default: worded deadlines count from the request date. An invalid response raises.
     """
     stripped = FENCE_RE.sub("", text.strip())
     try:
@@ -594,8 +530,8 @@ def parse_facts(
     if language not in ("ru", "en", "ar", "mixed"):
         raise ExtractionError(f"неизвестный language: {language!r}")
 
-    # Границы, которых нет в схеме (API их не принимает), проверяем здесь — чтобы
-    # ограничение не потерялось вместе с ключом схемы.
+    # Why here: the API rejects these bounds in the schema, and the limit must not be
+    # lost along with the schema key.
     headcount = _optional_int(raw.get("headcount"), "headcount", HEADCOUNT_MIN)
     timeline_from_model = _optional_int(
         raw.get("timeline_days"), "timeline_days", TIMELINE_MIN
@@ -617,14 +553,13 @@ def parse_facts(
         jurisdiction_hint=_optional_str(raw.get("jurisdiction_hint"), "jurisdiction_hint"),
         headcount=headcount,
         timeline_days=timeline_days,
-        # По тексту, который видела модель: маскирование контактов слов о срочности
-        # не трогает, а признак обязан считаться одинаково в обоих режимах. Срок,
-        # присланный моделью, гасит словесный признак — оба сразу не выставляются.
+        # Why the scrubbed text: masking contacts leaves urgency words untouched, and
+        # both extraction modes must compute this identically.
         urgency_stated=wordless_urgency(scrubbed.text, timeline_days),
         budget_hint=_optional_str(raw.get("budget_hint"), "budget_hint"),
         language=language,
         is_spam=bool(raw.get("is_spam")),
-        # has_contact — по факту вырезанного, а не по слову модели.
+        # Why not from the model: it never sees contacts, so code decides from what was cut.
         has_contact=scrubbed.has_contact,
         confidence=confidence,
         quotes=tuple(quotes),
@@ -650,91 +585,64 @@ def _optional_str(value: object, field: str) -> str | None:
     return value.strip() or None
 
 
-# --- свойства текста, которые решает код, а не модель ---
-#
-# Слова о срочности бывают двух разных сортов, и смешивать их в одном списке нельзя.
-#
-# 1. «В этом месяце», «до пятницы», «на этой неделе» — это НАЗВАННЫЙ СРОК. Он не
-#    выдуман: он считается от даты обращения арифметикой календаря. Пока такие слова
-#    лежали в одном списке со словом «срочно», срок терялся, а карточка писала «даты
-#    клиент не назвал» на обращении, где дата названа (ИЗМЕРЕНО 2026-09-11 на
-#    data/inbound_seed.csv: 5 обращений из 7).
-# 2. «Срочно», «asap» — срочность БЕЗ даты. Из них даты не выводится: именно так
-#    когда-то появлялся выдуманный срок в две недели, показанный как извлечённый факт.
-#
-# Оба списка — свойство текста, а не суждение модели: их читают и режим rules, и режим
-# llm, иначе признак есть в одном пути и молча отсутствует в другом.
+# Why two separate marker lists: "в этом месяце" states a deadline computable from the
+# request date, while "срочно" states urgency with no date at all. Mixing them either
+# loses a stated deadline or invents one.
 
 
 def _days_to_end_of_month(received_at: date) -> int:
-    """До последнего дня месяца обращения. «В этом месяце» 31-го числа — это ноль дней."""
+    """Returns days to the last day of the request month."""
     first_of_next = (received_at.replace(day=28) + timedelta(days=4)).replace(day=1)
     return (first_of_next - timedelta(days=1) - received_at).days
 
 
 def _days_to_end_of_week(received_at: date) -> int:
-    """До конца недели обращения. Неделя ISO: понедельник-воскресенье (ВЫБРАНО)."""
+    """Returns days to the end of the request week (ISO week, chosen)."""
     return 6 - received_at.weekday()
 
 
 def _days_to_next_friday(received_at: date) -> int:
-    """До ближайшей пятницы, считая день обращения. Обращение в пятницу — ноль (ВЫБРАНО:
-    «до пятницы», написанное в пятницу, — это сегодня, а не через неделю)."""
+    """Returns days to the next Friday, counting the request day itself (chosen)."""
     return (FRIDAY - received_at.weekday()) % 7
 
 
 def _same_day(received_at: date) -> int:
-    """«Сегодня» — ноль дней, а не «скоро»."""
+    """Returns zero: "today" is zero days, not "soon"."""
     return 0
 
 
-FRIDAY = 4  # индекс пятницы в date.weekday(): понедельник = 0
+FRIDAY = 4  # index in date.weekday(), where Monday is 0
 
-#: Срок, названный словами: маркер -> как посчитать его от даты ОБРАЩЕНИЯ.
-#: Считается именно от `received_at`, а не от сегодняшнего дня: обращение недельной
-#: давности со словами «на этой неделе» означает ту неделю, а не эту (та же ловушка
-#: описана в prompts/extract_v4.md).
-#: ИЗМЕРЕНО 2026-09-11 по data/inbound_seed.csv: сработали «в этом месяце» (2 обращения),
-#: «до конца месяца», «до пятницы», «на этой неделе». Английские двойники и «сегодня» —
-#: ВЫБРАНО автором, в наборе они не встретились.
+#: Worded deadline -> how to count it from the REQUEST date, never from today: a week-old
+#: request saying "на этой неделе" means that week, not this one.
 DEADLINE_MARKERS: dict[str, Callable[[date], int]] = {
     "в этом месяце": _days_to_end_of_month,
     "до конца месяца": _days_to_end_of_month,
     "до конца этого месяца": _days_to_end_of_month,
-    "this month": _days_to_end_of_month,          # ВЫБРАНО
+    "this month": _days_to_end_of_month,          # chosen, not observed in the set
     "на этой неделе": _days_to_end_of_week,
-    "this week": _days_to_end_of_week,            # ВЫБРАНО
+    "this week": _days_to_end_of_week,            # chosen, not observed in the set
     "до пятницы": _days_to_next_friday,
-    "by friday": _days_to_next_friday,            # ВЫБРАНО
-    "сегодня": _same_day,                         # ВЫБРАНО
-    "today": _same_day,                           # ВЫБРАНО
+    "by friday": _days_to_next_friday,            # chosen, not observed in the set
+    "сегодня": _same_day,                         # chosen, not observed in the set
+    "today": _same_day,                           # chosen, not observed in the set
 }
 
-#: Срочность без даты: из этих слов срок не выводится вовсе.
-#: ИЗМЕРЕНО 2026-09-11: сработали «срочно» и «asap» (по одному обращению на каждое).
+#: Urgency without a date: no deadline is ever derived from these.
 VAGUE_URGENCY_MARKERS = (
     "срочно", "urgent", "asap", "как можно быстрее", "лишь бы быстро",
 )
 
 
 def deadline_days(text: str, received_at: date) -> int | None:
-    """Срок в днях по названным словами датам. Ничего не названо — None, а не ноль.
-
-    Сработало несколько маркеров — берётся самый близкий срок: клиент, написавший
-    «до пятницы, край — в этом месяце», связан пятницей.
-    """
+    """Returns the worded deadline in days, nearest marker winning, else None."""
     low = text.lower()
     found = [rule(received_at) for marker, rule in DEADLINE_MARKERS.items() if marker in low]
     return min(found) if found else None
 
 
 def urgency_stated(text: str) -> bool:
-    """Заявлена ли срочность словами БЕЗ даты. Слово «срочно» — не дата.
-
-    Вычислимая дата-фраза в том же тексте признак гасит: срок уедет в `timeline_days`.
-    Дату, названную иначе (числом, месяцем), этот помощник не видит — её отсекает
-    `wordless_urgency`, через который признак и попадает в факты.
-    """
+    """Reports urgency worded without a date; a computable phrase cancels it."""
     low = text.lower()
     if any(marker in low for marker in DEADLINE_MARKERS):
         return False
@@ -744,53 +652,31 @@ def urgency_stated(text: str) -> bool:
 def coded_deadline_wins(
     text: str, received_at: date, from_model: int | None
 ) -> int | None:
-    """Срок по названным словами датам считает код, а не модель. Исхода три.
+    """Lets code own the deadlines it can compute; elsewhere the model number stands.
 
-    * код посчитал (`deadline_days` дал число) — берётся его число, даже если модель
-      назвала своё: арифметика календаря у кода детерминированная и провабельно верная,
-      а модель на ней ошибается. ИЗМЕРЕНО координатором 2026-09-11 живым Haiku 4.5:
-      на «до пятницы» от субботы (urg-05) модель дважды подряд ответила 4 вместо 6 —
-      при том, что ровно этот случай разобран примером в prompts/extract_v5.md.
-      Промптом это не лечится, и сверять два ответа на один текст бессмысленно:
-      один из них выводится, второй угадывается.
-    * код не посчитал, модель назвала число («через 3 недели», «до конца октября») —
-      остаётся число модели: таких формулировок код не разбирает.
-    * не назвал никто — None, и это не ноль.
-
-    Правило проекта здесь ровно то же, что и везде: модель предлагает факты, решает код.
+    Calendar arithmetic in code is deterministic, and the model gets it wrong even when
+    the prompt spells the case out.
     """
     named = deadline_days(text, received_at)
     return named if named is not None else from_model
 
 
 def wordless_urgency(text: str, timeline_days: int | None) -> bool:
-    """Признак «срочность заявлена словами, даты клиент не назвал» — как он попадает в факты.
+    """Reports worded urgency with no date; any extracted deadline cancels it.
 
-    Инвариант разделения: срок и словесная срочность — разные признаки, и одно
-    обращение не получает оба сразу. Поэтому любой извлечённый срок — посчитанный по
-    словам, по числу («через 3 недели»), по названию месяца или присланный моделью —
-    гасит словесный признак. Иначе карточка пишет «даты клиент не назвал» на обращении,
-    где дата названа, и признак врёт на самом видном месте.
-
-    Оба пути извлечения зовут именно эту функцию: в `rules` и в `llm` признак обязан
-    считаться одинаково, иначе он есть в одном пути и молча отсутствует в другом.
+    Both extraction modes call this, so the signal cannot drift between them.
     """
     return timeline_days is None and urgency_stated(text)
 
 
 def detect_language(text: str) -> str:
-    """Язык по алфавиту: дешёвая детерминированная оценка для OFFLINE и для сверки с моделью.
-
-    `mixed` — только когда второго алфавита заметно много (`MIXED_SHARE`): «офис в TECOM»
-    остаётся `ru`, потому что латиницей там одно имя собственное.
-    """
+    """Detects the language by script; `mixed` needs a real share of a second script."""
     letters = [c for c in text if c.isalpha()]
     if not letters:
         return "en"
     cyrillic = sum(1 for c in letters if "Ѐ" <= c <= "ӿ") / len(letters)
-    # Арабица считается наравне с кириллицей: без этой ветки арабское обращение
-    # объявляется английским и черновик уходит не на том языке. Диапазоны — основной
-    # арабский блок и дополнительный, включая арабские формы представления.
+    # Why Arabic is counted alongside Cyrillic: without this branch an Arabic request is
+    # declared English and the draft goes out in the wrong language.
     arabic = sum(1 for c in letters if "\u0600" <= c <= "\u06ff" or "\ufb50" <= c <= "\ufeff")
     arabic /= len(letters)
     if arabic >= 1.0 - MIXED_SHARE:
@@ -803,20 +689,15 @@ def detect_language(text: str) -> str:
 
 
 def _offline_extraction(message: InboundMessage) -> Extraction:
-    """Сеть не трогаем: детерминированная заглушка для тестов и CI.
-
-    `confidence=0.0` и `request_types=(OTHER,)` — метка «моделью не смотрено»:
-    заглушку нельзя спутать с настоящим извлечением ни в отчёте, ни в хранилище.
-    """
+    """Returns the offline stub, marked so it cannot pass for a real extraction."""
     scrubbed = scrub_pii(message.text)
     facts = LeadFacts(
         request_types=(RequestType.OTHER,),
         language=detect_language(message.text),
         urgency_stated=wordless_urgency(message.text, None),
         has_contact=scrubbed.has_contact,
-        # Ноль здесь — метка «моделью не смотрено», а не измеренная низкая уверенность;
-        # `confidence_measured=False` говорит это явно, чтобы карточка не выдавала
-        # отсутствие измерения за измерение (третий исход не сворачивается во второй).
+        # Why the flag next to the zero: an unmeasured zero and a measured zero look the
+        # same in JSON and mean different things.
         confidence=0.0,
         confidence_measured=False,
     )
@@ -837,16 +718,17 @@ def _offline_extraction(message: InboundMessage) -> Extraction:
 
 
 def is_offline() -> bool:
+    """Reports whether the OFFLINE environment switch is on."""
     return os.environ.get("OFFLINE", "") not in ("", "0")
 
 
 def extract_detailed(message: InboundMessage, provider: Provider | None = None) -> Extraction:
-    """Извлечение с приборными данными: провайдер, время, токены, что вырезано, что выброшено."""
+    """Extracts facts and reports how: provider, timing, tokens, what was cut and dropped."""
     if is_offline():
         return _offline_extraction(message)
 
     if not any(c.isalnum() for c in message.text):
-        # Извлекать не из чего. В модель не идём: её ответ на пустоту был бы выдумкой.
+        # Why no call is made: a model answer about empty text would be invention.
         raise ExtractionError(
             f"обращение {message.external_id!r} пустое (ни букв, ни цифр) — "
             "извлекать нечего, запрос к модели не отправлялся"
@@ -880,5 +762,5 @@ def extract_detailed(message: InboundMessage, provider: Provider | None = None) 
 
 
 def extract(message: InboundMessage) -> LeadFacts:
-    """Факты из обращения. Извлечь не смогли — исключение, а не пустой LeadFacts."""
+    """Returns the facts of a request; failure raises rather than returning empty facts."""
     return extract_detailed(message).facts

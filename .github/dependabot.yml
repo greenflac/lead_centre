@@ -1,0 +1,21 @@
+# Пины по SHA (Ж6) фиксируют сборку, но сами не обновляются: без бота они тихо стареют,
+# и репозиторий годами ходит на действии с известной дырой. Dependabot присылает PR
+# с новым SHA и новым комментарием версии — обновление становится видимым в диффе.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  # Python-зависимости объявлены в pyproject.toml в корне.
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+
+  # Дашборд живёт отдельным пакетом; lock-файл — web/package-lock.json.
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly

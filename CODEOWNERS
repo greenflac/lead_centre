@@ -1,0 +1,4 @@
+# Repository owner. Every pull request is requested from him automatically.
+# Kept at the root on purpose: GitHub reads CODEOWNERS from the root, .github/ or docs/,
+# and the root is where a reader finds it without being told.
+*   @greenflac

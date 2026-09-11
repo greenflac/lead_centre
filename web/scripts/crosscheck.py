@@ -23,6 +23,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -36,7 +37,7 @@ sys.path.insert(0, str(REPO))
 
 from leadcentre.engine import reply as reply_mod
 from leadcentre.engine.facts_rules import rules_facts
-from leadcentre.engine.reasons import Language
+from leadcentre.engine.reasons import VIOLATION_CATALOGUE, Language, ViolationCode
 from leadcentre.engine.score import score_inbound
 from leadcentre.models import InboundMessage
 
@@ -168,6 +169,38 @@ FIELDS = ("request_types", "headcount", "timeline_days", "budget_hint", "is_spam
 ARABIC_EXEMPT = ("reply_body", "reply_outcome", "used_prices")
 
 
+
+VIOLATION_TEXTS_RE = re.compile(
+    r"export const VIOLATION_TEXTS = \{(.*?)\} as const;", re.DOTALL
+)
+VIOLATION_PAIR_RE = re.compile(r"(\w+):\s*\"([^\"]+)\"")
+
+
+def check_violation_texts() -> tuple[int, int, list[str]]:
+    """Тексты нарушений инвариантов в порте против каталога движка.
+
+    Отдельная проверка, а не поле в общей сверке: на демо-наборе нарушений ноль, и через
+    прогон обращений эти строки не наблюдаемы вовсе. Пока их никто не сверял, порт писал
+    их по-русски и они попадали на английскую карточку.
+
+    Возвращает: сверено, разошлось, строки расхождений.
+    """
+    source = (WEB / "lib" / "mockEngine.ts").read_text(encoding="utf-8")
+    block = VIOLATION_TEXTS_RE.search(source)
+    if not block:
+        return 0, 0, ["НЕ СМОГЛИ: в mockEngine.ts не нашлось VIOLATION_TEXTS"]
+    ts_texts = dict(VIOLATION_PAIR_RE.findall(block.group(1)))
+    checked = diff = 0
+    details: list[str] = []
+    for code, text in ts_texts.items():
+        want = VIOLATION_CATALOGUE[ViolationCode(code)].texts[Language.EN]
+        checked += 1
+        if want != text:
+            diff += 1
+            details.append(f"  нарушение {code}:\n    py = {want!r}\n    ts = {text!r}")
+    return checked, diff, details
+
+
 def main() -> int:
     rows = read_rows()
     if not rows:
@@ -195,6 +228,8 @@ def main() -> int:
         shutil.rmtree(workdir, ignore_errors=True)
 
     py_items = {row["id"]: python_side(row) for row in rows}
+
+    viol_checked, viol_diff, viol_details = check_violation_texts()
 
     # Негативный контроль: подложные строки.
     controls: list[tuple[str, dict, dict, str]] = []
@@ -243,9 +278,17 @@ def main() -> int:
         else:
             print(f"негативный контроль {probe} НЕ сработал — прибор не сравнивает {field}")
     print(f"\nнегативный контроль: подложек {len(controls)}, поймано {caught}")
-    print(f"сверено обращений {len(rows)}, полей {total_same + total_diff}, "
-          f"сошлось {total_same}, расхождений {total_diff}, не смогли 0")
-    return 1 if total_diff or caught != len(controls) else 0
+
+    if viol_details:
+        print("\nтексты нарушений инвариантов:")
+        for line in viol_details:
+            print(line)
+    print(f"тексты нарушений инвариантов: сверено {viol_checked}, расхождений {viol_diff}")
+
+    print(f"сверено обращений {len(rows)}, полей {total_same + total_diff + viol_checked}, "
+          f"сошлось {total_same + viol_checked - viol_diff}, "
+          f"расхождений {total_diff + viol_diff}, не смогли 0")
+    return 1 if total_diff or viol_diff or caught != len(controls) else 0
 
 
 if __name__ == "__main__":

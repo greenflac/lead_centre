@@ -6,10 +6,7 @@ import { EmptyState, ErrorNotice, LoadingRows, TierChip } from "./ui";
 
 const TIERS: Tier[] = ["HIGH", "MEDIUM", "LOW", "INVALID"];
 
-/**
- * Адрес: в ячейке — то, что человек прочитает, в title — почему это важно.
- * Короткая машинная метка (`registrar`) убрана: имя типа — не текст для менеджера.
- */
+/** Address type in words; the machine label is not text for a manager. */
 const ADDRESS_LABEL: Record<string, string> = {
   A1_registrar: "Registrar address",
   A2_business_centre: "Business centre",
@@ -25,14 +22,9 @@ const ADDRESS_TITLE: Record<string, string> = {
   A0_unknown: "The registry record does not say what kind of address this is.",
 };
 
-/** Month names for `humanDate`; index 0 is January. */
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-/**
- * "2026-09-04" -> "4 Sep 2026". Разбор ручной, без `Date`: `toLocaleDateString` зависит
- * от локали и часового пояса машины, и та же запись читалась бы на разных машинах разной
- * датой. Значение не той формы возвращает null — его показываем как есть, а не угадываем.
- */
+/** "2026-09-04" -> "4 Sep 2026". Why hand-parsed: toLocaleDateString varies by locale and zone. */
 export function humanDate(value: string): string | null {
   const parts = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!parts) return null;
@@ -42,11 +34,7 @@ export function humanDate(value: string): string | null {
   return `${day} ${MONTHS[month - 1]} ${parts[1]}`;
 }
 
-/**
- * Поля доказательства, которые интерфейс умеет прочитать, в порядке полезности менеджеру:
- * дата, из которой следует причина, — первой; затем идентификатор, по которому запись
- * находят в реестре. Первые два показываются в ячейке, все четыре — в title.
- */
+/** Evidence fields the screen can read, in order of use: first two in the cell, all four in the title. */
 const EVIDENCE_FIELDS: { kind: string; label: string; isDate: boolean; mono: boolean }[] = [
   { kind: "next_renewal_on", label: "Renewal due", isDate: true, mono: false },
   { kind: "lei", label: "LEI", isDate: false, mono: true },
@@ -54,22 +42,18 @@ const EVIDENCE_FIELDS: { kind: string; label: string; isDate: boolean; mono: boo
   { kind: "created_on", label: "Registered", isDate: true, mono: false },
 ];
 
-/** How many evidence fields fit the cell at the measured column width; the rest live in `title`. */
+/** How many evidence fields fit the measured column width. */
 const VISIBLE_EVIDENCE = 2;
 
 type EvidencePart = {
   kind: string;
   label: string;
   mono: boolean;
-  /** Пусто = поля в записи нет. Пустая ячейка молча — не исход, см. `renderPart`. */
+  /** Empty means the record has no such field; the cell says so rather than going blank. */
   text: string;
 };
 
-/**
- * Три исхода вместо двух. `parts` — поля, которые прочитаны или про которые известно,
- * что их нет; `unread` — пары, вид которых интерфейс не знает; `hasAny` отличает
- * «нечего показывать» (доказательства не приложены) от «не знаем, что это».
- */
+/** Three outcomes: fields read, fields of an unknown kind, and nothing attached at all. */
 export function readEvidence(items: Evidence[]): {
   parts: EvidencePart[];
   unread: Evidence[];
@@ -86,14 +70,14 @@ export function readEvidence(items: Evidence[]): {
   return { parts, unread, hasAny: items.length > 0 };
 }
 
-/** Полный текст доказательства для title — теми же словами, что в ячейке, и все четыре поля. */
+/** Full evidence text for the tooltip, in the same words as the cell. */
 function evidenceTitle(parts: EvidencePart[], unread: Evidence[]): string {
   const lines = parts.map((part) => (part.text ? `${part.label}: ${part.text}` : `${part.label}: not recorded`));
   for (const item of unread) lines.push(`Not recognised — ${item.kind} = ${item.value}`);
   return lines.join("\n");
 }
 
-/** The evidence column, with all three outcomes of `readEvidence` spelled out in words. */
+/** The evidence column, with all three outcomes spelled out in words. */
 function EvidenceCell({ company }: { company: Company }): React.JSX.Element {
   const { parts, unread, hasAny } = readEvidence(company.evidence);
   const readable = parts.filter((part) => part.text).length;
@@ -107,7 +91,7 @@ function EvidenceCell({ company }: { company: Company }): React.JSX.Element {
   }
 
   if (readable === 0) {
-    // Доказательства есть, но ни одно поле не знакомо: это не пустая ячейка.
+    // Evidence is attached but no field is known: not the same as an empty cell.
     return (
       <td className="clip" title={evidenceTitle(parts, unread)}>
         <span className="note">evidence not recognised ({unread.map((item) => item.kind).join(", ")})</span>
@@ -142,7 +126,7 @@ function AddressCell({ type }: { type: string }): React.JSX.Element {
       </td>
     );
   }
-  // Третий исход: тип адреса есть, но интерфейс не знает, как его назвать словами.
+  // Third outcome: a type is set but the screen cannot put it into words.
   return (
     <td className="clip" title={`The engine reported address type "${type}", which this screen cannot put into words.`}>
       <span className="note">not recognised ({type})</span>
@@ -157,7 +141,7 @@ interface DiscoveredViewProps {
   onRetry: () => void;
 }
 
-/** The registry watchlist: one public LEI record per row, with the field the reason rests on. */
+/** The registry watchlist: one public LEI record per row. */
 export default function DiscoveredView({
   companies,
   loading,
@@ -255,15 +239,11 @@ export default function DiscoveredView({
                     <td>
                       <TierChip tier={company.tier} />
                     </td>
-                    {/* Одна строка на ячейку: три источника высоты давали строку 61px
-                        вместо 44 (01_material.md §5.2и). Полный текст — в title. */}
                     <td className="cell-name clip" title={company.name}>
                       {company.name}
                     </td>
                     <AddressCell type={company.address_type} />
-                    {/* Город печатается как в реестре (там встречается и DUBAI, и Dubai):
-                        это поле записи, а не наш вывод. Длинное значение режется — title
-                        обязателен, иначе полного текста нет нигде. */}
+                    {/* Printed as the registry has it: a field of the record, not our conclusion. */}
                     <td className="clip" title={company.city || "The registry record has no city for this entry."}>
                       {company.city || <span className="note">not stated</span>}
                     </td>
