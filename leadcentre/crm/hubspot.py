@@ -1,22 +1,8 @@
-"""Приёмник HubSpot: company + contact + deal через CRM API v3/v4, на urllib.
+"""HubSpot sink: company, contact and deal over the CRM API, on urllib.
 
-Что создаётся на один одобренный лид:
-  1. company  — POST /crm/v3/objects/companies      (name, city, phone, description)
-  2. contact  — POST /crm/v3/objects/contacts       (email/phone, если клиент их оставил)
-  3. deal     — POST /crm/v3/objects/deals          (dealname, pipeline, dealstage)
-  4. связи    — PUT  /crm/v4/objects/{from}/{id}/associations/default/{to}/{id}
-Порядок важен: сначала объекты, потом связи; связь на несозданный объект — 404, и
-это «не смогли», а не «отказ».
-
-Три исхода: SENT (создан хотя бы deal или company, id возвращены), REJECTED
-(HubSpot отверг данные: 400/409), UNAVAILABLE (401/403/429/5xx/сеть). Частичный успех
-печатается числами и списком созданных id, а не булевым флагом: если company
-создалась, а deal нет, «false» скрыл бы уже созданную запись, и следующий прогон
-сделал бы дубль.
-
-Токен — `HUBSPOT_PERSONAL_KEY` (private app token, заголовок `Authorization: Bearer`).
-По умолчанию приёмник НЕ включён: `get_sink()` отдаёт NullSink, пока не сказано иное
-переменной `CRM_SINK=hubspot`. Чужая CRM не должна наполняться демо-прогонами.
+Objects are created first and associated afterwards. Partial success is reported as
+counts plus created ids, never a boolean, or the next run would duplicate. Disabled by
+default, so demo runs cannot fill somebody else's CRM.
 """
 from __future__ import annotations
 
@@ -35,45 +21,34 @@ from leadcentre.crm.base import (
 )
 
 API = "https://api.hubapi.com"
-TIMEOUT_S = 20.0            # вызывается из обработчика HTTP, как и Supabase
+TIMEOUT_S = 20.0            # Why short: this runs inside a request handler.
 USER_AGENT = "leadcentre/0.1 (+Lead Centre)"
 
-# Воронка и стадия: `default`/`appointmentscheduled` — то, что заведено в новом портале
-# HubSpot по умолчанию. На портале с настроенной воронкой задаются HUBSPOT_PIPELINE/STAGE.
 DEFAULT_PIPELINE = "default"
 DEFAULT_DEALSTAGE = "appointmentscheduled"
 
-# Типы объектов в путях v4-ассоциаций.
 OBJ_COMPANIES = "companies"
 OBJ_CONTACTS = "contacts"
 OBJ_DEALS = "deals"
 
 
 class HubspotSink:
-    """CRM-приёмник HubSpot.
+    """HubSpot CRM sink.
 
-    Проверено живыми вызовами: чтение и создание компаний работают на токене Private App
-    со скоупами `crm.objects.companies.*`. Сделки требуют `crm.objects.deals.*`; без них
-    шаг со сделкой возвращает «не смогли» (403 → UNAVAILABLE), а компания всё равно
-    создаётся — тот самый частичный результат, ради которого исход печатается числами и
-    списком созданных объектов, а не флагом.
-
-    Контакты, сделки и ассоциации v4 живым вызовом не проверялись: пути и поля взяты из
-    документации HubSpot CRM API v3/v4. По умолчанию приёмник — заглушка `NullSink`,
-    HubSpot включается переменной `CRM_SINK=hubspot`.
+    Company reads and writes are verified against the live API; contacts, deals and v4
+    associations follow the documentation and are UNVERIFIED against a live portal.
     """
 
     name = "hubspot"
 
     def __init__(self, token: str | None = None) -> None:
-        # `token=""` — это «токена нет», а не «возьми из среды»: подстановка ключа из
-        # среды под пустой аргумент однажды создала настоящую запись в чужой CRM из теста.
+        # Why "" is not treated as unset: a fallback here once wrote to a real CRM from a test.
         self.token = os.environ.get("HUBSPOT_PERSONAL_KEY", "") if token is None else token
         self.pipeline = os.environ.get("HUBSPOT_PIPELINE") or DEFAULT_PIPELINE
         self.dealstage = os.environ.get("HUBSPOT_DEALSTAGE") or DEFAULT_DEALSTAGE
 
     def _call(self, method: str, path: str, body: Any = None) -> tuple[int, Any]:
-        """Возвращает (код, тело). Исход решает вызывающий: код здесь не интерпретируется."""
+        """Returns (status, body); the caller decides the outcome."""
         data = json.dumps(body, ensure_ascii=False).encode("utf-8") if body is not None else None
         request = urllib.request.Request(
             f"{API}{path}",
@@ -93,7 +68,7 @@ class HubspotSink:
         except urllib.error.HTTPError as exc:
             try:
                 payload = json.loads(exc.read().decode("utf-8"))
-            except Exception:  # noqa: BLE001 — тело ошибки бывает и не JSON
+            except Exception:  # noqa: BLE001 - an error body is not always JSON
                 payload = {"message": str(exc.reason)}
             return exc.code, payload
         except (urllib.error.URLError, TimeoutError, OSError) as exc:
@@ -101,14 +76,13 @@ class HubspotSink:
 
     @staticmethod
     def _outcome_for(status: int) -> str:
-        """Код HTTP → исход. 401/403/429/5xx и 0 (сеть) — «не смогли», а не отказ."""
+        """Maps an HTTP status onto an outcome; auth, rate and 5xx are "could not"."""
         if 200 <= status < 300:
             return SENT
         if status in (401, 403, 429) or status >= 500 or status == 0:
             return UNAVAILABLE
         return REJECTED
 
-    # --- тела запросов, отдельно от отправки: тест видит ровно то, что уйдёт ---
 
     def company_properties(self, lead: CrmLead) -> dict[str, str]:
         return {
@@ -119,8 +93,7 @@ class HubspotSink:
         }
 
     def contact_properties(self, lead: CrmLead) -> dict[str, str] | None:
-        """Контакт создаётся, только если клиент оставил связь. Пустой контакт HubSpot
-        отвергает (нужен email или телефон), и выдумывать их нельзя."""
+        """Builds the contact body, or None when the client left no email or phone."""
         properties: dict[str, str] = {}
         if lead.contact_email:
             properties["email"] = lead.contact_email
@@ -158,7 +131,7 @@ class HubspotSink:
             outcome = self._outcome_for(status)
             if outcome != SENT:
                 problems.append(f"{kind}: HTTP {status} {payload.get('message', payload)}")
-                # «Не смогли» перекрывает «отказ»: чинятся они по-разному.
+                # "Could not" outranks "rejected": the remedies differ.
                 worst = UNAVAILABLE if UNAVAILABLE in (worst, outcome) else REJECTED
                 return None
             object_id = str(payload.get("id") or "")
@@ -197,7 +170,7 @@ class HubspotSink:
                     f"связь {from_type}->{to_type}: HTTP {status} {payload.get('message', payload)}"
                 )
 
-        # Ни одного созданного объекта — это не успех, чем бы ни закончились шаги.
+        # No object created is not success, whatever the individual steps returned.
         if not objects:
             return CrmResult(
                 sink=self.name,

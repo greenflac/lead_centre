@@ -1,15 +1,4 @@
-"""Тесты выбора языка ответа (`leadcentre/engine/reply.py`).
-
-Правило, ради которого файл заведён: язык ответа определялся наличием хотя бы одного
-символа письменности. В обращении edge-03 из репозитория 893 кириллических буквы и 23
-арабских — одна прощальная фраза, — и весь черновик уходил на арабском. Клиент, который
-написал по-русски, получал письмо, которого не просил.
-
-Ожидаемое — литералы: коды языков выписаны строками, порог доли — числом. Из модуля
-не импортируются ни `DOMINANT_SCRIPT_SHARE`, ни `SCRIPT_RANGES`, ни `SUPPORTED_LANGUAGES`:
-сдвинут порог или сузят диапазоны — тест обязан покраснеть, а не поехать следом.
-Сети и модели не требуется: правило детерминированное.
-"""
+"""Reply language is decided by the script of the request, with the flag as fallback."""
 from __future__ import annotations
 
 import csv
@@ -43,7 +32,6 @@ def _seed_text(external_id: str) -> str:
         return next(r["text"] for r in csv.DictReader(fh) if r["external_id"] == external_id)
 
 
-# --- письменность называет язык, когда она преобладает --------------------------------
 
 
 @pytest.mark.parametrize(
@@ -51,8 +39,8 @@ def _seed_text(external_id: str) -> str:
     [
         (RU, "ru"),
         (AR, "ar"),
-        (EN, None),          # латиница языка не доказывает — третий исход
-        ("", None),          # мерить нечего
+        (EN, None),          # Latin proves no language: the third outcome
+        ("", None),          # nothing to measure
         ("+971 55 000 0000", None),
     ],
 )
@@ -61,31 +49,22 @@ def test_script_names_the_language_only_when_it_dominates(text, expected):
 
 
 def test_one_foreign_phrase_does_not_change_the_language():
-    """Живой дефект: вежливая фраза в конце длинного письма — не смена языка разговора.
-
-    Длина письма здесь существенна и потому задана явно: в коротком сообщении та же фраза
-    занимает треть текста, и тогда язык действительно неясен — этот край проверяет
-    `test_half_and_half_is_the_third_outcome`.
-    """
     text = (RU + ". ") * 8 + "سنكون في دبي في نهاية أكتوبر"
     assert detect_script_language(text) == "ru"
 
 
 def test_seed_edge_03_is_russian_not_arabic():
-    """Тот самый вход из репозитория, а не только выдуманная строка."""
+    """A seed request with a few Arabic words stays in its dominant language."""
     assert detect_script_language(_seed_text("edge-03")) == "ru"
 
 
 def test_seed_arabic_request_stays_arabic():
-    """Негативный контроль правила: на настоящем арабском обращении оно обязано сказать ar."""
     assert detect_script_language(_seed_text("gen-19")) == "ar"
 
 
-# --- край: письменности поровну, решать по ней нельзя ---------------------------------
 
 
 def test_half_and_half_is_the_third_outcome():
-    """Ни одна письменность не преобладает — правило молчит, решает флаг языка."""
     text = "офис в Дубае " + "مكتب في دبي"
     assert detect_script_language(text) is None
 
@@ -93,26 +72,24 @@ def test_half_and_half_is_the_third_outcome():
 @pytest.mark.parametrize(
     ("arabic_letters", "russian_letters", "expected"),
     [
-        # Оба края и середина по доле арабского среди опознанных букв.
+        # both edges and the middle of the script share
         (100, 0, "ar"),      # 1.00
-        (85, 15, "ar"),      # 0.85 — выше порога
-        (80, 20, "ar"),      # 0.80 — ровно порог, ещё называем
-        (79, 21, None),      # 0.79 — уже нет
-        (50, 50, None),      # поровну
-        (20, 80, "ru"),      # зеркально
+        (85, 15, "ar"),      # above the threshold
+        (80, 20, "ar"),      # exactly at the threshold: still named
+        (79, 21, None),      # just below: no longer
+        (50, 50, None),      # evenly matched
+        (20, 80, "ru"),      # mirrored
     ],
 )
 def test_the_share_threshold_is_0_8(arabic_letters, russian_letters, expected):
-    """Порог доли — 0.8, и он проверяется с обеих сторон границы."""
+    """The dominance threshold is checked at both edges and in the middle."""
     text = "ا" * arabic_letters + "я" * russian_letters
     assert detect_script_language(text) == expected
 
 
-# --- решение целиком: письменность важнее флага, неизвестный флаг уходит в английский ---
 
 
 def test_script_beats_the_flag_when_they_disagree():
-    """Флаг заполняет модель и ошибается; письменность — свидетельство."""
     assert resolve_language(_message(RU), _facts("ar")) == "ru"
 
 
@@ -122,5 +99,4 @@ def test_flag_decides_when_the_script_is_silent():
 
 @pytest.mark.parametrize("flag", ["mixed", "", None, "de"])
 def test_unknown_flag_falls_back_to_english(flag):
-    """«mixed», пустое и язык без шаблонов — общий язык, а не молчание и не угадывание."""
     assert resolve_language(_message(EN), _facts(flag)) == "en"

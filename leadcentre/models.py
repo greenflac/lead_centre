@@ -1,4 +1,4 @@
-"""Общие типы движка. Одно знание — одно место: формы данных живут здесь."""
+"""Shared engine types: every data shape lives here and only here."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -18,92 +18,74 @@ class Tier(str, Enum):
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
     LOW = "LOW"
-    INVALID = "INVALID"  # инвариант нарушен: карточку показывать нельзя
+    INVALID = "INVALID"  # an invariant broke; the card must not be shown
 
 
 class AddressType(str, Enum):
-    """Ось A: где компания сидит по документам."""
+    """Axis A: where the company sits according to its documents."""
 
-    REGISTRAR = "A1_registrar"        # адрес здания фризоны-регистратора: флекси/виртуальный
-    BUSINESS_CENTRE = "A2_business_centre"  # бизнес-центр/сервисный офис
-    OWN = "A3_own"                    # собственный/арендованный офис
+    REGISTRAR = "A1_registrar"        # free-zone registrar building: flexi or virtual
+    BUSINESS_CENTRE = "A2_business_centre"  # business centre or serviced office
+    OWN = "A3_own"                    # own or leased office
     UNKNOWN = "A0_unknown"
 
 
 class Event(str, Enum):
-    """Ось B: что произошло и когда — повод для разговора."""
+    """Axis B: what happened and when, giving a reason to talk."""
 
-    LAPSED = "B1_lapsed"              # регистрация LEI просрочена
-    NEW_ENTITY = "B2_new"             # юрлицо создано недавно
-    RENEWAL_SOON = "B3_renewal_soon"  # продление LEI на подходе
+    LAPSED = "B1_lapsed"              # LEI registration is overdue
+    NEW_ENTITY = "B2_new"             # entity was created recently
+    RENEWAL_SOON = "B3_renewal_soon"  # LEI renewal is approaching
     NONE = "B0_none"
 
 
 class CityMatch(str, Enum):
-    """Что удалось решить по строке города из реестра. Исходов три, а не два.
+    """What the registry city string settled; UNRECOGNISED is not "wrong city"."""
 
-    `UNRECOGNISED` — не «не тот город»: реестр написал что-то, чего нет ни в целевых,
-    ни в нецелевых списках (новый район, опечатка, третье написание). Свернуть его в
-    `OFF_TARGET` — значит потерять счётчик того, насколько списки отстали от реестра;
-    свернуть в `TARGET` — раздать HIGH по догадке.
-    """
-
-    TARGET = "target"                # эмират Дубай в любом написании или его район
-    OFF_TARGET = "off_target"        # другой эмират: Абу-Даби, Шарджа, Аджман, РАК
-    UNRECOGNISED = "unrecognised"    # строка есть, но решить по ней нельзя
-    NOT_SET = "not_set"              # города в записи нет вовсе
+    TARGET = "target"                # the target emirate in any spelling, or its district
+    OFF_TARGET = "off_target"        # another emirate
+    UNRECOGNISED = "unrecognised"    # a string is present but settles nothing
+    NOT_SET = "not_set"              # the record carries no city at all
 
 
 class EntityStatus(str, Enum):
-    """Что реестр сказал о существовании юрлица. Исхода три, а не два.
+    """What the registry said about the entity; UNKNOWN is not "inactive". Values are our
+    machine keys, mapped from each source's own vocabulary by its adapter."""
 
-    `UNKNOWN` — не «неактивно»: GLEIF отдельным значением `NULL` сообщает, что статус
-    ему не передали (ИЗМЕРЕНО 2026-09-11: по ОАЭ 36 записей из 9369, см. `sources/gleif.py`).
-    Свернуть его в `INACTIVE` — значит напечатать на карточке «юрлицо неактивно» там, где
-    реестр этого не говорил, и уронить лид до LOW по выдуманному факту.
-
-    Значения — наши машинные ключи (они уезжают в API), а не слова реестра: слова реестра
-    переводит в них адаптер источника, потому что вокабуляр у каждого источника свой.
-    """
-
-    ACTIVE = "active"        # реестр сказал: юрлицо действует
-    INACTIVE = "inactive"    # реестр сказал: юрлицо не действует
-    UNKNOWN = "unknown"      # реестр не сказал ничего или сказал незнакомое слово
+    ACTIVE = "active"        # the registry said the entity is active
+    INACTIVE = "inactive"    # the registry said the entity is not active
+    UNKNOWN = "unknown"      # the registry said nothing, or an unknown word
 
 
 @dataclass(frozen=True)
 class Company:
-    """Компания из внешнего источника, приведённая к общему виду."""
+    """A company from an external source, in the common shape."""
 
     source: str
-    external_id: str            # LEI или иной идентификатор источника
+    external_id: str            # LEI or another source identifier
     name: str
     city: str
     country: str
     address_lines: tuple[str, ...]
-    registrar_id: str | None    # орган регистрации (RA-код GLEIF)
+    registrar_id: str | None    # registration authority (GLEIF RA code)
     license_no: str | None
     created_on: date | None
     entity_status: EntityStatus
-    registration_status: str    # сырое слово реестра: ISSUED / LAPSED / RETIRED / ...
+    registration_status: str    # the raw registry word: ISSUED / LAPSED / RETIRED / ...
     next_renewal_on: date | None
-    entity_status_raw: str = ""  # что стояло в поле источника — для печати в причине
+    entity_status_raw: str = ""  # the raw source value, for printing in a reason
     is_synthetic: bool = False
 
     @property
     def entity_active(self) -> bool:
-        """Совместимость с потребителями, у которых поле булево (`web/`, payload API).
-
-        Третий исход в булевом поле не виден: и INACTIVE, и UNKNOWN дают False.
-        Код движка обязан читать `entity_status`, а не это поле, — здесь оно одно
-        и вычисляемое, чтобы второго способа узнать статус не завелось (Е1).
-        """
+        """Reports the status as a boolean for legacy consumers; engine code reads
+        `entity_status`, since the third outcome is invisible here."""
         return self.entity_status is EntityStatus.ACTIVE
 
 
 @dataclass(frozen=True)
 class Evidence:
-    """Доказательство повода: без него HIGH не выдаётся (инвариант в score.py)."""
+    """Evidence for an event; without it HIGH is never issued."""
 
     kind: str
     value: str
@@ -111,14 +93,9 @@ class Evidence:
 
 @dataclass(frozen=True)
 class Score:
-    """Приоритет и то, из чего он получился.
+    """A priority and what produced it.
 
-    Причины хранятся структурно — `reason_items` (код плюс параметры). Поле `reasons`
-    осталось кортежем строк, но перестало быть самостоятельным знанием: когда есть
-    `reason_items`, оно вычисляется из них отрисовкой на русском и передавать его
-    одновременно нельзя (двух источников текста быть не должно). Пустой
-    `reason_items` с готовыми строками остаётся ровно для одного случая: карточка,
-    поднятая из хранилища, где сохранены только строки.
+    Reasons are structural; rendered strings must not be passed alongside them.
     """
 
     tier: Tier
@@ -141,12 +118,7 @@ class Score:
             )
 
     def reasons_in(self, language: Language) -> tuple[str, ...]:
-        """Причины на нужном языке — это берёт интерфейс.
-
-        Три исхода, а не два: есть структурные причины — отрисуем на любом языке;
-        причин нет вовсе — пустой кортеж; есть только строки из хранилища — отрисовать
-        не на чем, и это `ReasonRenderError`, а не молчаливая подмена русским текстом.
-        """
+        """Returns the reasons in the given language; code-less stored strings raise."""
         if self.reason_items:
             return render_all(self.reason_items, language)
         if not self.reasons:
@@ -165,14 +137,14 @@ class RequestType(str, Enum):
     SETUP = "setup"
     VISA = "visa"
     ACCOUNTING = "accounting"
-    RENEWAL = "renewal"          # продление лицензии, визы, Ejari — повторяющаяся выручка
+    RENEWAL = "renewal"          # licence, visa or Ejari renewal: recurring revenue
     BANK = "bank"
     OTHER = "other"
 
 
 @dataclass(frozen=True)
 class InboundMessage:
-    """Обращение из клиентского канала: чат Jivo, WhatsApp, Telegram, форма сайта."""
+    """An inbound request from a customer channel: chat, messenger or web form."""
 
     external_id: str
     channel: str            # jivo | whatsapp | telegram | form
@@ -183,26 +155,18 @@ class InboundMessage:
 
 @dataclass(frozen=True)
 class LeadFacts:
-    """Факты, извлечённые моделью из текста обращения. Модель предлагает — код решает.
-
-    Контракт между extract.py (заполняет) и score.py/reply.py (читают). Менять только
-    вместе с тестами, которые держат литералы схемы.
-    """
+    """Facts extracted from a request: the contract between extract.py and its readers."""
 
     request_types: tuple[RequestType, ...] = ()
-    jurisdiction_hint: str | None = None      # mainland | freezone | конкретная зона | None
+    jurisdiction_hint: str | None = None      # mainland | freezone | a named zone | None
     headcount: int | None = None
-    timeline_days: int | None = None          # через сколько дней клиенту нужно решение
-    urgency_stated: bool = False              # срочность заявлена словами, даты в тексте нет
+    timeline_days: int | None = None          # in how many days the client needs a decision
+    urgency_stated: bool = False              # urgency stated in words, with no date
     budget_hint: str | None = None
     language: str = "en"                      # ru | en | ar | mixed
     is_spam: bool = False
     has_contact: bool = False
-    confidence: float = 0.0                   # 0..1, уверенность модели в извлечении
-    # Мерили ли уверенность вообще. Ноль в `confidence` бывает двух разных сортов:
-    # модель посмотрела и не уверена — и никто не смотрел (офлайн-заглушка, `OFFLINE=1`).
-    # Свернуть второе в первое — значит подать «не измеряли» как измеренную низкую
-    # уверенность; на карточке это видно как «уверенность 0.00 — ниже порога 0.50»
-    # там, где измерения не было. Умолчание True: заполняет и модель, и правила.
+    confidence: float = 0.0                   # 0..1, the model's confidence
+    # Why a separate flag: a measured zero and an unmeasured zero look identical.
     confidence_measured: bool = True
-    quotes: tuple[str, ...] = field(default_factory=tuple)  # цитаты-доказательства
+    quotes: tuple[str, ...] = field(default_factory=tuple)  # verbatim evidence

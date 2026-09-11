@@ -1,24 +1,8 @@
-"""Хранилище — сменный адаптер, как источник компаний в `sources/base.py`.
+"""Storage as a swappable adapter behind one `Store` interface.
 
-Интерфейс один (`Store`), реализаций две: `LocalStore` (JSON-файл или память, режим
-`OFFLINE=1` — сеть не трогаем, CI не ходит наружу) и `SupabaseStore` (PostgREST).
-Движок и HTTP-слой про реализацию не знают: выбор делает `get_store()`.
-
-На каждой записи исходов три:
-  * успех — вернулся идентификатор/число записанных;
-  * `StoreRejected` — хранилище ответило «данные не приняты» (нарушен контракт данных);
-  * `StoreUnavailable` — «не смогли»: сеть, доступ, схема не применена, 5xx.
-Третий не сворачивается ни в первый, ни во второй: «не смогли записать» и «записали»
-для отчёта разные вещи, а тихий `except` превращает потерю данных в успех.
-
-Результат групповой записи — числа, а не булев флаг: `UpsertResult(3 из 8)`.
-
-Причины приоритета хранятся ДАННЫМИ, а не текстом: колонка `reason_items` — это список
-`{"code": ..., "params": {...}}`, из которого `engine/reasons.py` собирает текст на любом
-языке. Готовые русские строки в колонке `reasons` остались, но перестали быть источником:
-их пишет отрисовка, а читатель, которому нужен английский, берёт коды. Старая строка
-без кодов — это отдельный исход `no_codes` («не смогли восстановить причины»), а не
-молчаливая подмена английского русским.
+Every write has three outcomes — success, rejected data, unavailable — and the third
+never collapses into the others. Batch writes return counts. Reasons are stored as data
+(code plus params) so any language can be rendered later.
 """
 from __future__ import annotations
 
@@ -40,45 +24,36 @@ from leadcentre.models import AddressType, Event, Evidence, Score, Tier
 
 
 class StoreError(RuntimeError):
-    """Базовая ошибка хранилища. Наверх идёт исключением, чтобы исход не потерялся."""
+    """Base storage error; raised so the outcome cannot be lost."""
 
 
 class StoreRejected(StoreError):
-    """Отказ: хранилище приняло запрос и отвергло данные (400/409/422). Чинится кодом."""
+    """Rejected: the store took the request and refused the data. Fixed in code."""
 
 
 class StoreUnavailable(StoreError):
-    """«Не смогли»: сеть, доступ, 5xx, схема не применена. Чинится не кодом, а средой."""
+    """Could not: network, access, 5xx, schema not applied. Fixed in the environment."""
 
 
 def _iso(value: date | datetime | None) -> str | None:
     return value.isoformat() if value is not None else None
 
 
-# Исходы восстановления причин из строки хранилища. Их четыре, а не два, и ни один
-# не сворачивается в другой:
-REASONS_OK = "ok"                # есть коды — рисуется любой язык
-REASONS_EMPTY = "empty"          # причин нет вовсе, и это законно (например, LOW без сигналов)
-REASONS_NO_CODES = "no_codes"    # «не смогли»: старая строка, только русский текст
-REASONS_INVALID = "invalid"      # «не годно»: коды есть, но разобрать их нельзя
+# Four outcomes of restoring reasons from a stored row; none collapses into another.
+REASONS_OK = "ok"                # codes present, any language can be rendered
+REASONS_EMPTY = "empty"          # no reasons at all, which is legitimate
+REASONS_NO_CODES = "no_codes"    # could not: a legacy row with text only
+REASONS_INVALID = "invalid"      # rejected: codes present but unparsable
 REASONS_OUTCOMES = (REASONS_OK, REASONS_EMPTY, REASONS_NO_CODES, REASONS_INVALID)
 
 
 def reason_items_payload(items: tuple[Reason, ...]) -> list[dict[str, Any]]:
-    """Причины → JSON для колонки `reason_items`.
-
-    Форма — `{"code": "...", "params": {...}}`, а не голая строка кода: параметры
-    («срок 14 дней») — часть причины, без них текст не собрать ни на одном языке.
-    """
+    """Converts reasons into the JSON stored in `reason_items`; params are part of a reason."""
     return [{"code": item.code.value, "params": item.values()} for item in items]
 
 
 def parse_reason_items(raw: Any) -> tuple[Reason, ...]:
-    """JSON из колонки → причины. Любая кривизна — `StoreRejected` («не годно»).
-
-    Молчаливо пропускать нечитаемую причину нельзя: пропущенная причина — это карточка,
-    у которой в интерфейсе на один довод меньше, и заметить это некому.
-    """
+    """Parses stored reason JSON; anything malformed raises rather than being skipped."""
     if raw in (None, ""):
         return ()
     if not isinstance(raw, (list, tuple)):
@@ -110,14 +85,7 @@ def parse_reason_items(raw: Any) -> tuple[Reason, ...]:
 
 @dataclass(frozen=True)
 class RestoredReasons:
-    """Причины, поднятые из хранилища, вместе с исходом восстановления.
-
-    `texts` содержит язык, только если он действительно собран. У исхода `no_codes`
-    там лежит один русский ключ — и отсутствие ключа `en` и есть тот сигнал, по которому
-    интерфейс обязан показать «причины недоступны», а не русский текст под видом
-    английского. Отдать русский на запрос английского — ровно то, ради чего причины
-    стали данными.
-    """
+    """Reasons restored from storage; `texts` lists only languages actually assembled."""
 
     outcome: str
     items: tuple[Reason, ...] = ()
@@ -137,7 +105,7 @@ class RestoredReasons:
 
 
 def restore_reasons(score_row: Mapping[str, Any] | None) -> RestoredReasons:
-    """Строка таблицы `scores` → причины на всех языках либо честное «не смогли»."""
+    """Restores reasons in every language from a score row, or reports it could not."""
     if not score_row:
         return RestoredReasons(REASONS_EMPTY, detail="оценки нет")
     stored = tuple(str(text) for text in (score_row.get("reasons") or ()))
@@ -151,7 +119,7 @@ def restore_reasons(score_row: Mapping[str, Any] | None) -> RestoredReasons:
             texts = {
                 language.value: list(render_all(items, language)) for language in Language
             }
-        except ReasonError as exc:   # каталог разъехался с сохранёнными кодами
+        except ReasonError as exc:   # the catalogue drifted from stored codes
             return RestoredReasons(REASONS_INVALID, items, stored_texts=stored, detail=str(exc))
         return RestoredReasons(REASONS_OK, items, texts, stored)
     if not stored:
@@ -173,13 +141,7 @@ def restore_reasons(score_row: Mapping[str, Any] | None) -> RestoredReasons:
 
 
 def restore_score(score_row: Mapping[str, Any] | None) -> Score | None:
-    """Строка таблицы `scores` → `Score`.
-
-    Есть коды — `Score` отдаёт оба языка через `reasons_in()`. Кодов нет — `Score`
-    собирается со строками, и `reasons_in(EN)` на нём осознанно бросает
-    `ReasonRenderError`: вызывающему нужен `restore_reasons()`, чтобы отличить
-    «причин нет» от «не смогли восстановить».
-    """
+    """Converts a score row into a Score; without codes another language raises by design."""
     if not score_row:
         return None
     restored = restore_reasons(score_row)
@@ -209,7 +171,7 @@ def restore_score(score_row: Mapping[str, Any] | None) -> Score | None:
 
 @dataclass(frozen=True)
 class LeadRow:
-    """Обращение. `id` заполняет хранилище, поэтому он не часть входных данных."""
+    """An inbound request row; `id` is assigned by the store, so it is not an input."""
 
     source: str            # form | whatsapp | telegram | jivo | csv | api
     channel: str
@@ -237,13 +199,9 @@ class LeadRow:
 
 @dataclass(frozen=True)
 class ScoreRow:
-    """Оценка обращения или компании. `usage`/`latency_ms` — счёт за токены и время.
+    """A score row, with token and latency accounting.
 
-    Причины задаются кодами (`reason_items`); колонка `reasons` при этом заполняется
-    отрисовкой на русском и передавать её отдельно нельзя — иначе в базе окажутся два
-    источника текста, которые разъедутся (тем же машинным способом, что и в `Score`).
-    Голые строки без кодов принимаются ровно для одного случая: перезапись старой записи,
-    для которой кодов уже не восстановить.
+    Reasons are given as codes; bare strings are accepted only for legacy rows.
     """
 
     lead_id: str
@@ -289,7 +247,6 @@ class ScoreRow:
         }
 
 
-# Статусы черновика. Одно знание — одно место: и API, и схема берут их отсюда.
 REPLY_DRAFT = "draft"
 REPLY_APPROVED = "approved"
 REPLY_REJECTED = "rejected"
@@ -298,13 +255,7 @@ REPLY_STATUSES = (REPLY_DRAFT, REPLY_APPROVED, REPLY_REJECTED)
 
 @dataclass(frozen=True)
 class ReplyRow:
-    """Черновик ответа.
-
-    `lint_ok` — булев, но его мало: у линтера три исхода (OK / VIOLATIONS / UNVERIFIABLE),
-    и «не смогли проверить» нельзя записать как `false` (это отказ) или `true` (это успех).
-    Поэтому рядом лежит `lint_status` с исходной строкой линтера, а `lint_ok` при
-    UNVERIFIABLE равен `None`: свёрнутый в булев третий исход теряется молча.
-    """
+    """A reply draft row; `lint_status` rides beside `lint_ok`, which is None when unchecked."""
 
     lead_id: str
     language: str
@@ -335,7 +286,7 @@ class ReplyRow:
 
 @dataclass(frozen=True)
 class CompanyRow:
-    """Компания из внешнего источника. Ключ — пара (source, external_id)."""
+    """A company row from an external source, keyed by (source, external_id)."""
 
     external_id: str
     source: str
@@ -365,7 +316,7 @@ class CompanyRow:
 
 @dataclass(frozen=True)
 class DisagreementRow:
-    """Несогласие менеджера с оценкой — вход для eval, а не запись в журнал."""
+    """A manager disagreement: input for the eval harness, not a log entry."""
 
     lead_id: str
     tier_shown: str
@@ -385,7 +336,7 @@ class DisagreementRow:
 
 @dataclass(frozen=True)
 class UpsertResult:
-    """Числами, а не флагом: агрегатный `true` читается как полная работа."""
+    """Batch write result in counts; an aggregate `true` would read as full success."""
 
     requested: int
     written: int
@@ -402,7 +353,7 @@ class UpsertResult:
 
 @dataclass(frozen=True)
 class StoreHealth:
-    """Три исхода проверки доступности: `ok` / `rejected` / `unavailable`."""
+    """Store health with three outcomes: ok, rejected, unavailable."""
 
     store: str
     outcome: str          # ok | rejected | unavailable
@@ -415,7 +366,7 @@ class StoreHealth:
 
 @dataclass
 class LeadCard:
-    """Карточка: обращение + оценка + черновик. То, что видит менеджер и отдаёт API."""
+    """A card: request, score and draft — what the manager sees and the API returns."""
 
     lead: dict[str, Any]
     score: dict[str, Any] | None = None
@@ -425,16 +376,12 @@ class LeadCard:
         return asdict(self)
 
     def reasons(self) -> RestoredReasons:
-        """Причины карточки на всех языках либо исход «не смогли».
-
-        Живёт здесь, а не в `api.py`: карточку поднимают и CLI, и отчёт, и HTTP —
-        способ восстановить причины должен быть один.
-        """
+        """Restores this card's reasons; defined here so CLI, report and HTTP share one way."""
         return restore_reasons(self.score)
 
 
 class Store(Protocol):
-    """Контракт хранилища. Реализации: LocalStore (offline) и SupabaseStore (PostgREST)."""
+    """The storage contract, implemented by LocalStore and SupabaseStore."""
 
     name: str
 

@@ -1,21 +1,8 @@
-"""Проверка черновика перед показом менеджеру. Правила — данные, вердиктов — три.
+"""Draft linting before a manager sees the text.
 
-Вердикта три: OK / VIOLATIONS (список нарушений) / UNVERIFIABLE («не смогли проверить»).
-Третий не сворачивается ни в первый, ни во второй: если прайс не прочитан, проверка цифр
-не отработала, и «нарушений нет» означало бы «не смотрели». Поэтому UNVERIFIABLE выносится
-даже тогда, когда остальные проверки чистые, а найденные нарушения печатаются рядом —
-вместе с тремя числами: проверено N, нарушений M, не смогли K.
-
-Прайс читается функцией из reply.py: линтер и генератор обязаны видеть один и тот же
-диапазон, иначе проверка сверяет черновик не с тем прайсом, по которому он написан.
-
-Арабский проверяется наравне с ru/en: арабский черновик пишет модель, и линтер —
-единственный шлюз между её текстом и клиентом. Перед проверками текст нормализуется:
-снимаются метки направления, арабо-индийские и персидские цифры переводятся в ASCII,
-арабские разделители — в пробел и точку. Без этого разделитель разрядов U+066C режет
-«٩٠٠٬٠٠٠» до 900, изолят между AED и числом прячет сумму целиком, а валюта «د.إ» или
-«درهم» не опознаётся вовсе — и цена вне прайса уходит клиенту незамеченной. Молчаливый
-пропуск здесь опаснее ложного срабатывания.
+Three verdicts, and UNVERIFIABLE never collapses into the others: an unread price list
+means the number check did not run. Arabic is normalised first, since otherwise a
+separator or a bidi mark hides a sum from every check.
 """
 from __future__ import annotations
 
@@ -34,21 +21,14 @@ from leadcentre.engine.reply import (
     load_prices,
 )
 
-# --- пороги и словари как данные ---
+MAX_LINES = 6  # Why 6: the agreed draft length is 4-6 lines.
 
-MAX_LINES = 6  # верхняя граница договорённого объёма черновика: 4-6 строк
-
-# --- нормализация текста перед проверками ---
-
-# Невидимая разметка направления: для проверок шум, для вёрстки смысл (см. reply.py).
 BIDI_CONTROLS = "\u200e\u200f\u061c\u202a\u202b\u202c\u202d\u202e\u2066\u2067\u2068\u2069"
 
-# Цифры: арабо-индийские (U+0660..) и персидские (U+06F0..) — в ASCII.
 DIGIT_MAP = {
     **{chr(0x0660 + i): str(i) for i in range(10)},
     **{chr(0x06F0 + i): str(i) for i in range(10)},
 }
-# Арабские разделители: U+066C — разряды, U+066B — десятичный.
 SEPARATOR_MAP = {"\u066c": " ", "\u066b": "."}
 _NORMALIZE_TABLE = str.maketrans({
     **dict.fromkeys(BIDI_CONTROLS, ""),
@@ -56,7 +36,7 @@ _NORMALIZE_TABLE = str.maketrans({
     **SEPARATOR_MAP,
 })
 
-# Арабское письмо: огласовки и татвиль на смысл не влияют, а совпадение ломают.
+# Why stripped: diacritics and tatweel do not change meaning but break matching.
 ARABIC_DIACRITICS = "".join(chr(c) for c in range(0x064B, 0x0653)) + "\u0640\u0670"
 _ARABIC_LETTER_MAP = str.maketrans({
     **dict.fromkeys(ARABIC_DIACRITICS, ""),
@@ -69,12 +49,12 @@ _ARABIC_LETTER_MAP = str.maketrans({
 
 
 def normalize(text: str) -> str:
-    """Текст в форму, на которой сравнение осмысленно. Длину по нему НЕ считаем."""
+    """Folds text into a comparable form; line length is never measured on it."""
     folded = unicodedata.normalize("NFKC", text)
     return folded.translate(_NORMALIZE_TABLE).translate(_ARABIC_LETTER_MAP).lower()
 
 
-# Слоп-фразы: пустая вежливость, по которой письмо читается как рассылка.
+#: Slop phrases: empty politeness that makes a letter read as a mailshot.
 SLOP_PHRASES: tuple[str, ...] = (
     "мы рады сообщить",
     "рады сообщить",
@@ -91,8 +71,7 @@ SLOP_PHRASES: tuple[str, ...] = (
     "as soon as possible",
     "team of professionals",
     "wide range of services",
-    # Арабские аналоги тех же клише. Сравнение идёт по normalize(), поэтому огласовки
-    # и написание أ/ا/ة роли не играют.
+    # Arabic equivalents; compared after normalize(), so spelling variants do not matter.
     "يسعدنا ان نعلمكم",
     "يسرنا ان نبلغكم",
     "لا تترددوا في التواصل",
@@ -104,13 +83,11 @@ SLOP_PHRASES: tuple[str, ...] = (
     "مجموعه واسعه من الخدمات",
 )
 
-# Обещание срока государственной процедуры: «лицензия за 3 дня», "visa within 5 days".
-# Сроки держит не компания, а орган; обещание такого срока — обещание за чужой счёт.
+# Why forbidden: a government body owns these timelines, not us.
 GOV_SUBJECT_RU = r"(лиценз\w*|виз\w*|разрешен\w*|регистрац\w*|emirates\s*id|вид на жительство)"
 GOV_SUBJECT_EN = r"(licen[cs]\w*|visa\w*|permit\w*|registration|emirates\s*id|residency)"
 GOV_PERIOD_RU = r"(за|через)\s+\d+\s*(рабоч\w*\s+)?(дн\w*|недел\w*|час\w*|мес\w*)"
 GOV_PERIOD_EN = r"(in|within)\s+\d+\s*(business\s+|working\s+)?(day|week|hour|month)s?"
-# Арабские шаблоны — в нормализованной форме (أ/إ -> ا, ة -> ه, без огласовок).
 GOV_SUBJECT_AR = r"(رخص\w*|تاشير\w*|تصريح\w*|اقام\w*|تسجيل\w*|الهويه)"
 GOV_PERIOD_AR = (
     r"(خلال|في|بعد|في غضون)\s+\d+\s*(يوم\w*|ايام|اسبوع\w*|اسابيع|شهر\w*|اشهر|ساع\w*)"
@@ -124,17 +101,14 @@ DEADLINE_PATTERNS: tuple[tuple[str, str], ...] = (
     ("ar-срок-предмет", rf"{GOV_PERIOD_AR}[^.\n]{{0,40}}{GOV_SUBJECT_AR}"),
 )
 
-# Число: либо с разрядами («35 000», «1,500»), либо простое. Десятичная точка — точка.
 _NUM = r"\d{1,3}(?:[   ,]\d{3})+|\d+(?:\.\d+)?"
 _DASH = r"[-–—]"
-# Как в тексте может быть записана валюта: латиницей, кириллицей и по-арабски.
 _CURRENCY = r"AED|د\.?\s?ا|درهم\w*|دراهم|dirham\w*|дирхам\w*"
 AED_PATTERNS: tuple[str, ...] = (
     rf"(?:{_CURRENCY})\s*({_NUM})(?:\s*{_DASH}\s*({_NUM}))?",
     rf"({_NUM})(?:\s*{_DASH}\s*({_NUM}))?\s*(?:{_CURRENCY})",
 )
 
-# Названия проверок — они же ключи в счётчиках «проверено» и «не смогли».
 CHECK_LENGTH = "длина"
 CHECK_SLOP = "слоп-фразы"
 CHECK_DEADLINE = "обещания сроков"
@@ -143,10 +117,7 @@ CHECK_MONEY_VERBATIM = "денежная вставка не переписан�
 CHECK_ASCII_DIGITS = "цифры в сумме европейские"
 CHECK_NO_MARKUP = "в письме нет разметки"
 
-# Арабо-индийские и персидские цифры. В арабском абзаце диапазон «35 000–60 000 درهم»,
-# набранный ими без латинского якоря, показывается читателю как «60 000–35 000»: клиент
-# видит цену задом наперёд. Проверки ниже смотрят на
-# сырое тело — normalize() стирает такую подмену раньше, чем её можно заметить.
+# Why checked on the raw body: normalize() erases these before they can be noticed.
 NON_ASCII_DIGITS = "٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹"
 
 STATUS_OK = "OK"
@@ -156,7 +127,7 @@ STATUS_UNVERIFIABLE = "UNVERIFIABLE"
 
 @dataclass(frozen=True)
 class LintResult:
-    """Вердикт линтера. Годно — только когда отработали все проверки и нарушений нет."""
+    """A lint verdict; OK only when every check ran and none failed."""
 
     status: str
     violations: tuple[str, ...] = ()
@@ -169,7 +140,7 @@ class LintResult:
         return self.status == STATUS_OK
 
     def summary(self) -> str:
-        """Строка для отчёта: три числа рядом, без агрегатного булева."""
+        """Returns the report line: three counts, with no aggregate boolean."""
         return (
             f"проверено {len(self.checks_done)}, нарушений {len(self.violations)}, "
             f"не смогли {len(self.checks_failed)}"
@@ -183,10 +154,7 @@ def _parse_amount(raw: str) -> float:
 
 
 def extract_aed_amounts(text: str) -> tuple[float, ...]:
-    """Числа рядом с AED/дирхамами. Прочие числа (люди, дни) сюда не попадают.
-
-    Текст нормализуется: без этого арабская запись суммы проходит мимо проверки молча.
-    """
+    """Returns amounts written next to a currency; other numbers are ignored."""
     found: list[float] = []
     for pattern in AED_PATTERNS:
         for match in re.finditer(pattern, normalize(text), flags=re.IGNORECASE):
@@ -234,7 +202,7 @@ def _check_prices(
                 f"{CHECK_PRICES}: AED {amount:g} не попадает ни в один диапазон прайса"
             )
     if reply.used_prices and not amounts:
-        # канал воздействия без счётчика — цена «использована», но в текст не доехала.
+        # Why counted: otherwise a price counts as used without reaching the text.
         violations.append(
             f"{CHECK_PRICES}: заявлены цены {reply.used_prices}, а чисел в тексте нет"
         )
@@ -242,13 +210,8 @@ def _check_prices(
 
 
 def _check_money_verbatim(reply: Reply, prices: dict[str, PriceItem], violations: list[str]) -> None:
-    """Денежная вставка обязана стоять в тексте ровно так, как её собрал код.
-
-    Модель переписывает вставку: заменяет AED на درهم, теряет метки направления. Латинское
-    «AED» — единственное, что якорит число в арабской строке; без него диапазон
-    переворачивается, а проверка диапазонов этого не видит, потому что числа сами по себе
-    остаются в прайсе. Поэтому сверяем посимвольно.
-    """
+    """Checks the money run character for character; the Latin currency is the only anchor
+    holding a number inside an Arabic line."""
     from leadcentre.engine.reply import price_fragment
 
     for key in reply.used_prices:
@@ -263,11 +226,7 @@ def _check_money_verbatim(reply: Reply, prices: dict[str, PriceItem], violations
 
 
 def _check_ascii_digits(body: str, violations: list[str]) -> None:
-    """В сумме не должно быть арабо-индийских цифр.
-
-    Деловая переписка в ОАЭ ведётся европейскими цифрами (по CLDR и практике местных
-    сайтов), и прайс набран ими же.
-    """
+    """Checks that amounts carry no Arabic-Indic digits, as the price list uses ASCII."""
     found = sorted({ch for ch in body if ch in NON_ASCII_DIGITS})
     if found:
         violations.append(
@@ -275,15 +234,13 @@ def _check_ascii_digits(body: str, violations: list[str]) -> None:
         )
 
 
-#: Разметка markdown в письме клиенту. Заголовок и цитата в деловом письме не нужны,
-#: а звёздочки клиент видит как мусор. Ловится здесь, а не только чисткой на входе:
-#: чистка снимает разметку у своей модели, а линтер сторожит текст любого происхождения.
+#: Markdown in a customer letter; checked here because the linter guards any origin.
 MARKUP_LINE_RE = re.compile(r"^[\u200f\u200e\s]*(?:#{1,6}|>+)(?:\s+|$)", re.MULTILINE)
 MARKUP_INLINE_RE = re.compile(r"(?<!\*)\*{2,3}[^*\n]+\*{2,3}(?!\*)|`{1,3}[^`\n]+`{1,3}")
 
 
 def _check_markup(body: str, violations: list[str]) -> None:
-    """Разметки в письме быть не должно ни в начале строки, ни внутри неё."""
+    """Checks that no markdown appears at the start of a line or inside one."""
     line = MARKUP_LINE_RE.search(body)
     if line:
         violations.append(f"{CHECK_NO_MARKUP}: строка начинается с «{line.group(0).strip()}»")
@@ -297,12 +254,12 @@ def lint(
     prices: dict[str, PriceItem] | None = None,
     pricelist_path: Path | str = DEFAULT_PRICELIST,
 ) -> LintResult:
-    """Проверить черновик. Прайс можно передать готовым — иначе читается с диска."""
+    """Lints a draft; the price list may be passed in, otherwise it is read from disk."""
     violations: list[str] = []
     done: list[str] = []
     failed: list[str] = []
 
-    # Спама здесь быть не должно: черновика нет, проверять нечего — и это не «годно».
+    # Why not OK: there is no draft here, so nothing was checked.
     if reply.outcome in (OUTCOME_SPAM_SKIPPED, OUTCOME_NO_DRAFT) or not reply.body.strip():
         return LintResult(
             status=STATUS_UNVERIFIABLE,

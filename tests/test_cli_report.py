@@ -1,4 +1,4 @@
-"""Тесты отчёта и точки входа. Логика вызывается функцией, не подпроцессом."""
+"""CLI and report: counts rather than flags, on the offline registry cache."""
 from __future__ import annotations
 
 import urllib.request
@@ -53,20 +53,12 @@ def test_lines_print_numbers_not_a_flag():
 
 
 def test_empty_run_is_not_a_success():
-    """Ноль нарушений при нуле проверок — не успех: числа должны это показывать."""
     lines = report.build(_result(skipped=0), []).lines()
     assert "проверено 0" in lines[1]
     assert "нарушений инвариантов 0" in lines[2]
 
 
 def test_format_row_contains_tier_city_name_and_evidence():
-    """Строка отчёта не теряет причин.
-
-    Карточка собирается кодом причины, а не готовой строкой: формулировку отрисует
-    каталог, а тест сверяет, что отрисованное доехало до строки отчёта целиком.
-    Текст причины здесь не выписывается — за него отвечает tests/test_reasons.py,
-    и подгонять `format_row` под формулировку больше не за что.
-    """
     company = make_company(city="Dubai", name="Test Trading LLC")
     card = Score(
         Tier.HIGH,
@@ -105,7 +97,7 @@ def test_discover_offline_scores_the_whole_cache(capsys):
     assert sum(run_report.by_tier.values()) == 60
     out = capsys.readouterr().out
     assert "проверено 60" in out
-    assert len(out.strip().splitlines()) == 60 + 1 + 3  # строки лидов, пустая, три итога
+    assert len(out.strip().splitlines()) == 60 + 1 + 3  # lead rows, a blank line, three totals
 
 
 def test_discover_offline_does_not_touch_the_network(monkeypatch, capsys):
@@ -125,7 +117,6 @@ def test_discover_is_deterministic_for_a_fixed_today(capsys):
 
 
 def test_discover_tier_mix_matches_scoring_the_same_companies(capsys):
-    """Отчёт не пересчитывает по-своему: те же компании — те же ступени."""
     today = date(2026, 9, 9)
     companies = GleifAdapter(mode="lapsed", offline=True).fetch(20).companies
     expected: dict[str, int] = {}
@@ -138,7 +129,6 @@ def test_discover_tier_mix_matches_scoring_the_same_companies(capsys):
 
 
 def test_discover_fresh_mode_finds_new_entities(capsys):
-    """Свежий срез на дату кэша даёт хотя бы один повод «новое юрлицо»."""
     today = date(2026, 9, 9)
     companies = GleifAdapter(mode="fresh", offline=True).fetch(60).companies
     events = [score(c, today).event for c in companies]
@@ -159,13 +149,12 @@ def test_main_rejects_unknown_command(capsys):
 
 
 def test_scoring_a_known_lapsed_company_end_to_end():
-    """Сквозной проход: запись кэша → Company → Score, ожидания литералами."""
     company = GleifAdapter(mode="lapsed", offline=True).fetch(1).companies[0]
     result = score(company, date(2026, 9, 9))
-    # адрес Абу-Даби, орган регистрации RA000752 → ось A1; просрочка 1 день → B1
+    # a registrar authority gives axis A1; a one-day lapse gives B1
     assert result.address_type is AddressType.REGISTRAR
     assert result.event is Event.LAPSED
-    # HIGH понижен до MEDIUM: город не Дубай
+    # lowered from high because the city is off target
     assert result.tier is Tier.MEDIUM
     assert result.violations == ()
 

@@ -1,13 +1,7 @@
-"""Тесты полноты покрытия перечислений: беда вместо случая.
+"""Completeness against enumerations: every member must be served, not only the ones we thought of.
 
-Дефект, ради которого файл заведён: в `RequestType` появился `RENEWAL`, а в словарях
-`reply.py` его не завели — черновик падал с `KeyError` на обращении о продлении.
-Покейсовые тесты этого не заметили: они перечисляют типы поимённо, и добавление члена
-в перечисление никого не разбудило.
-
-Приём тот же, что уже сработал дважды (состав выдачи поймал инфляцию HIGH, инвариант
-про арабские названия — беду вместо случая): тест идёт по ВСЕМ членам перечисления,
-поэтому следующий новый тип разбудит его сам, без правки теста.
+Expected members are listed as literals, so a changed enumeration reddens the test
+instead of moving along with it.
 """
 from __future__ import annotations
 
@@ -31,16 +25,14 @@ from leadcentre.models import (
 ROOT = Path(__file__).resolve().parents[1]
 PRICELIST = ROOT / "data" / "pricelist_demo.yaml"
 
-# Языки, на которых движок обязан отвечать шаблонами. Литералы: список в модуле
-# может измениться, и тест должен это заметить, а не поехать следом.
+# Literals: the module's list may change, and this test must notice rather than follow.
 TEMPLATE_LANGUAGES = ("ru", "en")
 
-# Исходы, объявленные автором reply.py. Падение исключением исходом не является.
+# Outcomes declared by the reply module; raising is not one of them.
 DECLARED_OUTCOMES = ("draft", "questions", "spam_skipped", "no_draft_needs_human")
 
 
-# Язык определяется по письменности самого обращения, поэтому текст берётся под язык:
-# иначе тест проверял бы не полноту шаблонов, а работу определителя языка.
+# Text is chosen to match the language, or this would test language detection instead.
 MESSAGE_TEXT = {
     "ru": "нужно продлить лицензию, 8 человек, бюджет 40000 AED",
     "en": "we need to renew the licence, 8 people, budget 40000 AED",
@@ -56,7 +48,7 @@ def _message(text: str = MESSAGE_TEXT["ru"]):
 
 
 def _rich_facts(kind: RequestType, language: str) -> LeadFacts:
-    """Факты, при которых генератор идёт в ветку черновика, а не в вопросы."""
+    """Builds facts rich enough for a draft of any request type."""
     return LeadFacts(
         request_types=(kind, RequestType.OFFICE) if kind is not RequestType.OFFICE else (kind,),
         headcount=8,
@@ -69,17 +61,12 @@ def _rich_facts(kind: RequestType, language: str) -> LeadFacts:
     )
 
 
-# --- полнота: draft отрабатывает на каждом члене RequestType ---------------------
 
 
 @pytest.mark.parametrize("kind", list(RequestType), ids=lambda k: k.value)
 @pytest.mark.parametrize("language", TEMPLATE_LANGUAGES)
 def test_draft_survives_every_request_type(kind, language):
-    """Ни один тип запроса не обрушивает карточку — проверяются ВСЕ члены перечисления.
-
-    Именно этот тест поймал бы `RENEWAL`, добавленный в `RequestType` без правки
-    словарей `reply.py`: черновик падал там с `KeyError`.
-    """
+    """Drafting works for every member of the request-type enumeration."""
     message = _message(MESSAGE_TEXT[language])
     result = reply.draft(message, _rich_facts(kind, language), Tier.HIGH)
     assert result.outcome in DECLARED_OUTCOMES
@@ -88,7 +75,7 @@ def test_draft_survives_every_request_type(kind, language):
 
 @pytest.mark.parametrize("kind", list(RequestType), ids=lambda k: k.value)
 def test_draft_survives_a_lonely_request_type(kind):
-    """Тот же перебор, но тип в обращении один: вторая ветка сборки текста."""
+    """Drafting works when a request carries exactly one type."""
     facts = LeadFacts(
         request_types=(kind,),
         headcount=8,
@@ -104,7 +91,6 @@ def test_draft_survives_a_lonely_request_type(kind):
 
 @pytest.mark.parametrize("kind", list(RequestType), ids=lambda k: k.value)
 def test_reply_dictionaries_cover_every_request_type(kind):
-    """Словари шаблонов и прайс-ключей заведены на каждый член перечисления."""
     assert kind in reply.SUBSTANCE, f"нет шаблона для {kind.value}"
     assert kind in reply.PRICE_KEY_BY_REQUEST, f"нет прайс-ключей для {kind.value}"
 
@@ -115,22 +101,16 @@ def test_substance_text_exists_for_every_language(kind, language):
     assert reply.SUBSTANCE[kind].get(language), f"нет текста {language} для {kind.value}"
 
 
-# --- полнота со стороны прайса ---------------------------------------------------
 
 
 def _pricelist_keys() -> set[str]:
-    """Ключи позиций из YAML. Разбор простой: файл плоский, ключи на одном отступе."""
+    """Returns the price keys declared in the reply module."""
     text = PRICELIST.read_text(encoding="utf-8")
     items = text.split("items:", 1)[1]
     return set(re.findall(r"^  ([a-z0-9_]+):", items, flags=re.MULTILINE))
 
 
 def test_pricelist_has_an_item_for_every_declared_price_key():
-    """Каждый ключ из `PRICE_KEY_BY_REQUEST` обязан быть позицией в прайсе.
-
-    Иначе черновик назовёт услугу, а линтер не сможет сверить число: получится цена,
-    за которой ничего не стоит.
-    """
     declared = {key for keys in reply.PRICE_KEY_BY_REQUEST.values() for key in keys}
     missing = sorted(declared - _pricelist_keys())
     assert missing == [], f"ключи без позиции в прайсе: {missing}"
@@ -138,7 +118,6 @@ def test_pricelist_has_an_item_for_every_declared_price_key():
 
 
 def test_loaded_prices_match_the_declared_keys():
-    """Тот же контроль, но через загрузчик: YAML читается, ключи совпадают."""
     prices = reply.load_prices(PRICELIST)
     declared = {key for keys in reply.PRICE_KEY_BY_REQUEST.values() for key in keys}
     assert declared <= set(prices), sorted(declared - set(prices))
@@ -146,21 +125,16 @@ def test_loaded_prices_match_the_declared_keys():
 
 @pytest.mark.parametrize("kind", list(RequestType), ids=lambda k: k.value)
 def test_types_with_price_keys_can_be_priced(kind):
-    """Если для типа объявлены ключи — все они грузятся из прайса (или ключей нет вовсе)."""
+    """Every type with a price key can actually be priced."""
     prices = reply.load_prices(PRICELIST)
     for key in reply.PRICE_KEY_BY_REQUEST[kind]:
         assert key in prices, f"{kind.value}: ключ {key} отсутствует в прайсе"
 
 
-# --- негативный контроль: типа нет в шаблонах вовсе ------------------------------
+# Negative control: a type with no template at all.
 
 
 def test_missing_template_is_a_declared_outcome_not_an_exception(monkeypatch):
-    """Негативный контроль: если шаблона для типа нет, это исход, а не падение.
-
-    Тип выбрасывается из словарей на время теста — так воспроизводится ровно то
-    состояние, в котором `RENEWAL` обрушивал карточку.
-    """
     substance = dict(reply.SUBSTANCE)
     price_keys = dict(reply.PRICE_KEY_BY_REQUEST)
     substance.pop(RequestType.OFFICE)
@@ -169,15 +143,13 @@ def test_missing_template_is_a_declared_outcome_not_an_exception(monkeypatch):
     monkeypatch.setattr(reply, "PRICE_KEY_BY_REQUEST", price_keys)
 
     result = reply.draft(_message(), _rich_facts(RequestType.OFFICE, "ru"), Tier.HIGH)
-    # Заявленный автором исход: говорить не о чем — карточку берёт человек,
-    # а не KeyError и не молчаливый пустой черновик.
+    # the declared outcome: a human takes the card, not a KeyError or an empty draft
     assert result.outcome == "no_draft_needs_human"
     assert result.needs_human is True
     assert result.body == ""
 
 
 def test_unknown_request_type_value_does_not_crash(monkeypatch):
-    """Ещё жёстче: в фактах тип, которого в шаблонах нет ни под каким видом."""
 
     class FakeType(str):
         value = "quantum_consulting"
@@ -196,11 +168,6 @@ def test_unknown_request_type_value_does_not_crash(monkeypatch):
 
 
 def test_unknown_type_alongside_a_known_one_is_skipped_with_a_notice(monkeypatch):
-    """Один незнакомый тип не отменяет черновик: он пропускается, и пропуск виден.
-
-    Проверяется вместе со знакомым типом — иначе исход был бы NO_DRAFT и мы бы
-    не увидели ни черновика, ни пометки.
-    """
     substance = dict(reply.SUBSTANCE)
     substance.pop(RequestType.VISA)
     monkeypatch.setattr(reply, "SUBSTANCE", substance)
@@ -217,26 +184,20 @@ def test_unknown_type_alongside_a_known_one_is_skipped_with_a_notice(monkeypatch
     )
     result = reply.draft(_message(), facts, Tier.HIGH)
     assert result.outcome == "draft"
-    assert result.body  # черновик собрался на знакомом типе
+    assert result.body  # the draft was built from the known type
     assert "visa" in result.notice, result.notice
 
 
-# --- полнота прочих словарей по перечислениям ------------------------------------
+# Completeness of the remaining tables against their enumerations.
 
 
 def test_matrix_covers_every_address_and_event_combination():
-    """Рубрика A x B: 4 x 4 = 16 ячеек, дырок нет — иначе скоринг упал бы с KeyError."""
     combinations = {(a, e) for a in AddressType for e in Event}
     assert set(MATRIX) == combinations
     assert len(MATRIX) == 16
 
 
 def test_type_markers_cover_every_request_type_except_other():
-    """`TYPE_MARKERS` покрывает все типы, кроме OTHER, и это осознанное исключение.
-
-    OTHER — запасной тип «ничего не распознали», у него не может быть своих маркеров.
-    Если появится новый тип без маркеров, тест разбудит: список исключений — литерал.
-    """
     covered = set(TYPE_MARKERS)
     expected = set(RequestType) - {RequestType.OTHER}
     assert covered == expected, {
@@ -245,31 +206,18 @@ def test_type_markers_cover_every_request_type_except_other():
     }
 
 
-# --- одно знание — одно место -----------------------------------------------
 
 
 GEN_MOCK = ROOT / "web" / "scripts" / "gen_mock.py"
 
 
 def test_mock_generator_uses_the_shared_facts_rules():
-    """Генератор демо-данных обязан звать общую реализацию, а не свою копию.
-
-    Своя копия правил уже разошлась однажды: дашборд показывал 13/37/20, а стенд
-    считал 12/41/17. Тест сторожит, чтобы копия не завелась заново.
-    """
     source = GEN_MOCK.read_text(encoding="utf-8")
     assert "from leadcentre.engine.facts_rules import rules_facts" in source
     assert "rules_facts(" in source
 
 
 def test_mock_generator_keeps_no_private_copy_of_the_rules():
-    """Генератор демонстрационных данных не заводит свою копию правил.
-
-    Раньше в gen_mock.py лежал словарь REQUEST_MARKERS — остаток прежней копии эвристики,
-    из-за которой дашборд показывал 13/37/20, а измерительный стенд считал 12/41/17.
-    Словарь удалён вместе с самой копией; тест сторожит от повторного форка: генератор
-    обязан звать общую rules_facts и не должен заводить своих словарей маркеров.
-    """
     source = GEN_MOCK.read_text(encoding="utf-8")
     assert "rules_facts" in source, "генератор перестал звать общую реализацию правил"
     for forked in ("REQUEST_MARKERS", "TYPE_MARKERS", "BUDGET_MARKERS", "SPAM_MARKERS"):

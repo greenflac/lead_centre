@@ -1,26 +1,9 @@
-"""Тесты каталога причин: полнота, согласование числительных, негативные контроли.
+"""Reason catalogue: completeness, plural agreement and negative controls.
 
-Перенесено из приёмочного прибора автора модуля (scratchpad/check_reasons.py): там оно
-печатало таблицу и считало сработавшие контроли, здесь каждый контроль — отдельный тест,
-который краснеет сам. Печатать «ГОДНО» рядом с зелёным прогоном больше не требуется:
-вердикт выносит раннер, а не тот, кто делал.
-
-Что здесь сторожится:
-
-* **Полнота каталога** (`test_every_code_has_a_text_in_every_language` и соседи): у
-  каждого кода обязан быть текст на КАЖДОМ языке `Language`, и текст обязан подставлять
-  ровно объявленные параметры. Тест идёт по всем членам обоих перечислений, поэтому
-  новый код или новый язык разбудят его сами — тот же приём, что поймал `RequestType.RENEWAL`
-  в tests/test_enum_coverage.py.
-* **Числительные**: «1 день / 2 дня / 5 дней», отдельно край 11–14 («11 дней», не
-  «11 день») — правило, которое ломается тише всего.
-* **Негативные контроли**: отсутствующий параметр, лишний параметр, дробное число,
-  неизвестный язык, пустой и отсутствующий текст, потерянный placeholder, единица без
-  форм. Рядом с каждым — положительный контроль: на годном входе прибор обязан
-  шевельнуться, иначе «ошибка есть всегда» читалось бы как успех.
-
-Ожидаемое — литералы: русские и английские строки выписаны руками, а не собраны
-тем же кодом, который проверяется.
+Every code must carry a text in every language and substitute exactly the declared
+parameters; the tests walk both enumerations, so a new code or language wakes them.
+Each negative control has a positive one beside it, so "always says no" cannot pass.
+Expected strings are literals, not assembled by the code under test.
 """
 from __future__ import annotations
 
@@ -42,10 +25,8 @@ RU, EN = R.Language.RU, R.Language.EN
 
 DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
-# Показательные параметры каждой причины: ими каталог отрисовывается целиком.
-# Числа подобраны так, чтобы в русском была видна форма, отличная от «дней».
-# Код без записи здесь роняет `test_sample_params_cover_every_code` — иначе новая
-# причина осталась бы неотрисованной ни разу.
+# Sample parameters per code, chosen so plural agreement is visible. A code missing
+# here reddens its own test, or a new reason would never be rendered at all.
 SAMPLE_PARAMS: dict[R.ReasonCode, dict[str, object]] = {
     R.ReasonCode.LEI_LAPSED_FRESH: {"days": 41},
     R.ReasonCode.LEI_LAPSED_LONG_AGO: {"days": 122},
@@ -78,8 +59,7 @@ ALL_LANGUAGES = list(R.Language)
 
 
 def _placeholders(template: str) -> set[str]:
-    """Имена параметров шаблона. Разбор здесь свой, а не импорт `R._placeholders`:
-    импортированное ожидание поедет вместе с кодом и промолчит."""
+    """Returns a template's parameter names; parsed here, not imported, so it cannot drift."""
     import string
 
     return {
@@ -89,29 +69,24 @@ def _placeholders(template: str) -> set[str]:
     }
 
 
-# --- полнота каталога ------------------------------------------------------------
 
 
 def test_sample_params_cover_every_code():
-    """Прибор измеряет весь каталог, а не его половину («проверено N»)."""
+    """The sample covers every code, so the instrument measures the whole catalogue."""
     missing = sorted(set(R.ReasonCode) - set(SAMPLE_PARAMS), key=lambda c: c.value)
     assert missing == [], f"нет показательных параметров для {[c.value for c in missing]}"
     assert len(SAMPLE_PARAMS) == len(ALL_CODES) == 24
 
 
 def test_catalogue_declares_every_code():
-    """Код без записи в каталоге — дыра: `render` упал бы на живой карточке."""
+    """A code with no catalogue entry would raise on a live card."""
     assert set(R.CATALOGUE) == set(R.ReasonCode)
 
 
 @pytest.mark.parametrize("code", ALL_CODES, ids=lambda c: c.value)
 @pytest.mark.parametrize("language", ALL_LANGUAGES, ids=lambda language: language.value)
 def test_every_code_has_a_text_in_every_language(code, language):
-    """Каталог не бывает переведённым наполовину: текст обязан быть на каждом языке.
-
-    Именно этот тест не даст выпустить причину, у которой есть русский и нет
-    английского, — на английском экране такая карточка была бы пустым местом.
-    """
+    """No entry is half-translated: a text exists in every language."""
     template = R.CATALOGUE[code].texts.get(language)
     assert template, f"нет текста {language.value} у причины {code.value}"
     assert template.strip(), f"пустой текст {language.value} у причины {code.value}"
@@ -120,11 +95,7 @@ def test_every_code_has_a_text_in_every_language(code, language):
 @pytest.mark.parametrize("code", ALL_CODES, ids=lambda c: c.value)
 @pytest.mark.parametrize("language", ALL_LANGUAGES, ids=lambda language: language.value)
 def test_every_text_uses_exactly_the_declared_params(code, language):
-    """Текст подставляет ровно объявленные параметры — ни больше, ни меньше.
-
-    Лишний placeholder — `ReasonRenderError` на живом входе, потерянный — молча
-    съеденное число («срочность» без срока), и второе хуже.
-    """
+    """Each text substitutes exactly the declared parameters, no more and no fewer."""
     spec = R.CATALOGUE[code]
     used = _placeholders(spec.texts[language])
     assert used == set(spec.params), {
@@ -138,7 +109,6 @@ def test_every_text_uses_exactly_the_declared_params(code, language):
 @pytest.mark.parametrize("code", ALL_CODES, ids=lambda c: c.value)
 @pytest.mark.parametrize("language", ALL_LANGUAGES, ids=lambda language: language.value)
 def test_every_code_renders_on_every_language(code, language):
-    """Отрисовка проходит на каждом коде и языке и даёт непустой текст."""
     text = R.reason(code, **SAMPLE_PARAMS[code]).text(language)
     assert text.strip()
     assert "{" not in text, f"неподставленный placeholder в {code.value}/{language.value}"
@@ -146,25 +116,22 @@ def test_every_code_renders_on_every_language(code, language):
 
 @pytest.mark.parametrize("language", ALL_LANGUAGES, ids=lambda language: language.value)
 def test_every_language_has_plural_forms_and_a_rule(language):
-    """Новый язык без форм числительных и без правила выбора формы — IndexError в проде."""
     assert language in R.PLURAL_RULES, f"нет правила числительных для {language.value}"
     assert language in R.PLURAL_FORMS, f"нет форм числительных для {language.value}"
-    # Единицы совпадают во всех языках: шаблон ссылается на единицу, а не на язык.
+    # units match across languages: a template names a unit, not a language
     assert set(R.PLURAL_FORMS[language]) == {"day", "person", "service", "char"}
 
 
 def test_validate_catalogue_reports_how_much_it_checked():
-    """«Проверено N» вместо голого «нарушений нет»: 24 кода x 2 языка."""
     assert R.validate_catalogue() == 48
 
 
 def test_catalogue_has_no_two_codes_with_the_same_russian_text():
-    """Два кода с одинаковым текстом — признак того, что различие потерялось."""
+    """Two codes sharing one text mean a distinction was lost."""
     texts = [spec.texts[RU] for spec in R.CATALOGUE.values()]
     assert len(set(texts)) == len(texts), "русские тексты причин повторяются"
 
 
-# --- числительные ----------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
@@ -175,8 +142,8 @@ def test_catalogue_has_no_two_codes_with_the_same_russian_text():
         (2, "2 дня"),
         (4, "4 дня"),
         (5, "5 дней"),
-        (11, "11 дней"),   # край guard 11-14: не «11 день»
-        (12, "12 дней"),   # не «12 дня»
+        (11, "11 дней"),   # the 11-14 guard edge
+        (12, "12 дней"),   # and its neighbour
         (14, "14 дней"),
         (15, "15 дней"),
         (21, "21 день"),
@@ -186,17 +153,12 @@ def test_catalogue_has_no_two_codes_with_the_same_russian_text():
         (101, "101 день"),
         (102, "102 дня"),
         (105, "105 дней"),
-        (111, "111 дней"),  # тот же guard на второй сотне
+        (111, "111 дней"),  # the same guard in the next hundred
         (112, "112 дней"),
     ],
 )
 def test_russian_numerals_agree_with_the_noun(number, expected):
-    """Три формы русского, с обоими краями и серединой.
-
-    11-14 — исключение из правила «оканчивается на 1 — форма один»: без guard
-    получится «11 день», и это ровно та ошибка, которую не видно на глаз в тесте,
-    где числа только однозначные.
-    """
+    """Russian plural agreement, including the 11-14 exception that breaks most quietly."""
     assert R.plural_phrase(RU, number, "day") == expected
 
 
@@ -209,13 +171,12 @@ def test_english_numerals_have_two_forms(number, expected):
 
 
 def test_russian_and_english_forms_differ_on_the_same_number():
-    """Негативный контроль прибора: если бы отрисовка не знала про язык, тексты
-    совпали бы, и все проверки выше проходили бы, ничего не измеряя."""
+    """Negative control: identical output would mean rendering ignores the language."""
     assert R.plural_phrase(RU, 5, "day") != R.plural_phrase(EN, 5, "day")
 
 
 def test_numeral_text_reaches_the_rendered_reason():
-    """Согласование видно в самой причине, а не только в помощнике."""
+    """Agreement is visible in the rendered reason, not only in the helper."""
     assert R.reason(R.ReasonCode.LEI_RENEWAL_SOON, days=11).text(RU) == (
         "продление LEI через 11 дней"
     )
@@ -227,98 +188,83 @@ def test_numeral_text_reaches_the_rendered_reason():
     )
 
 
-# --- негативные контроли: сборка причины ------------------------------------------
 
 
 def test_reason_without_params_is_an_error():
-    """Контроль 1: код, у которого объявлен параметр, без параметра не собирается."""
+    """A code declaring a parameter cannot be built without it."""
     with pytest.raises(R.ReasonError):
         R.reason(R.ReasonCode.TEAM_OVER_FLEXI_QUOTA)
 
 
 def test_reason_without_the_second_param_is_an_error():
-    """Контроль 2: половина параметров — тоже «не смогли», а не «сойдёт»."""
+    """Half the parameters is also "could not", not "good enough"."""
     with pytest.raises(R.ReasonError):
         R.reason(R.ReasonCode.URGENT_TIMELINE, days=14)
 
 
 def test_reason_with_an_extra_param_is_an_error():
-    """Контроль 3: лишний параметр — признак того, что автор перепутал код."""
+    """An extra parameter means the author confused the code."""
     with pytest.raises(R.ReasonError):
         R.reason(R.ReasonCode.ENTITY_INACTIVE, days=3)
 
 
 def test_reason_with_params_stripped_behind_the_factory_is_an_error():
-    """Контроль 4: параметры выпилены в обход фабрики — падение всё равно.
-
-    Обход намеренный: фабрика проверяет вход, но причина может приехать из хранилища
-    или из `replace`, и там некому вставить проверку, кроме самой причины.
-    """
+    """Stripping parameters behind the factory still raises: a reason may arrive from storage."""
     good = R.reason(R.ReasonCode.LEI_RENEWAL_SOON, days=5)
     with pytest.raises(R.ReasonError):
         R.render(replace(good, params=()), RU)
 
 
 def test_reason_with_a_duplicate_param_is_an_error():
-    """Тот же обход, но параметр задан дважды: молча победившее значение — дефект."""
+    """A parameter given twice raises rather than letting one value win silently."""
     with pytest.raises(R.ReasonError):
         R.Reason(R.ReasonCode.LEI_RENEWAL_SOON, (("days", 5), ("days", 9)))
 
 
 def test_the_same_reason_with_params_renders():
-    """Положительный контроль к контролям 1-4: годный вход обязан пройти."""
+    """Positive control: a valid reason renders."""
     assert R.reason(R.ReasonCode.TEAM_OVER_FLEXI_QUOTA, headcount=8).text(EN) == (
         "team of 8 — flexi desk will not cover the visa quota"
     )
 
 
-# --- негативные контроли: согласование числа --------------------------------------
 
 
 def test_fractional_number_cannot_be_agreed():
-    """Контроль 5: «2.5 день» напечатать нельзя, и молчать об этом тоже нельзя."""
     with pytest.raises(R.ReasonError):
         R.plural_phrase(RU, 2.5, "day")
 
 
 @pytest.mark.parametrize("value", ["5", None, True, 3.0])
 def test_non_integer_number_cannot_be_agreed(value):
-    """Тот же контроль шире: строка, None, bool и целое-как-float — не число для формы.
-
-    `True` отдельным случаем: в Python это `int`, и без явной проверки вышло бы
-    «True день».
-    """
+    """Strings, None, bool and int-as-float are not numbers for agreement."""
     with pytest.raises(R.ReasonError):
         R.plural_phrase(RU, value, "day")
 
 
 def test_unknown_noun_has_no_forms():
-    """Единица, форм которой нет, — ошибка, а не «14 week»."""
+    """A unit with no forms is an error, not a bare fallback."""
     with pytest.raises(R.ReasonError):
         R.plural_phrase(RU, 14, "week")
 
 
 def test_integer_number_is_agreed():
-    """Положительный контроль к контролям про число."""
+    """Positive control for the number checks."""
     assert R.plural_phrase(RU, 2, "day") == "2 дня"
 
 
-# --- негативные контроли: дырявый каталог -----------------------------------------
+# Negative controls: a catalogue with a hole in it.
 
 
 def _catalogue_with(code: R.ReasonCode, spec: R.ReasonSpec) -> dict:
-    """Копия каталога продукта с одной подменённой причиной.
-
-    Подменяется копия, а не `R.CATALOGUE`: тест, портящий глобальный каталог,
-    покрасил бы соседей и вердикт был бы не про то.
-    """
+    """Returns a copy of the catalogue with one entry replaced, leaving the global intact."""
     holed = dict(R.CATALOGUE)
     holed[code] = spec
     return holed
 
 
 def test_catalogue_without_the_english_text_is_rejected():
-    """Контроль 6: причина с параметром, у которой пропал английский текст."""
+    """An entry missing a language is rejected."""
     holed = _catalogue_with(
         R.ReasonCode.PACKAGE_REQUEST,
         R.ReasonSpec(
@@ -331,12 +277,7 @@ def test_catalogue_without_the_english_text_is_rejected():
 
 
 def test_catalogue_with_a_blank_english_text_is_rejected():
-    """Контроль 7: текст из пробелов.
-
-    Причина без параметров выбрана намеренно: пустоту тут ловит только правило
-    пустоты — сверка placeholder'ов подстраховать его не может, и контроль мерит
-    ровно то, что называет.
-    """
+    """A whitespace-only text is rejected; a paramless code isolates the blankness rule."""
     blank = _catalogue_with(
         R.ReasonCode.ENTITY_INACTIVE,
         R.ReasonSpec(params=(), texts={RU: "юрлицо неактивно", EN: "   "}),
@@ -346,7 +287,7 @@ def test_catalogue_with_a_blank_english_text_is_rejected():
 
 
 def test_catalogue_without_the_english_text_of_a_paramless_reason_is_rejected():
-    """Контроль 8: то же отсутствие, но у причины без параметров."""
+    """The same absence on a reason without parameters is also rejected."""
     absent = _catalogue_with(
         R.ReasonCode.SPAM_OR_OFF_TOPIC,
         R.ReasonSpec(params=(), texts={RU: "обращение помечено как спам или не по теме"}),
@@ -356,7 +297,6 @@ def test_catalogue_without_the_english_text_of_a_paramless_reason_is_rejected():
 
 
 def test_catalogue_with_a_lost_placeholder_is_rejected():
-    """Контроль 9: английский перевод потерял `{city}` — город из карточки пропал бы."""
     skewed = _catalogue_with(
         R.ReasonCode.CITY_OFF_TARGET,
         R.ReasonSpec(
@@ -372,7 +312,7 @@ def test_catalogue_with_a_lost_placeholder_is_rejected():
 
 
 def test_catalogue_with_an_extra_placeholder_is_rejected():
-    """Обратная сторона контроля 9: в тексте есть то, чего не объявляли."""
+    """A text carrying a placeholder that was never declared is rejected."""
     skewed = _catalogue_with(
         R.ReasonCode.ENTITY_INACTIVE,
         R.ReasonSpec(
@@ -385,7 +325,7 @@ def test_catalogue_with_an_extra_placeholder_is_rejected():
 
 
 def test_catalogue_referring_to_a_unit_without_forms_is_rejected():
-    """Контроль 10: `{days:plural:week}` — форм недели нет ни в одном языке."""
+    """A template naming a unit with no plural forms is rejected."""
     unknown_noun = _catalogue_with(
         R.ReasonCode.LEI_RENEWAL_SOON,
         R.ReasonSpec(
@@ -401,7 +341,7 @@ def test_catalogue_referring_to_a_unit_without_forms_is_rejected():
 
 
 def test_catalogue_without_a_code_is_rejected():
-    """Дыра со стороны перечисления: код есть, записи в каталоге нет."""
+    """A gap on the enumeration side: the code exists, the entry does not."""
     incomplete = dict(R.CATALOGUE)
     del incomplete[R.ReasonCode.BUDGET_NAMED]
     with pytest.raises(R.ReasonCatalogueError):
@@ -409,38 +349,29 @@ def test_catalogue_without_a_code_is_rejected():
 
 
 def test_the_product_catalogue_passes():
-    """Положительный контроль к контролям 6-10: каталог продукта проходит целиком.
-
-    Без него все проверки выше зеленели бы и на приборе, который всегда говорит «нет».
-    """
+    """Positive control: without it the checks above would pass on an always-no instrument."""
     assert R.validate_catalogue(R.CATALOGUE) == 48
 
 
-# --- негативные контроли: язык отрисовки ------------------------------------------
 
 
 @pytest.mark.parametrize("language", ["de", "ru", "", None, 0])
 def test_render_on_an_unknown_language_is_an_error(language):
-    """Контроль 11: язык — член перечисления, а не строка. «ru» строкой тоже нельзя:
-    иначе опечатка в вызове тихо вернула бы текст не того языка."""
+    """The language is an enum member, never a string, so a typo cannot pick another one."""
     with pytest.raises(R.ReasonError):
         R.render(R.reason(R.ReasonCode.ENTITY_INACTIVE), language)
 
 
 def test_render_on_a_known_language_works():
-    """Положительный контроль к контролю 11."""
+    """Positive control for the language check."""
     assert R.render(R.reason(R.ReasonCode.ENTITY_INACTIVE), EN) == "entity is not active"
 
 
-# --- негативные контроли: Score как носитель причин -------------------------------
+# Negative controls: Score as the carrier of reasons.
 
 
 def test_score_with_two_sources_of_text_is_rejected():
-    """Контроль 12: причины заданы дважды — строками и кодами.
-
-    Два источника текста — это тот дефект, ради которого каталог и заведён;
-    `Score` не даёт завести его заново.
-    """
+    """Reasons given twice, as strings and as codes, are rejected."""
     with pytest.raises(ValueError):
         Score(
             tier=Tier.LOW,
@@ -452,7 +383,7 @@ def test_score_with_two_sources_of_text_is_rejected():
 
 
 def _stored_card() -> Score:
-    """Карточка, поднятая из хранилища: там сохранены только русские строки."""
+    """Returns a card restored from storage, where only rendered strings were saved."""
     return Score(
         tier=Tier.LOW,
         address_type=AddressType.UNKNOWN,
@@ -462,26 +393,24 @@ def _stored_card() -> Score:
 
 
 def test_stored_card_cannot_be_rendered_in_english():
-    """Контроль 13: строк без кодов не хватает на второй язык — это «не смогли»,
-    а не молчаливая подмена русским текстом на английском экране."""
+    """Strings without codes cannot reach a second language: that is "could not"."""
     with pytest.raises(R.ReasonError):
         _stored_card().reasons_in(EN)
 
 
 def test_stored_card_still_gives_russian():
-    """Положительный контроль к контролю 13: язык хранения по-прежнему доступен."""
+    """Positive control: the stored language is still available."""
     assert _stored_card().reasons_in(RU) == ("регистрация LEI просрочена на 10 дней",)
 
 
 def test_card_without_reasons_at_all_is_an_empty_tuple():
-    """Третий исход `reasons_in`: причин нет вовсе — пусто, и это не ошибка."""
     empty = Score(tier=Tier.LOW, address_type=AddressType.UNKNOWN, event=Event.NONE)
     assert empty.reasons_in(EN) == ()
     assert empty.reasons_in(RU) == ()
 
 
 def test_score_renders_russian_from_the_items_it_was_given():
-    """`reasons` — это отрисовка `reason_items`, а не отдельное знание."""
+    """`reasons` is a rendering of `reason_items`, not separate knowledge."""
     card = Score(
         tier=Tier.MEDIUM,
         address_type=AddressType.UNKNOWN,
@@ -493,15 +422,12 @@ def test_score_renders_russian_from_the_items_it_was_given():
     assert card.reasons_in(EN) == ("needed in 2 days — inside the hot window of 60 days",)
 
 
-# --- прогон движка: причины обоих языков на живых входах ---------------------------
+# Engine run: reasons in both languages over live inputs.
 
 
 @pytest.mark.parametrize("external_id", ["urg-01", "prc-01", "gen-20", "edge-02"])
 def test_inbound_seed_rows_render_in_both_languages(external_id):
-    """Прогон по обращениям из посева: каждая причина рисуется на обоих языках.
-
-    Сеть не нужна — CSV лежит в репозитории.
-    """
+    """Every reason from the seed renders in both languages; no network needed."""
     rows = {
         row["external_id"]: row
         for row in csv.DictReader((DATA_DIR / "inbound_seed.csv").open(encoding="utf-8"))
@@ -523,7 +449,7 @@ def test_inbound_seed_rows_render_in_both_languages(external_id):
 
 
 def test_registry_companies_render_in_both_languages():
-    """Тот же прогон со стороны реестра: офлайн-кэш GLEIF, причин хотя бы у одной."""
+    """The same run from the registry side, over the offline cache."""
     fetched = GleifAdapter(mode="lapsed", offline=True).fetch(60)
     scored = [score(company, TODAY) for company in fetched.companies]
     with_reasons = [result for result in scored if result.reason_items]
@@ -534,7 +460,6 @@ def test_registry_companies_render_in_both_languages():
 
 
 def test_engine_reason_reaches_the_card_in_english():
-    """Точечно и литералом: просрочка на 2 дня доезжает до английской карточки."""
     result = score(lapsed_company(2), TODAY)
     assert result.reasons == ("регистрация LEI просрочена на 2 дня",)
     assert result.reasons_in(EN) == ("LEI registration lapsed 2 days ago",)

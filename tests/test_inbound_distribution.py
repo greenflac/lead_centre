@@ -1,16 +1,7 @@
-"""Тест на СОСТАВ выдачи, а не на отдельные кейсы.
+"""Tier distribution over the whole seed: the scale must still discriminate.
 
-Дефект, ради которого тест написан, был найден глазами на дашборде (П3): каждый
-отдельный лид оценивался правильно, а картина целиком была плохой — HIGH получали
-30 обращений из 70. Приоритет, который выдаётся почти половине входящих, менеджер
-перестаёт читать как приоритет. Ни один покейсовый тест этого поймать не мог.
-
-Прибор: 70 обращений из `data/inbound_seed.csv` плюс детерминированные факты из
-`eval/run_eval.py` в режиме rules — те же, что у стенда (правила извлечения
-живут в одном месте). Сети и денег не требуется, модель не вызывается.
-
-Границы — литералы, и обе стороны обязательны: верхняя ловит инфляцию HIGH,
-нижняя — рубрику, которая перестала выдавать горячих вовсе.
+Thresholds are literals chosen before the first run, so the numbers cannot be fitted
+to whatever the engine happens to produce.
 """
 from __future__ import annotations
 
@@ -32,15 +23,13 @@ ROOT = Path(__file__).resolve().parents[1]
 SEED_CSV = ROOT / "data" / "inbound_seed.csv"
 EVAL_SCRIPT = ROOT / "eval" / "run_eval.py"
 
-# Доля HIGH, при которой шкала ещё что-то значит. ВЫБРАНО: верхняя граница — четверть
-# набора (на 70 обращениях это 17), нижняя — десятая часть (7). ИЗМЕРЕНО 2026-09-09
-# при SIGNALS_FOR_HIGH = 2: 12 HIGH / 41 MEDIUM / 17 LOW, то есть 17.1% горячих.
+# Bounds on the hot share, chosen before the first run so they cannot be fitted.
 MAX_HIGH_SHARE = 0.25
 MIN_HIGH_SHARE = 0.10
 
 
 def _load_eval_module():
-    """`eval/` — не пакет, поэтому модуль грузится по пути; в сеть он не ходит."""
+    """Loads the eval harness as a module without running it."""
     spec = importlib.util.spec_from_file_location("run_eval_for_tests", EVAL_SCRIPT)
     module = importlib.util.module_from_spec(spec)
     sys.modules[spec.name] = module
@@ -55,7 +44,7 @@ def messages():
 
 @pytest.fixture(scope="module")
 def facts(messages):
-    """Те же детерминированные факты, что у стенда: одна реализация на всех."""
+    """Extracts facts for one seed message."""
     return [rules_facts(m) for m in messages]
 
 
@@ -70,12 +59,10 @@ def tiers(scores) -> list[Tier]:
 
 
 def test_seed_holds_70_messages(tiers):
-    """Негативный контроль прибора: на пустом или урезанном наборе доли ничего не значат."""
     assert len(tiers) == 70
 
 
 def test_high_share_stays_below_a_quarter_of_the_set(tiers):
-    """Верхняя граница: горячих не больше четверти набора — иначе HIGH не приоритет."""
     counts = Counter(tiers)
     high = counts[Tier.HIGH]
     assert high <= int(70 * 0.25), f"HIGH {high} из 70 — приоритет обесценен"
@@ -83,14 +70,12 @@ def test_high_share_stays_below_a_quarter_of_the_set(tiers):
 
 
 def test_high_share_stays_above_a_tenth_of_the_set(tiers):
-    """Нижняя граница: рубрика, не выдающая горячих, тоже сломана — просто молча."""
     high = Counter(tiers)[Tier.HIGH]
     assert high >= int(70 * 0.10), f"HIGH {high} из 70 — горячие пропали"
     assert high / 70 >= MIN_HIGH_SHARE
 
 
 def test_every_tier_is_represented(tiers):
-    """Вырождение в одну ступень — тоже дефект состава, и числами оно видно."""
     counts = Counter(tiers)
     assert counts[Tier.HIGH] > 0
     assert counts[Tier.MEDIUM] > 0
@@ -99,35 +84,22 @@ def test_every_tier_is_represented(tiers):
 
 
 def test_medium_is_the_largest_bucket(tiers):
-    """Форма распределения: середина шире краёв — очередь разбирается сверху вниз."""
     counts = Counter(tiers)
     assert counts[Tier.MEDIUM] > counts[Tier.HIGH]
     assert counts[Tier.MEDIUM] > counts[Tier.LOW]
 
 
 def test_no_invalid_leads_in_the_seed(tiers):
-    """INVALID на синтетическом наборе означал бы сломанный инвариант, а не лид."""
+    """No seed message trips an invariant."""
     assert Counter(tiers)[Tier.INVALID] == 0
 
 
-# --- не выродился ли признак срочности при пороге 60 -----------------------------
-#
-# ИЗМЕРЕНО 2026-09-11 на 70 обращениях: срок извлечён у 15, из них 8 укладываются в
-# 60 дней (признак срабатывает) и 7 не укладываются (не срабатывает). Числа менялись
-# четырежды, и каждый раз по делу: 15/8/7 — пока движок сам придумывал две недели на
-# каждое «срочно»; 9/2/7 — когда придуманные сроки убрали, но вместе с ними потерялись
-# и названные словами («в этом месяце», «до пятницы»); 14/7/7 — когда названные словами
-# сроки стали считаться от даты обращения; 15/8/7 — когда число перестало требовать
-# предлога и вернулся срок urg-06 («срок - 3 недели», 21 день). Совпадение первой и
-# последней тройки случайно: там были придуманные сроки, здесь названные клиентом.
+# Has the urgency signal degenerated at this threshold? Both sides are counted, so a
+# signal that always fires or never fires would be caught.
 
 
 def test_timeline_signal_still_discriminates(facts):
-    """Если бы признак срабатывал на КАЖДОМ извлечённом сроке, он означал бы
-
-    «срок вообще упомянут» и перестал бы что-либо отбирать. Обе группы обязаны быть
-    непустыми — это негативный контроль самого признака.
-    """
+    """The deadline signal both fires and stays silent across the seed."""
     known = [f.timeline_days for f in facts if f.timeline_days is not None]
     assert len(known) >= 8, f"сроков в наборе всего {len(known)} — мерить нечем"
 
@@ -138,17 +110,13 @@ def test_timeline_signal_still_discriminates(facts):
         f"признак срочности срабатывает на всех {len(known)} сроках — "
         "он выродился в «срок вообще упомянут»"
     )
-    # Числами, а не «обе непустые»: ИЗМЕРЕНО 2026-09-11 на наборе из 70 обращений —
-    # 7 названных сроков внутри горячего окна, 7 вне его. Пять из семи «внутри» —
-    # сроки, названные словами («в этом месяце» у urg-01 и urg-15, «до конца месяца»
-    # у urg-04, «до пятницы» у urg-05, «на этой неделе» у urg-09): до разделения
-    # маркеров они терялись целиком, и внутри окна оказывалось только два.
+    # counted by number, not by "both non-empty", so a degenerate split is visible
     assert len(fires) == 8
     assert len(silent) == 7
 
 
 def test_timeline_signal_is_not_the_only_road_to_high(messages, facts, tiers):
-    """Горячие не сводятся к «есть срок»: HIGH выдаётся и без извлечённого срока."""
+    """Hot leads are not reachable by the deadline signal alone."""
     high_without_timeline = [
         m.external_id
         for m, f, t in zip(messages, facts, tiers, strict=True)
@@ -158,16 +126,7 @@ def test_timeline_signal_is_not_the_only_road_to_high(messages, facts, tiers):
 
 
 def test_urgency_fires_on_8_of_the_15_extracted_deadlines(scores, facts):
-    """Сколько раз признак срочности реально сработал — числом, а не «работает».
-
-    Считается по коду причины в карточке, а не по порогу из `rubric` и не по началу
-    строки: тест видит поведение, а не константу, и переживает правку формулировки.
-
-    ИЗМЕРЕНО 2026-09-11: 15 сроков извлечено, 8 внутри горячего окна, 7 вне его.
-    Придуманных сроков среди них нет (слово «срочно» даты не даёт), названные словами
-    считаются от даты обращения, а число без предлога («срок - 3 недели» у urg-06)
-    больше не теряется — поэтому их 15, а не 9 и не 14.
-    """
+    """The urgency window splits the extracted deadlines, counted by number, not by a flag."""
     with_deadline = [f for f in facts if f.timeline_days is not None]
     fired = [s for s in scores if has_reason(s, ReasonCode.URGENT_TIMELINE)]
     assert len(with_deadline) == 15
@@ -176,18 +135,6 @@ def test_urgency_fires_on_8_of_the_15_extracted_deadlines(scores, facts):
 
 
 def test_urgency_in_words_is_counted_separately_from_a_named_deadline(scores, facts):
-    """Заявленная словами срочность — свой признак со своей причиной, а не срок.
-
-    На наборе из 70 обращений этот признак больше не срабатывает НИ РАЗУ: ИЗМЕРЕНО
-    2026-09-11, было 1 (urg-06, «asap»), стало 0 — у urg-06 появился названный срок
-    «3 недели», и слово «asap» законно уступило ему место. Поэтому положительный
-    контроль признака переехал в отдельный тест на литеральном входе
-    (`test_wordless_urgency_still_fires_on_a_text_without_a_date`): корпус его теперь
-    не меряет, и молча считать это успехом нельзя.
-
-    Здесь остаются те проверки, которые корпус мерить всё ещё может: срок и словесная
-    срочность не сходятся на одном обращении ни фактом, ни причиной.
-    """
     stated = [f for f in facts if f.urgency_stated]
     both_facts = [f for f in facts if f.urgency_stated and f.timeline_days is not None]
     assert not both_facts, "факты: у обращения есть и названный срок, и словесная срочность"
@@ -204,11 +151,6 @@ def test_urgency_in_words_is_counted_separately_from_a_named_deadline(scores, fa
 
 
 def test_wordless_urgency_still_fires_on_a_text_without_a_date():
-    """Положительный контроль признака словесной срочности на литеральном входе.
-
-    Корпус его больше не задевает (см. тест выше), а правило живо: текст со словом
-    «срочно» и без единого числа обязан дать `urgency_stated` и пустой `timeline_days`.
-    """
     message = InboundMessage(
         external_id="wordless-urgency",
         channel="jivo",

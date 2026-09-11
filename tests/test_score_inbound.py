@@ -1,15 +1,7 @@
-"""Тесты оси C — скоринг входящих обращений (`score_inbound`).
+"""Inbound request scoring: axis C modifiers over the base tier.
 
-Ожидаемое — литералы: пороги записаны числами и строками (30 дней, 2 типа услуг,
-5 человек, 0.5 уверенности, язык "ru", 2 содержательных признака для HIGH), ступени —
-членами `Tier`. Из `rubric` не импортируется ничего: ни `URGENT_TIMELINE_DAYS`,
-ни `SIGNALS_FOR_HIGH`, ни `TIER_LADDER`, ни базовая ступень.
-
-Правило подъёма (SIGNALS_FOR_HIGH = 2): считаются только СОДЕРЖАТЕЛЬНЫЕ признаки —
-срочность, пакет услуг, размер команды, названный бюджет. Язык в счёт не идёт вовсе.
-Поэтому почти в каждом тесте есть «спутник» — второй признак, без которого подъём до
-HIGH не наблюдается: `headcount=10` или `timeline_days=10`.
-Края и середина по каждому порогу, негативные контроли на спам и пустой текст.
+Reasons are checked by code and parameter, never by the wording, which lives in the
+reason catalogue and is tested in tests/test_reasons.py.
 """
 from __future__ import annotations
 
@@ -26,21 +18,17 @@ from tests.conftest import (
     reason_params,
 )
 
-# Причина проверяется кодом и параметром, а не текстом карточки: формулировки живут
-# в каталоге `engine/reasons.py` и проверяются в tests/test_reasons.py. Раньше здесь
-# матчились подстроки («срок 10 дн.»), и правка текста красила девять тестов,
-# ни одного правила при этом не сломав.
+# Reasons are checked by code and parameter, never by wording: an editor's change must
+# not redden tests that no rule broke.
 
-# --- база: с типом запроса и без ------------------------------------------------
 
 
 def test_base_tier_with_one_request_type_is_medium():
-    """База MEDIUM: человек написал сам и хотя бы один запрос из текста извлечён."""
     result = score_inbound(make_message(), make_facts())
     assert result.tier is Tier.MEDIUM
     assert result.reasons == ()
     assert result.violations == ()
-    # ось C не про компанию: оси A и B остаются пустыми
+    # axis C is not about a company, so A and B stay empty
     assert result.address_type is AddressType.UNKNOWN
     assert result.event is Event.NONE
 
@@ -52,51 +40,45 @@ def test_base_tier_without_request_types_is_low():
 
 
 def test_no_request_types_with_one_bump_reaches_only_medium():
-    """Понижение базы наблюдаемо: с одним повышением обращение без запроса — MEDIUM, не HIGH."""
+    """With no request type a single signal rescues the card only as far as medium."""
     result = score_inbound(make_message(), make_facts(request_types=(), timeline_days=5))
     assert result.tier is Tier.MEDIUM
 
 
-# --- порог срочности: 30 дней ----------------------------------------------------
 
 
 @pytest.mark.parametrize(
     ("timeline_days", "expected"),
     [
-        (0, Tier.HIGH),    # «нужно вчера»
+        (0, Tier.HIGH),    # "needed yesterday"
         (1, Tier.HIGH),
-        (30, Tier.HIGH),   # месяц — прежний порог, теперь середина диапазона
-        (45, Tier.HIGH),   # urg-02: «с 1 октября», получено 17 августа
+        (30, Tier.HIGH),   # a month: the former threshold, now mid-range
+        (45, Tier.HIGH),   # a seed input with a dated deadline
         (59, Tier.HIGH),
-        (60, Tier.HIGH),   # ровно порог URGENT_TIMELINE_DAYS — ещё срочно
-        (61, Tier.MEDIUM),  # на день дальше — признак не сработал
+        (60, Tier.HIGH),   # exactly at the urgency threshold: still urgent
+        (61, Tier.MEDIUM),  # one day past it: the signal does not fire
         (90, Tier.MEDIUM),
         (365, Tier.MEDIUM),
-        (None, Tier.MEDIUM),  # срок не извлечён
+        (None, Tier.MEDIUM),  # no deadline extracted
     ],
 )
 def test_urgent_timeline_threshold_is_60_days(timeline_days, expected):
-    """Спутник — команда 10 человек: срок становится вторым признаком и даёт HIGH.
-
-    Порог 60, а не 30: решение об офисе и регистрации принимают за месяц-два, и на
-    пороге 30 негативный контроль urg-02 (45 дней) уезжал в MEDIUM против разметки.
-    """
+    """The urgency threshold is 60 days, checked at both edges and in the middle."""
     facts = make_facts(timeline_days=timeline_days, headcount=10)
     assert score_inbound(make_message(), facts).tier is expected
 
 
 @pytest.mark.parametrize("timeline_days", [61, 90, 365])
 def test_timeline_beyond_the_threshold_leaves_no_reason(timeline_days):
-    """Негативный контроль: не сработавший признак не пишет причину в карточку."""
     result = score_inbound(make_message(), make_facts(timeline_days=timeline_days))
     assert not has_reason(result, ReasonCode.URGENT_TIMELINE)
 
 
 def test_urgent_timeline_alone_is_only_one_signal():
-    """Один содержательный признак от базы MEDIUM оставляет MEDIUM (SIGNALS_FOR_HIGH = 2)."""
+    """Urgency alone is one signal and does not reach high."""
     result = score_inbound(make_message(), make_facts(timeline_days=1))
     assert result.tier is Tier.MEDIUM
-    # 60 — порог срочности литералом: причина обязана назвать и срок, и границу
+    # the threshold as a literal: the reason must name both the deadline and the limit
     assert reason_params(result, ReasonCode.URGENT_TIMELINE) == {"days": 1, "limit": 60}
 
 
@@ -105,20 +87,19 @@ def test_urgent_timeline_reason_names_the_number():
     assert reason_params(result, ReasonCode.URGENT_TIMELINE) == {"days": 10, "limit": 60}
 
 
-# --- порог пакета: 2 типа запроса ------------------------------------------------
 
 
 @pytest.mark.parametrize(
     ("request_types", "expected"),
     [
-        ((), Tier.MEDIUM),  # база LOW, спутник поднимает на ступень
-        ((RequestType.OFFICE,), Tier.MEDIUM),  # один запрос — пакета нет, признак один
-        ((RequestType.OFFICE, RequestType.VISA), Tier.HIGH),  # ровно порог: два типа
+        ((), Tier.MEDIUM),  # low base, one companion signal raises a step
+        ((RequestType.OFFICE,), Tier.MEDIUM),  # one type: no package, one signal
+        ((RequestType.OFFICE, RequestType.VISA), Tier.HIGH),  # exactly at the threshold: two types
         ((RequestType.OFFICE, RequestType.VISA, RequestType.BANK), Tier.HIGH),
     ],
 )
 def test_package_threshold_is_2_request_types(request_types, expected):
-    """Спутник — команда 10 человек; пакет услуг становится вторым признаком."""
+    """Two request types make a package."""
     facts = make_facts(request_types=request_types, headcount=10)
     assert score_inbound(make_message(), facts).tier is expected
 
@@ -136,24 +117,23 @@ def test_package_reason_names_the_count():
     assert reason_params(result, ReasonCode.PACKAGE_REQUEST) == {"count": 2}
 
 
-# --- порог команды: 5 человек ----------------------------------------------------
 
 
 @pytest.mark.parametrize(
     ("headcount", "expected"),
     [
-        (0, Tier.MEDIUM),     # край снизу: команды нет
+        (0, Tier.MEDIUM),     # lower edge: no team
         (1, Tier.MEDIUM),
-        (4, Tier.MEDIUM),     # на человека меньше порога — повышения нет
-        (5, Tier.HIGH),       # ровно порог TEAM_MIN_HEADCOUNT
+        (4, Tier.MEDIUM),     # one person below the threshold: no raise
+        (5, Tier.HIGH),       # exactly at the team threshold
         (6, Tier.HIGH),
-        (12, Tier.HIGH),      # середина реального диапазона
+        (12, Tier.HIGH),      # middle of the real range
         (200, Tier.HIGH),
-        (None, Tier.MEDIUM),  # численность не извлечена
+        (None, Tier.MEDIUM),  # no headcount extracted
     ],
 )
 def test_team_headcount_threshold_is_5(headcount, expected):
-    """Спутник — срок 10 дней; размер команды становится вторым признаком."""
+    """The team threshold is five people."""
     result = score_inbound(make_message(), make_facts(headcount=headcount, timeline_days=10))
     assert result.tier is expected
     assert result.violations == ()
@@ -171,18 +151,17 @@ def test_team_headcount_reason_names_the_number():
 
 
 def test_headcount_below_threshold_leaves_no_reason():
-    """Негативный контроль: не сработавший признак не пишет причину в карточку."""
     result = score_inbound(make_message(), make_facts(headcount=4))
     assert not has_reason(result, ReasonCode.TEAM_OVER_FLEXI_QUOTA)
 
 
-# --- бюджет: засчитывается только сумма, а не вопрос о цене ----------------------
+# Budget: only an amount counts, never a price question.
 
 
 @pytest.mark.parametrize(
     "budget_hint",
     [
-        "скок стоит",          # ровно тот вход, что давал ложный HIGH на prc-01
+        "скок стоит",          # the exact input that used to produce a false high
         "сколько стоит?",
         "бюджет есть",
         "готовы обсуждать бюджет",
@@ -192,10 +171,7 @@ def test_headcount_below_threshold_leaves_no_reason():
     ],
 )
 def test_budget_without_a_digit_does_not_raise_the_tier(budget_hint):
-    """Вопрос о цене — не бюджет: из «скок стоит» горячий лид не следует (живой дефект).
-
-    Спутник (команда 10 человек) есть, поэтому засчитайся бюджет — вышло бы HIGH.
-    """
+    """A budget hint without a digit is a price question, not a stated budget."""
     result = score_inbound(make_message(), make_facts(budget_hint=budget_hint, headcount=10))
     assert result.tier is Tier.MEDIUM
     assert not has_reason(result, ReasonCode.BUDGET_NAMED)
@@ -208,11 +184,10 @@ def test_budget_without_a_digit_does_not_raise_the_tier(budget_hint):
         "AED 60k",
         "до 50000 в год",
         "бюджет 30 тыс.",
-        "5",  # край: одна цифра — уже сумма
+        "5",  # edge: a single digit is already an amount
     ],
 )
 def test_budget_with_a_digit_raises_the_tier(budget_hint):
-    """Спутник — команда 10 человек; названный бюджет становится вторым признаком."""
     result = score_inbound(make_message(), make_facts(budget_hint=budget_hint, headcount=10))
     assert result.tier is Tier.HIGH
     assert reason_params(result, ReasonCode.BUDGET_NAMED) == {"budget": budget_hint}
@@ -221,25 +196,20 @@ def test_budget_with_a_digit_raises_the_tier(budget_hint):
 def test_budget_reason_is_trimmed_to_40_characters():
     long_hint = "1" + "я" * 80
     result = score_inbound(make_message(), make_facts(budget_hint=long_hint, headcount=10))
-    # обрезка — свойство параметра, а не текста: 40 символов литералом
+    # trimming is a property of the parameter, given here as a literal
     assert reason_params(result, ReasonCode.BUDGET_NAMED) == {"budget": long_hint[:40]}
     assert len(long_hint[:40]) == 40
 
 
-# --- регрессии живых прогонов ----------------------------------------------------
+# Regressions from live runs.
 
 
 def test_live_lead_is_high_for_substantive_reasons_not_for_the_language():
-    """Живой лид: «нужно 12 рабочих мест с 1 октября, бюджет есть, готовы подписать».
-
-    Он обязан быть HIGH, но причина в карточке — команда и срок, а не «написано по-русски».
-    Заперто по дефекту: раньше HIGH выдавался с единственной причиной про язык.
-    """
     facts = make_facts(
         request_types=(RequestType.OFFICE,),
         headcount=12,
         timeline_days=22,
-        budget_hint="бюджет есть",  # цифр нет — как бюджет не засчитывается
+        budget_hint="бюджет есть",  # no digits: not counted as a budget
         language="ru",
         confidence=0.9,
         quotes=("нужно 12 рабочих мест с 1 октября",),
@@ -249,13 +219,13 @@ def test_live_lead_is_high_for_substantive_reasons_not_for_the_language():
     assert reason_params(result, ReasonCode.TEAM_OVER_FLEXI_QUOTA) == {"headcount": 12}
     assert reason_params(result, ReasonCode.URGENT_TIMELINE) == {"days": 22, "limit": 60}
     assert not has_reason(result, ReasonCode.BUDGET_NAMED)
-    # содержательных причин минимум две — карточка не держится на языке
+    # at least two substantive reasons: the card does not rest on the language
     language_codes = {ReasonCode.TARGET_LANGUAGE, ReasonCode.TARGET_LANGUAGE_ALONE}
     assert len([c for c in reason_codes(result) if c not in language_codes]) >= 2
 
 
 def test_prc_01_price_question_in_russian_is_not_high():
-    """Живой дефект prc-01: «скок стоит» по-русски давало HIGH. Теперь MEDIUM."""
+    """A price question in the target language is not hot."""
     facts = make_facts(
         request_types=(RequestType.OFFICE,),
         budget_hint="скок стоит",
@@ -267,12 +237,11 @@ def test_prc_01_price_question_in_russian_is_not_high():
     assert reason_params(result, ReasonCode.TARGET_LANGUAGE_ALONE) == {"language": "ru"}
 
 
-# --- язык: довесок, а не самостоятельный повод ------------------------------------
+# Language is an add-on, never a signal of its own.
 
 
 @pytest.mark.parametrize("language", ["ru", "en", "ar", "mixed", "RU"])
 def test_language_alone_never_raises_the_tier(language):
-    """Дефект, ради которого правило и введено: «HIGH, потому что по-русски» не бывает."""
     result = score_inbound(make_message(), make_facts(language=language))
     assert result.tier is Tier.MEDIUM
 
@@ -305,16 +274,10 @@ def test_russian_alone_says_in_reasons_that_other_signals_are_missing():
 def test_language_never_changes_the_tier_only_the_reason(
     signal, expected_code, expected_params, language
 ):
-    """Язык не входит в счётчик признаков: при любом языке ступень одна и та же.
-
-    Меняется только причина в карточке — ради неё правило и оставлено. Русский даёт
-    TARGET_LANGUAGE (есть содержательный признак), нецелевой язык — ни одной языковой
-    причины вовсе.
-    """
     overrides = {"request_types": (RequestType.OFFICE,), "language": language, **signal}
     facts = make_facts(**overrides)
     result = score_inbound(make_message(), facts)
-    assert result.tier is Tier.MEDIUM  # один содержательный признак — подъёма нет
+    assert result.tier is Tier.MEDIUM  # one substantive signal: no raise
     assert reason_params(result, expected_code) == expected_params
     if language == "ru":
         assert reason_params(result, ReasonCode.TARGET_LANGUAGE) == {"language": "ru"}
@@ -325,7 +288,6 @@ def test_language_never_changes_the_tier_only_the_reason(
 
 
 def test_language_does_not_complete_a_pair_of_signals():
-    """Дефект, ради которого правило и введено: русский не заменяет второй признак."""
     russian = score_inbound(make_message(), make_facts(language="ru", headcount=10))
     english = score_inbound(make_message(), make_facts(language="en", headcount=10))
     assert russian.tier is Tier.MEDIUM
@@ -349,35 +311,32 @@ def test_non_target_language_adds_nothing_even_with_a_signal(language):
 
 
 def test_russian_alone_from_low_base_stays_low():
-    """Ни одного содержательного признака: язык не вытягивает даже на ступень вверх."""
+    """The target language alone leaves a low base low."""
     result = score_inbound(make_message(), make_facts(request_types=(), language="ru"))
     assert result.tier is Tier.LOW
     assert reason_params(result, ReasonCode.TARGET_LANGUAGE_ALONE) == {"language": "ru"}
 
 
-# --- порог уверенности: 0.5 ------------------------------------------------------
 
 
 @pytest.mark.parametrize(
     ("confidence", "expected"),
     [
-        (0.0, Tier.MEDIUM),   # край: ничего не поняли — выше среднего не пускаем
+        (0.0, Tier.MEDIUM),   # edge: nothing understood, so capped at medium
         (0.49, Tier.MEDIUM),
-        (0.5, Tier.HIGH),     # ровно порог LOW_CONFIDENCE — уже доверяем
+        (0.5, Tier.HIGH),     # exactly at the confidence threshold: trusted
         (0.51, Tier.HIGH),
-        (0.75, Tier.HIGH),    # середина верхней половины
+        (0.75, Tier.HIGH),    # middle of the upper half
         (1.0, Tier.HIGH),
     ],
 )
 def test_low_confidence_caps_the_tier_at_medium(confidence, expected):
-    """Два содержательных признака есть всегда; решает только уверенность."""
     facts = make_facts(timeline_days=7, headcount=10, confidence=confidence)
     result = score_inbound(make_message(), facts)
     assert result.tier is expected
 
 
 def test_low_confidence_does_not_lower_below_the_base():
-    """Понижение — это потолок MEDIUM, а не шаг вниз: LOW не становится ниже, MEDIUM остаётся."""
     medium = score_inbound(make_message(), make_facts(confidence=0.1))
     assert medium.tier is Tier.MEDIUM
     low = score_inbound(make_message(), make_facts(request_types=(), confidence=0.1))
@@ -385,13 +344,6 @@ def test_low_confidence_does_not_lower_below_the_base():
 
 
 def test_unmeasured_confidence_is_its_own_outcome_not_a_measured_zero():
-    """Исходов по уверенности три: измерили мало, измерили достаточно, не измеряли.
-
-    Дефект, ради которого тест написан: на офлайн-заглушке (`OFFLINE=1`) факты приходят
-    с `confidence=0.0` — меткой «моделью не смотрено», — а карточка печатала
-    «уверенность извлечения 0.00 — ниже порога 0.50», то есть выдавала отсутствие
-    измерения за измерение. Ступень так же не поднимается, но причина честная.
-    """
     facts = make_facts(timeline_days=7, headcount=10, confidence=0.0,
                        confidence_measured=False)
     result = score_inbound(make_message(), facts)
@@ -404,10 +356,6 @@ def test_unmeasured_confidence_is_its_own_outcome_not_a_measured_zero():
 
 
 def test_a_measured_zero_still_reports_the_number():
-    """Негативный контроль к предыдущему: измеренный ноль остаётся измеренным нулём.
-
-    Если бы новый код вытеснил старый, исчез бы уже не третий исход, а второй.
-    """
     facts = make_facts(timeline_days=7, headcount=10, confidence=0.0)
     result = score_inbound(make_message(), facts)
     assert result.tier is Tier.MEDIUM
@@ -419,7 +367,6 @@ def test_a_measured_zero_still_reports_the_number():
 
 
 def test_unmeasured_confidence_does_not_lower_below_the_base():
-    """Потолок MEDIUM, а не шаг вниз — то же правило, что у измеренной низкой."""
     low = score_inbound(
         make_message(), make_facts(request_types=(), confidence_measured=False)
     )
@@ -428,14 +375,13 @@ def test_unmeasured_confidence_does_not_lower_below_the_base():
 
 def test_low_confidence_reason_prints_the_number():
     result = score_inbound(make_message(), make_facts(confidence=0.42))
-    # 0.5 — порог доверия литералом
+    # the trust threshold as a literal
     assert reason_params(result, ReasonCode.LOW_CONFIDENCE) == {
         "confidence": 0.42,
         "threshold": 0.5,
     }
 
 
-# --- сколько признаков делает лид горячим: ровно 2 -------------------------------
 
 
 _SIGNALS = {
@@ -449,19 +395,18 @@ _SIGNALS = {
 @pytest.mark.parametrize(
     ("names", "expected"),
     [
-        ((), Tier.MEDIUM),                                    # ноль признаков
-        (("timeline",), Tier.MEDIUM),                         # один — мало
+        ((), Tier.MEDIUM),                                    # no signals
+        (("timeline",), Tier.MEDIUM),                         # one: not enough
         (("headcount",), Tier.MEDIUM),
         (("budget",), Tier.MEDIUM),
         (("package",), Tier.MEDIUM),
-        (("timeline", "headcount"), Tier.HIGH),               # ровно два — порог
+        (("timeline", "headcount"), Tier.HIGH),               # exactly two: the threshold
         (("package", "budget"), Tier.HIGH),
-        (("timeline", "package", "headcount"), Tier.HIGH),    # три
-        (("timeline", "package", "headcount", "budget"), Tier.HIGH),  # все четыре
+        (("timeline", "package", "headcount"), Tier.HIGH),    # three
+        (("timeline", "package", "headcount", "budget"), Tier.HIGH),  # all four
     ],
 )
 def test_two_substantive_signals_are_required_for_high(names, expected):
-    """SIGNALS_FOR_HIGH = 2: один признак — MEDIUM, два и больше — HIGH (края и середина)."""
     overrides = {}
     for name in names:
         overrides.update(_SIGNALS[name])
@@ -470,11 +415,10 @@ def test_two_substantive_signals_are_required_for_high(names, expected):
     assert result.violations == ()
 
 
-# --- потолок лестницы ------------------------------------------------------------
 
 
 def test_three_bumps_do_not_go_above_high():
-    """Негативный контроль лестницы: три повышения подряд упираются в HIGH."""
+    """The ladder stops at high."""
     facts = make_facts(
         request_types=(RequestType.OFFICE, RequestType.VISA, RequestType.SETUP),
         timeline_days=7,
@@ -485,11 +429,10 @@ def test_three_bumps_do_not_go_above_high():
     result = score_inbound(make_message(), facts)
     assert result.tier is Tier.HIGH
     assert result.violations == ()
-    assert len(result.reasons) == 3  # все три повышения названы поимённо
+    assert len(result.reasons) == 3  # all three raises are named individually
 
 
 def test_all_five_signals_still_cap_at_high():
-    """Потолок лестницы при новом счётчике: пять признаков сразу — всё равно ровно HIGH."""
     facts = make_facts(
         request_types=(RequestType.OFFICE, RequestType.VISA, RequestType.SETUP),
         timeline_days=3,
@@ -506,18 +449,16 @@ def test_all_five_signals_still_cap_at_high():
 
 
 def test_low_base_reaches_only_medium_even_with_two_signals():
-    """Подъём — ровно на одну ступень: от базы LOW до HIGH не добраться никаким набором."""
     facts = make_facts(request_types=(), timeline_days=5, headcount=40, language="ru")
     result = score_inbound(make_message(), facts)
     assert result.tier is Tier.MEDIUM
     assert has_reason(result, ReasonCode.NO_REQUEST_TYPE)
 
 
-# --- негативные контроли: спам и пустой текст ------------------------------------
+# Negative controls: spam and empty text.
 
 
 def test_spam_is_low_and_ignores_every_bump():
-    """Спам — LOW ранним возвратом: ни срок, ни язык, ни пакет его не поднимают."""
     facts = make_facts(
         is_spam=True,
         request_types=(RequestType.OFFICE, RequestType.VISA, RequestType.BANK),
@@ -539,7 +480,6 @@ def test_spam_without_request_types_is_still_low():
 
 @pytest.mark.parametrize("text", ["", "   ", "\n\t "])
 def test_empty_text_cannot_produce_high(text):
-    """Негативный контроль: высокая уверенность и цитаты не спасают пустой текст."""
     facts = make_facts(
         request_types=(RequestType.OFFICE, RequestType.VISA),
         timeline_days=3,
@@ -574,7 +514,6 @@ def test_both_violations_are_reported_not_collapsed():
 
 
 def test_medium_without_quotes_is_not_invalid():
-    """Инвариант держит только HIGH: MEDIUM без цитат — обычный результат, не «не смогли»."""
     result = score_inbound(make_message(), make_facts(quotes=()))
     assert result.tier is Tier.MEDIUM
     assert result.violations == ()
@@ -587,7 +526,6 @@ def test_medium_on_empty_text_is_not_invalid():
     assert result.violations == ()
 
 
-# --- доказательства --------------------------------------------------------------
 
 
 def test_quotes_become_evidence_in_order():

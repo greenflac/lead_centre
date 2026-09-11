@@ -1,9 +1,5 @@
-"""Адаптер GLEIF (api.gleif.org, без аутентификации).
-
-Границы источника: в GLEIF попадают только компании, получившие LEI, — по ОАЭ это около
-девяти тысяч записей (docs/data/gleif_schema.md), а не весь рынок. Другой источник
-подключается заменой адаптера, движок при этом не меняется.
-"""
+"""GLEIF registry adapter; only companies holding an LEI appear here, so this is a slice
+of the market. Another source plugs in by replacing this adapter."""
 from __future__ import annotations
 
 import json
@@ -25,13 +21,7 @@ CACHE_FILES = {
 SORT = {"lapsed": "-registration.nextRenewalDate", "fresh": "-entity.creationDate"}
 
 
-#: Слова GLEIF о статусе юрлица → наши исходы. Перечисление отдано самим API:
-#: `curl 'https://api.gleif.org/api/v1/lei-records?filter[entity.status]=ZZZ'` отвечает
-#: 400 «expected is one of ACTIVE, INACTIVE, NULL». ИЗМЕРЕНО 2026-09-11; по ОАЭ
-#: (9369 записей) ACTIVE 9236, INACTIVE 97, NULL 36.
-#:
-#: `NULL` — слово реестра, означающее «статус не сообщён», а не «юрлицо мертво»: до
-#: этой правки все 36 записей получали на карточке «юрлицо неактивно» и ступень LOW.
+#: Registry status words -> our outcomes; `NULL` means "not reported", not "dead".
 ENTITY_STATUS_WORDS: dict[str, EntityStatus] = {
     "ACTIVE": EntityStatus.ACTIVE,
     "INACTIVE": EntityStatus.INACTIVE,
@@ -40,12 +30,7 @@ ENTITY_STATUS_WORDS: dict[str, EntityStatus] = {
 
 
 def entity_status(value: str | None) -> EntityStatus:
-    """Слово реестра → исход. Пусто, поля нет или слово незнакомое — `UNKNOWN`.
-
-    Незнакомое слово не сворачивается в `INACTIVE`: перечисление реестра может
-    пополниться, и тогда «мы не знаем этого слова» обязано остаться отдельным исходом,
-    а не молча стать приговором юрлицу.
-    """
+    """Maps a registry word onto an outcome; unknown words stay UNKNOWN, never INACTIVE."""
     return ENTITY_STATUS_WORDS.get((value or "").strip().upper(), EntityStatus.UNKNOWN)
 
 
@@ -54,7 +39,7 @@ def _parse_date(value: str | None) -> date | None:
 
 
 def to_company(record: dict) -> Company | None:
-    """Запись GLEIF → Company. None, если нет минимума полей (пойдёт в skipped)."""
+    """Converts a GLEIF record into a Company, or None when required fields are missing."""
     attrs = record.get("attributes") or {}
     entity, registration = attrs.get("entity") or {}, attrs.get("registration") or {}
     lei = attrs.get("lei")
@@ -80,29 +65,14 @@ def to_company(record: dict) -> Company | None:
 
 ALT_LEGAL_ADDRESS = "ALTERNATIVE_LANGUAGE_LEGAL_ADDRESS"
 
-#: Метки английского в поле `language`. `"en"` ИЗМЕРЕНО (3000 записей GLEIF по семи
-#: странам, 2026-09-11: встречались только строчные двухбуквенные коды). `"eng"` —
-#: ВЫБРАНО автором: это тот же язык в ISO 639-2/T, в выдаче не встретился ни разу.
+#: English language tags; `eng` is the ISO 639-2/T form, chosen but never observed.
 ENGLISH_LANGUAGE_TAGS = frozenset({"en", "eng"})
 
-#: Разделители подтега региона в метке языка (BCP 47). ИЗМЕРЕНО 2026-09-11: в выдаче
-#: GLEIF встретилась метка `pl-PL` (2 записи из 3000), то есть подтег региона в этом
-#: поле реален; `en-US` того же вида до правки отбрасывался как «не английский».
 LANGUAGE_SUBTAG_SEPARATORS = ("-", "_")
 
 
 def is_english(tag: str | None) -> bool:
-    """Английская ли метка языка. Сравнение по BCP 47, а не буква в букву.
-
-    Метки языка регистронезависимы по RFC 5646 §2.1.1, поэтому `EN` — тот же язык,
-    что `en`; подтег региона (`en-US`) язык не меняет и отбрасывается.
-
-    Исхода здесь два намеренно: «английский» и «не английский». Третий исход —
-    отсутствие метки — разрешается на уровне выше, отказом от варианта: вариант без
-    метки языка нельзя ни показать как английский (реестр этого не говорил), ни
-    посчитать арабским. ИЗМЕРЕНО 2026-09-11: по ОАЭ (1000 записей) вариантов имени
-    или адреса без метки языка — 0.
-    """
+    """Reports whether a language tag is English, comparing per BCP 47, not letter by letter."""
     if not tag:
         return False
     primary = tag.strip().lower()
@@ -112,12 +82,7 @@ def is_english(tag: str | None) -> bool:
 
 
 def _addresses(entity: dict) -> tuple[dict, tuple[str, ...]]:
-    """Адрес для полей и все строки адреса на всех языках для классификатора.
-
-    Юридический адрес в GLEIF часто арабский, а английский вариант лежит в otherAddresses.
-    Классификатор ищет маркеры латиницей, поэтому строки объединяются, а город берётся
-    из английского варианта, если он есть.
-    """
+    """Returns the address fields plus every address line in every language."""
     legal = entity.get("legalAddress") or {}
     alternatives = [
         a for a in (entity.get("otherAddresses") or []) if a.get("type") == ALT_LEGAL_ADDRESS
@@ -127,28 +92,16 @@ def _addresses(entity: dict) -> tuple[dict, tuple[str, ...]]:
     lines: list[str] = []
     for source in (legal, *alternatives):
         lines += [x for x in (source.get("addressLines") or []) if x]
-    # country берём из юридического адреса: в альтернативном варианте его может не быть
+    # Why the legal address: the alternative variant may carry no country.
     preferred = {**preferred, "country": legal.get("country") or preferred.get("country")}
     return preferred, tuple(lines)
 
 
 def _english_name(entity: dict) -> str:
-    """Название латиницей, по порядку доверия к источнику.
+    """Returns a Latin name, trying sources in descending order of trust.
 
-    Порядок — данные, а не ветвление, потому что каждая ступень куплена наблюдением:
-
-    1. Латинское `legalName` — как в реестре, подменять нечем и незачем.
-    2. `ALTERNATIVE_LANGUAGE_LEGAL_NAME` — официальное имя на другом языке.
-    3. `PREFERRED_ASCII_TRANSLITERATED_LEGAL_NAME` — ASCII-написание, выбранное самим
-       реестром. Стоит выше прежнего и торгового имени: у LEI 213800MZ26M5G2T1NB81
-       en-вариант — это `NEW APPOLO DMCC` с типом PREVIOUS_LEGAL_NAME, а компания
-       сейчас `NEW APOLLO FZCO`. Менеджер ищет по названию из карточки, и по прежнему
-       имени он текущую компанию не найдёт.
-    4. Торговое имя, затем прежнее — хуже актуального, но это написания из реестра.
-    5. `AUTO_ASCII_TRANSLITERATED_LEGAL_NAME` — машинная транслитерация самого реестра
-       («bydyk antrnashwnal ltjart albtrwlywm»). Читается плохо, поэтому ниже прежнего
-       имени, но выше арабской строки, которую менеджер не прочитает вовсе.
-    6. Арабское имя как последнее средство: выдумывать написание адаптер не станет.
+    Current spellings beat former ones, because a manager searching by a former name will
+    not find the company.
     """
     legal = (entity.get("legalName") or {}).get("name", "")
     if any("A" <= ch.upper() <= "Z" for ch in legal):

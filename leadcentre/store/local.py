@@ -1,11 +1,7 @@
-"""Офлайн-реализация хранилища: JSON-файл в `data/` или память.
+"""Offline storage: a JSON file under `data/`, or pure memory.
 
-Зачем: `OFFLINE=1` обязан работать без сети — тесты и CI не ходят наружу, а демо
-не должно останавливаться из-за чужой аварии. Интерфейс тот же `Store`, поэтому переход
-на Supabase — смена реализации, а не переписывание API.
-
-Запись атомарна (временный файл плюс `os.replace`): оборванный процесс не оставляет
-наполовину записанный JSON, который потом читается как «данных нет».
+Writes are atomic, so an interrupted process cannot leave half-written JSON that later
+reads as "no data".
 """
 from __future__ import annotations
 
@@ -41,7 +37,7 @@ def _empty() -> dict[str, list[dict[str, Any]]]:
 
 
 class LocalStore:
-    """JSON-файл или память. `path=None` — только память (для тестов)."""
+    """A JSON file or pure memory; `path=None` means memory only."""
 
     name = "local"
 
@@ -59,8 +55,7 @@ class LocalStore:
         try:
             raw = json.loads(self.path.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError) as exc:
-            # «Не смогли прочитать» — не то же самое, что «пусто»: пустой словарь
-            # здесь молча стёр бы накопленные обращения.
+            # Why it raises: an empty dict here would silently erase stored requests.
             raise StoreUnavailable(f"локальное хранилище не прочитано: {self.path}: {exc}") from exc
         if not isinstance(raw, dict):
             raise StoreUnavailable(f"локальное хранилище не словарь: {self.path}")
@@ -85,7 +80,6 @@ class LocalStore:
         except OSError as exc:
             raise StoreUnavailable(f"локальное хранилище не записано: {self.path}: {exc}") from exc
 
-    # --- контракт Store ---
 
     def health(self) -> StoreHealth:
         where = str(self.path) if self.path else "память"
@@ -114,7 +108,7 @@ class LocalStore:
             self._flush()
 
     def save_reply(self, row: ReplyRow) -> None:
-        payload = row.payload()  # проверка статуса живёт в ReplyRow
+        payload = row.payload()  # status validation lives in ReplyRow
         with self._lock:
             if not self._find("leads", row.lead_id):
                 raise StoreRejected(f"черновик на неизвестное обращение {row.lead_id!r}")
@@ -167,7 +161,7 @@ class LocalStore:
             }
             for row in rows:
                 if not row.external_id:
-                    failed += 1   # отказ, а не «не смогли»: данные негодные
+                    failed += 1   # rejected, not unavailable: invalid data
                     continue
                 payload = row.payload()
                 key = (row.source, row.external_id)
@@ -222,11 +216,7 @@ def _counters(
     companies: list[dict[str, Any]],
     disagreements: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    """Числа для отчёта. Общая для обеих реализаций: считается одинаково.
-
-    `lint`: проверено / нарушений / не смогли — три числа рядом, без агрегатного
-    булева. `lint_ok is None` — это «не смогли», а не «нарушение».
-    """
+    """Counts for the report, shared by both stores; `lint_ok is None` means unchecked."""
     by_tier = Counter(s.get("tier", "?") for s in scores)
     lint_checked = sum(1 for r in replies if r.get("lint_ok") is not None)
     lint_violations = sum(len(r.get("lint_violations") or []) for r in replies)

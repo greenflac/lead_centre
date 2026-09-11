@@ -1,4 +1,4 @@
-"""Отчёт числами, а не флагом: сколько проверено, сколько нарушений, сколько не смогли."""
+"""Run report in counts, not flags: checked, violations, and could-not-verify."""
 from __future__ import annotations
 
 from collections import Counter

@@ -1,37 +1,8 @@
-"""Тексты движка как данные, а не как готовые строки.
+"""Engine wording as data: codes and parameters in, localised text out.
 
-Движок называет *код* и *параметры*; текст на любом из поддержанных языков собирается
-здесь и только здесь. Каталогов три, машинка у них одна:
-
-* `CATALOGUE` — причины приоритета (`ReasonCode`), их печатает карточка;
-* `VIOLATION_CATALOGUE` — нарушения инвариантов (`ViolationCode`), из-за которых карточка
-  становится INVALID; их читает человек в отчёте прогона, поэтому английский им нужен так
-  же, как причинам;
-* `ROUTE_REASON_CATALOGUE` — почему лид ушёл на эту модель (`RouteReasonCode`); эта строка
-  видна в интерфейсе внутри «How this was scored», поэтому английский нужен и ей.
-
-Ни `score.py`, ни `extract.py`, ни дашборд формулировок не собирают и переводов у себя
-не держат: второго источника текста в проекте нет.
-
-Три вещи, ради которых модуль устроен именно так:
-
-1. **Числительные.** Русский требует трёх форм («1 день / 2 дня / 5 дней»), английский —
-   двух. Поэтому текст причины — не «одна format-строка на язык» с вклеенной единицей,
-   а шаблон, в котором число и его существительное подставляются вместе:
-   `{days:plural:day}`. Формы живут в `PLURAL_FORMS`, правило выбора формы — в
-   `PLURAL_RULES`, по одному на язык. Добавить язык с четырьмя формами (польский,
-   арабский) — значит дописать строку в обе таблицы, не трогая ни одного шаблона.
-2. **Явная ошибка вместо пустой строки** («не смогли» — отдельный исход). Запись без
-   нужного параметра, лишний параметр, неизвестный код, отсутствующий текст на одном из
-   языков — всё это `ReasonError`, а не молчаливое пустое место в карточке.
-3. **Каталоги проверяются на импорте.** `validate_all_catalogues()` вызывается при загрузке
-   модуля и проходит по всем трём: набор плейсхолдеров в русском и английском шаблонах
-   обязан совпадать с объявленным списком параметров, и оба языка обязаны быть заполнены.
-   Это гейт в коде, а не строка в правилах.
-
-Поля, объявленные кортежем строк и читаемые другими модулями (`Score.violations`,
-`Extraction.route_reason`), заполняются `RenderedText` — строкой, которая помнит свой код
-и потому отрисовывается на втором языке без второго хранилища текста.
+Three catalogues share one renderer, and no other module holds wording. Plural agreement
+is part of the template, so adding a language is a row, not a template edit. Anything
+unrenderable raises, and the catalogues are validated on import.
 """
 from __future__ import annotations
 
@@ -75,36 +46,31 @@ __all__ = [
 
 
 class Language(str, Enum):
-    """Языки, на которых причина обязана существовать. Добавление языка сюда без
-    текстов и форм числительных роняет импорт модуля — молча недопереведённым
-    интерфейс не станет."""
+    """Languages every catalogue entry must exist in; a gap breaks the import."""
 
     RU = "ru"
     EN = "en"
 
 
-#: Язык отрисовки по умолчанию: им заполняется `Score.reasons`, чтобы остальной код
-#: и тесты, читающие кортеж строк, продолжали работать без правок.
+#: Default render language, used to fill fields declared as plain string tuples.
 DEFAULT_LANGUAGE = Language.RU
 
 
 class ReasonError(Exception):
-    """Общий предок ошибок причин: их ловят целиком, если ловят вообще."""
+    """Base class for reason errors, so they can be caught as one group."""
 
 
 class ReasonCatalogueError(ReasonError):
-    """Каталог собран неверно: нет текста на языке, разъехались параметры и т. п."""
+    """The catalogue itself is malformed: missing language, mismatched parameters."""
 
 
 class ReasonRenderError(ReasonError):
-    """Причину нельзя отрисовать: нет параметра, лишний параметр, неизвестный код."""
+    """The reason cannot be rendered: missing or extra parameter, unknown code."""
 
 
 class ReasonCode(str, Enum):
-    """Код причины. Значение — стабильный машинный ключ: он уезжает в API, в хранилище
-    и в интерфейс, поэтому переименование кода — миграция, а не правка текста."""
+    """Reason code; the value is a stable machine key, so renaming one is a migration."""
 
-    # --- компания из реестра (оси A и B) ---
     LEI_LAPSED_FRESH = "lei_lapsed_fresh"
     LEI_LAPSED_LONG_AGO = "lei_lapsed_long_ago"
     ENTITY_RECENTLY_CREATED = "entity_recently_created"
@@ -118,7 +84,6 @@ class ReasonCode(str, Enum):
     REGISTRATION_STATUS_NO_EVENT = "registration_status_no_event"
     REGISTRATION_STATUS_UNKNOWN = "registration_status_unknown"
     REGISTRATION_STATUS_NOT_SET = "registration_status_not_set"
-    # --- входящее обращение (ось C) ---
     SPAM_OR_OFF_TOPIC = "spam_or_off_topic"
     NO_REQUEST_TYPE = "no_request_type"
     URGENT_TIMELINE = "urgent_timeline"
@@ -133,12 +98,8 @@ class ReasonCode(str, Enum):
 
 
 class ViolationCode(str, Enum):
-    """Код нарушения инварианта: почему карточка получила INVALID.
-
-    Отдельное перечисление, а не продолжение `ReasonCode`: причина объясняет ступень,
-    нарушение её отменяет. Слить их в одно — значит потерять возможность спросить
-    «а нарушения-то были?» иначе как по тексту.
-    """
+    """Invariant violation code; separate from ReasonCode because a reason explains a
+    tier while a violation cancels it."""
 
     HIGH_WITHOUT_EVIDENCE = "high_without_evidence"
     COMPANY_OUTSIDE_UAE = "company_outside_uae"
@@ -147,11 +108,7 @@ class ViolationCode(str, Enum):
 
 
 class RouteReasonCode(str, Enum):
-    """Код причины маршрута модели: почему лид ушёл именно на эту модель.
-
-    Виден в интерфейсе («How this was scored»), поэтому обязан существовать на обоих
-    языках здесь, а не переводом на стороне дашборда.
-    """
+    """Why a lead went to this model; shown in the interface, so both languages live here."""
 
     LONG_MESSAGE = "long_message"
     SHORT_MESSAGE = "short_message"
@@ -159,16 +116,11 @@ class RouteReasonCode(str, Enum):
     OFFLINE_NO_CALL = "offline_no_call"
 
 
-#: Префикс спецификатора формата, включающий согласование числа с существительным:
-#: `{days:plural:day}` -> «14 дней» / «14 days».
 PLURAL_SPEC = "plural:"
 
 
 def _plural_index_ru(n: int) -> int:
-    """Три формы русского: 1 день / 2 дня / 5 дней.
-
-    Ветвление повторяет правило CLDR для ru (one / few / many).
-    """
+    """Returns the Russian plural index, following the CLDR one/few/many rule."""
     if n % 10 == 1 and n % 100 != 11:
         return 0
     if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14:
@@ -177,7 +129,7 @@ def _plural_index_ru(n: int) -> int:
 
 
 def _plural_index_en(n: int) -> int:
-    """Две формы английского: 1 day / 2 days."""
+    """Returns the English plural index."""
     return 0 if n == 1 else 1
 
 
@@ -186,8 +138,7 @@ PLURAL_RULES: dict[Language, Callable[[int], int]] = {
     Language.EN: _plural_index_en,
 }
 
-#: Сколько форм обязана иметь каждая единица в каждом языке. Расхождение ловится
-#: на импорте: правило, выбирающее третью форму из двух, — это IndexError в проде.
+#: Required form count per language; a mismatch is caught on import, not in production.
 PLURAL_FORM_COUNTS: dict[Language, int] = {Language.RU: 3, Language.EN: 2}
 
 PLURAL_FORMS: dict[Language, dict[str, tuple[str, ...]]] = {
@@ -207,8 +158,7 @@ PLURAL_FORMS: dict[Language, dict[str, tuple[str, ...]]] = {
 
 
 def plural_phrase(language: Language, value: object, noun: str) -> str:
-    """«14» + `day` -> «14 дней» / «14 days». Дробное число и неизвестная единица —
-    ошибка: согласовать форму не с чем, а тихо напечатать «14.0 день» хуже падения."""
+    """Agrees a number with its noun; a non-integer or unknown unit raises."""
     if isinstance(value, bool) or not isinstance(value, int):
         raise ReasonRenderError(
             f"согласование числа требует int, получено {value!r} ({type(value).__name__})"
@@ -223,10 +173,7 @@ def plural_phrase(language: Language, value: object, noun: str) -> str:
 
 
 class _ReasonFormatter(string.Formatter):
-    """Формат записи каталога: обычные спецификаторы плюс `plural:<единица>`.
-
-    Отсутствующий и лишний параметр — явные ошибки (негативный контроль модуля).
-    """
+    """Catalogue formatter: standard specs plus `plural:<unit>`; parameter gaps raise."""
 
     def __init__(self, language: Language, code: Enum) -> None:
         self.language = language
@@ -257,7 +204,7 @@ class _ReasonFormatter(string.Formatter):
 
 
 def _placeholders(template: str) -> frozenset[str]:
-    """Имена параметров, которые шаблон действительно подставляет."""
+    """Returns the parameter names a template actually substitutes."""
     return frozenset(
         name.split(".")[0].split("[")[0]
         for _, name, _, _ in string.Formatter().parse(template)
@@ -275,19 +222,13 @@ def _plural_nouns(template: str) -> frozenset[str]:
 
 @dataclass(frozen=True)
 class ReasonSpec:
-    """Одна причина: список её параметров и текст на каждом языке.
-
-    Параметры объявлены явно, а не выведены из русского шаблона: объявление — это то,
-    с чем сверяются оба текста, иначе «в русском забыли подставить» читалось бы как
-    «параметр не нужен».
-    """
+    """One catalogue entry: declared parameters plus the text per language."""
 
     params: tuple[str, ...]
     texts: Mapping[Language, str]
 
 
 CATALOGUE: dict[ReasonCode, ReasonSpec] = {
-    # --- компания из реестра ---
     ReasonCode.LEI_LAPSED_FRESH: ReasonSpec(
         params=("days",),
         texts={
@@ -324,10 +265,7 @@ CATALOGUE: dict[ReasonCode, ReasonSpec] = {
         },
     ),
     ReasonCode.CITY_UNRECOGNISED: ReasonSpec(
-        # Третий исход по городу: строка есть, но ни в целевых написаниях, ни в
-        # нецелевых её нет. Отдельный код, а не CITY_OFF_TARGET: «мы не узнали
-        # написание» и «это другой эмират» — разные новости и для менеджера, и для
-        # того, кто поддерживает списки написаний в rubric.py.
+        # Why separate from CITY_OFF_TARGET: an unknown spelling is not a wrong city.
         params=("city",),
         texts={
             Language.RU: "город не распознан ({city}) — ступень понижена, проверьте вручную",
@@ -335,8 +273,7 @@ CATALOGUE: dict[ReasonCode, ReasonSpec] = {
         },
     ),
     ReasonCode.CITY_NOT_SET: ReasonSpec(
-        # Отдельный код, а не подстановка слова «не указан» в предыдущий: иначе
-        # заглушка отсутствующего значения оказывается текстом внутри score.py.
+        # Why a separate code: a placeholder word would put text inside score.py.
         params=(),
         texts={
             Language.RU: "город не указан — ступень понижена",
@@ -351,10 +288,7 @@ CATALOGUE: dict[ReasonCode, ReasonSpec] = {
         },
     ),
     ReasonCode.ENTITY_STATUS_UNKNOWN: ReasonSpec(
-        # Третий исход по юрлицу: реестр статус не сообщил (GLEIF пишет в это поле
-        # слово NULL) или прислал слово, которого нет в его же перечислении. Отдельный
-        # код, а не ENTITY_INACTIVE: «реестр сказал, что юрлицо мертво» и «реестр
-        # промолчал» — разные новости, и второе не повод ронять лид в LOW.
+        # Why separate from ENTITY_INACTIVE: registry silence is no reason for LOW.
         params=("status",),
         texts={
             Language.RU: "статус юрлица в реестре не определён ({status}) — "
@@ -364,9 +298,6 @@ CATALOGUE: dict[ReasonCode, ReasonSpec] = {
         },
     ),
     ReasonCode.ENTITY_STATUS_NOT_SET: ReasonSpec(
-        # Тот же исход, что и предыдущий, но реестр не сказал вообще ничего: поля нет.
-        # Отдельный код, а не подстановка слова-заглушки в {status}: заглушка была бы
-        # текстом внутри score.py, а текста там нет (см. модуль CITY_NOT_SET).
         params=(),
         texts={
             Language.RU: "статуса юрлица в записи реестра нет — "
@@ -376,10 +307,7 @@ CATALOGUE: dict[ReasonCode, ReasonSpec] = {
         },
     ),
     ReasonCode.REGISTRATION_STATUS_NO_EVENT: ReasonSpec(
-        # Статус известен, но ни просрочки, ни скорого продления по нему не считают
-        # (RETIRED, DUPLICATE, ANNULLED, MERGED, PENDING_TRANSFER, PENDING_ARCHIVAL).
-        # Печатается затем, чтобы «повода нет» перестало быть молчанием: раньше карточка
-        # такой компании выглядела точно так же, как карточка со свежим ISSUED.
+        # Why printed at all: otherwise "no event" looks like a fresh registration.
         params=("status",),
         texts={
             Language.RU: "статус регистрации {status}: повода по реестру не считаем",
@@ -404,7 +332,6 @@ CATALOGUE: dict[ReasonCode, ReasonSpec] = {
                          "there is an event",
         },
     ),
-    # --- входящее обращение ---
     ReasonCode.SPAM_OR_OFF_TOPIC: ReasonSpec(
         params=(),
         texts={
@@ -482,9 +409,7 @@ CATALOGUE: dict[ReasonCode, ReasonSpec] = {
         },
     ),
     ReasonCode.CONFIDENCE_NOT_MEASURED: ReasonSpec(
-        # Третий исход рядом с LOW_CONFIDENCE: «не измеряли» — не «измерили и мало».
-        # Отдельный код, а не ноль в том же тексте: ноль на видном месте карточки
-        # читается как измерение, которого не было (офлайн-заглушка, OFFLINE=1).
+        # Why separate from LOW_CONFIDENCE: a zero reads as a measurement that never ran.
         params=(),
         texts={
             Language.RU: "уверенность извлечения не измерялась — ступень не поднимаем",
@@ -503,8 +428,7 @@ VIOLATION_CATALOGUE: dict[ViolationCode, ReasonSpec] = {
         },
     ),
     ViolationCode.COMPANY_OUTSIDE_UAE: ReasonSpec(
-        # Страна подставляется параметром, а не вклеивается в строку в score.py:
-        # иначе английский текст пришлось бы собирать там же во второй раз.
+        # Why a parameter: inlining it would rebuild the second language in score.py.
         params=("country",),
         texts={
             Language.RU: "компания вне ОАЭ: {country}",
@@ -528,12 +452,9 @@ VIOLATION_CATALOGUE: dict[ViolationCode, ReasonSpec] = {
 }
 
 
-# --- причина маршрута модели ------------------------------------------------------
-
 ROUTE_REASON_CATALOGUE: dict[RouteReasonCode, ReasonSpec] = {
     RouteReasonCode.LONG_MESSAGE: ReasonSpec(
-        # Порог — параметр, а не число в тексте: LONG_MESSAGE_CHARS живёт в extract.py
-        #, сюда он приезжает значением, и правка константы не требует правки текстов.
+        # Why a parameter: the threshold lives in extract.py and may change without edits.
         params=("length", "limit"),
         texts={
             Language.RU: "длинное обращение: {length:plural:char} > {limit}",
@@ -564,9 +485,7 @@ ROUTE_REASON_CATALOGUE: dict[RouteReasonCode, ReasonSpec] = {
 }
 
 
-#: Реестр каталогов: тип кода -> сам каталог и слово, которым запись называется в
-#: сообщении об ошибке. Отрисовка и проверка полноты ходят сюда, поэтому третий
-#: каталог получил ту же машинку строкой в реестре, а не копией кода.
+#: Code type -> its catalogue and the word naming an entry; a new catalogue is a row here.
 CATALOGUES: dict[type, tuple[Mapping[Any, ReasonSpec], str]] = {
     ReasonCode: (CATALOGUE, "причина"),
     ViolationCode: (VIOLATION_CATALOGUE, "нарушение"),
@@ -575,14 +494,13 @@ CATALOGUES: dict[type, tuple[Mapping[Any, ReasonSpec], str]] = {
 
 
 def _kind(code: object) -> str:
-    """Как называть запись в сообщении об ошибке: «причина», «нарушение», ..."""
+    """Returns the word naming this kind of entry in an error message."""
     entry = CATALOGUES.get(type(code))
     return entry[1] if entry else "запись каталога"
 
 
 def _spec_for(code: object) -> ReasonSpec:
-    """Запись каталога по коду. Неизвестный код и неизвестный тип кода — разные
-    ошибки: первое — дыра в каталоге, второе — в аргумент положили не то."""
+    """Looks an entry up by code; an unknown code and an unknown code type raise apart."""
     entry = CATALOGUES.get(type(code))
     if entry is None:
         raise ReasonRenderError(
@@ -598,18 +516,11 @@ def _spec_for(code: object) -> ReasonSpec:
 def validate_catalogue(
     catalogue: Mapping[Any, ReasonSpec] = CATALOGUE, kind: str = "причина"
 ) -> int:
-    """Проверить каталог целиком; вернуть число проверенных пар «код-язык».
-
-    Аргумент нужен ради негативного контроля: подсунуть каталог с дырой и увидеть, что
-    прибор говорит «нет». Возвращаемое число — «проверено N»: ноль нарушений
-    при нуле проверок успехом не считается.
-    """
+    """Validates one catalogue and returns how many code-language pairs were checked."""
     checked = 0
     if not catalogue:
-        # Ноль нарушений при нуле проверок успехом не считается.
+        # Zero violations over zero checks is not success.
         raise ReasonCatalogueError(f"каталог ({kind}) пуст: проверять нечего")
-    # Перечисление кодов берётся из самого каталога, а не зашито: так одна и та же
-    # проверка сторожит все три каталога и любой следующий.
     code_type = type(next(iter(catalogue)))
     missing_codes = sorted(set(code_type) - set(catalogue), key=lambda c: c.value)
     if missing_codes:
@@ -650,27 +561,16 @@ def validate_catalogue(
 
 
 def validate_all_catalogues() -> dict[str, int]:
-    """Проверить все каталоги реестра; вернуть «проверено N» по каждому.
-
-    Числа возвращаются, а не печатаются: их приводит приёмочный прогон и тест.
-    """
+    """Validates every registered catalogue and returns the check count for each."""
     return {kind: validate_catalogue(catalogue, kind)
             for catalogue, kind in CATALOGUES.values()}
 
 
-# --- фраза: код плюс параметры ----------------------------------------------------
-
-
 @dataclass(frozen=True, order=True)
 class Phrase:
-    """Запись каталога в применённом виде: код плюс параметры. Текста внутри нет.
+    """An applied catalogue entry: a code plus parameters, carrying no text.
 
-    Параметры хранятся кортежем пар, а не словарём: фраза остаётся хешируемой и
-    сравнимой, а значит её можно класть в множество и сравнивать в тесте литералом.
-    Собирать удобнее фабриками `reason` / `violation` / `route_reason`.
-
-    Наследники ниже различают сущности (причина, нарушение, причина маршрута) и
-    ничего не добавляют: машинка одна, каталоги разные.
+    Parameters are a tuple of pairs so the phrase stays hashable and test-comparable.
     """
 
     code: Any
@@ -693,20 +593,20 @@ class Phrase:
         return dict(self.params)
 
     def text(self, language: Language = DEFAULT_LANGUAGE) -> str:
-        """Отрисовка на указанном языке. Удобство поверх `render`."""
+        """Renders this phrase in the given language."""
         return render(self, language)
 
 
 class Reason(Phrase):
-    """Причина приоритета (`CATALOGUE`)."""
+    """A priority reason."""
 
 
 class Violation(Phrase):
-    """Нарушение инварианта (`VIOLATION_CATALOGUE`): почему карточка INVALID."""
+    """An invariant violation: why a card is INVALID."""
 
 
 class RouteReason(Phrase):
-    """Причина маршрута модели (`ROUTE_REASON_CATALOGUE`)."""
+    """A model route reason."""
 
 
 def _params(params: dict[str, object]) -> tuple[tuple[str, object], ...]:
@@ -714,26 +614,22 @@ def _params(params: dict[str, object]) -> tuple[tuple[str, object], ...]:
 
 
 def reason(code: ReasonCode, **params: object) -> Reason:
-    """Собрать причину: `reason(ReasonCode.URGENT_TIMELINE, days=14, limit=60)`.
-
-    Параметры сверяются с каталогом сразу — код без параметров падает в точке вызова,
-    а не через два слоя в интерфейсе.
-    """
+    """Builds a reason; parameters are checked against the catalogue at the call site."""
     return Reason(code, _params(params))
 
 
 def violation(code: ViolationCode, **params: object) -> Violation:
-    """Собрать нарушение: `violation(ViolationCode.COMPANY_OUTSIDE_UAE, country="GB")`."""
+    """Builds a violation: `violation(ViolationCode.COMPANY_OUTSIDE_UAE, country="GB")`."""
     return Violation(code, _params(params))
 
 
 def route_reason(code: RouteReasonCode, **params: object) -> RouteReason:
-    """Собрать причину маршрута: `route_reason(..., length=1332, limit=600)`."""
+    """Builds a route reason: `route_reason(..., length=1332, limit=600)`."""
     return RouteReason(code, _params(params))
 
 
 def render(item: Phrase, language: Language = DEFAULT_LANGUAGE) -> str:
-    """Текст одной фразы. Любая невозможность — `ReasonRenderError`, не пустая строка."""
+    """Renders one phrase; anything that cannot be rendered raises."""
     if not isinstance(language, Language):
         raise ReasonRenderError(f"неизвестный язык отрисовки: {language!r}")
     spec = _spec_for(item.code)
@@ -748,20 +644,12 @@ def render(item: Phrase, language: Language = DEFAULT_LANGUAGE) -> str:
 def render_all(
     items: tuple[Phrase, ...], language: Language = DEFAULT_LANGUAGE
 ) -> tuple[str, ...]:
-    """Отрисовка списка — единственный способ получить кортеж строк."""
+    """Renders a sequence of phrases into a tuple of strings."""
     return tuple(render(item, language) for item in items)
 
 
 class RenderedText(str):
-    """Строка, помнящая код и параметры, из которых она собрана.
-
-    Нужна ради совместимости там, где поле объявлено кортежем строк и таким читается
-    другими модулями, хранилищем и тестами: `Score.violations`, `Extraction.route_reason`.
-    Значение — обычная строка на языке по умолчанию, поэтому сравнение, `json.dumps` и
-    форматирование работают с ней как с любой другой. Текст на другом языке собирается
-    из каталога, а не хранится рядом вторым текстом: и русский, и английский собирает
-    `render`, второго источника формулировок нет.
-    """
+    """A string that remembers its code, so another language is re-rendered, never stored."""
 
     item: Phrase
     language: Language
@@ -773,34 +661,28 @@ class RenderedText(str):
         return rendered_text
 
     def text(self, language: Language = DEFAULT_LANGUAGE) -> str:
-        """Тот же смысл на другом языке."""
+        """Returns the same meaning in another language."""
         return render(self.item, language)
 
     def __reduce__(self):
-        # copy/deepcopy/pickle: без этого копия теряет код и перестаёт быть двуязычной,
-        # а `dataclasses.asdict` в хранилище копирует значения именно так.
+        # Why defined: otherwise a copy loses the code and stops being bilingual.
         return (RenderedText, (self.item, self.language))
 
 
 def rendered(item: Phrase, language: Language = DEFAULT_LANGUAGE) -> RenderedText:
-    """Строка на языке по умолчанию, не теряющая кода: см. `RenderedText`."""
+    """Renders a phrase into a code-carrying default-language string."""
     return RenderedText(item, language)
 
 
 def rendered_all(
     items: tuple[Phrase, ...], language: Language = DEFAULT_LANGUAGE
 ) -> tuple[RenderedText, ...]:
-    """Кортеж таких строк — им заполняются поля, объявленные как кортеж строк."""
+    """Renders phrases into a tuple of code-carrying strings."""
     return tuple(RenderedText(item, language) for item in items)
 
 
 def text_in(value: str, language: Language = DEFAULT_LANGUAGE) -> str:
-    """Текст на нужном языке из строки, которая может помнить свой код.
-
-    Три исхода, а не два: строка знает код — отрисуем на любом языке; строки нет
-    вовсе — пусто; строка пришла из хранилища без кода — на другой язык её не
-    отрисовать, и это `ReasonRenderError`, а не молчаливая выдача русского текста.
-    """
+    """Returns the text in the given language; a code-less stored string raises."""
     if isinstance(value, RenderedText):
         return value.text(language)
     if not value:
@@ -816,11 +698,9 @@ def text_in(value: str, language: Language = DEFAULT_LANGUAGE) -> str:
 def texts_in(
     values: tuple[str, ...], language: Language = DEFAULT_LANGUAGE
 ) -> tuple[str, ...]:
-    """То же для кортежа: нарушения карточки на нужном языке."""
+    """Returns a tuple of such texts in the given language."""
     return tuple(text_in(value, language) for value in values)
 
 
-# Каталоги проверяются при загрузке модуля: недопереведённая запись роняет импорт,
-# а не показывается пустым местом в карточке или в отчёте (гейт, а не
-# договорённость). Проверяются все три, а не только причины.
+# Why on import: an under-translated entry must break the build, not show as a blank.
 validate_all_catalogues()

@@ -1,9 +1,5 @@
-"""Приёмник по умолчанию: пишет в лог и ничего не отправляет.
-
-Не «заглушка на время», а рабочий режим: демо и CI не должны создавать записи в чужой
-CRM, а исход `SKIPPED` честно говорит, что отправки не было. Возвращать отсюда `SENT`
-нельзя: вердикт обязан выводиться из того, что исполнилось, а не из намерения.
-"""
+"""Default sink: logs and sends nothing. A working mode, not a temporary stub — the
+SKIPPED outcome says plainly that nothing was sent."""
 from __future__ import annotations
 
 import logging

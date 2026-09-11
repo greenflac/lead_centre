@@ -1,4 +1,4 @@
-"""Точка входа тонкая: вся логика в функциях, чтобы её мог вызвать тест."""
+"""Thin CLI entry point; the logic lives in functions a test can call directly."""
 from __future__ import annotations
 
 import argparse

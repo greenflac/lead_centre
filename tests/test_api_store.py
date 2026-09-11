@@ -1,10 +1,4 @@
-"""Тесты HTTP-слоя, хранилища и CRM-приёмника.
-
-Три исхода здесь и проверяются: годно / отказ / не смогли. Ожидаемые значения —
-литералы, а не импорт из проверяемого модуля: переименуют статус в коде — тест
-покраснеет, а не поедет следом. Сеть не трогается ни одним тестом: хранилище
-локальное, извлечение в OFFLINE.
-"""
+"""Storage, CRM and the HTTP layer: three outcomes everywhere, never two."""
 from __future__ import annotations
 
 import json
@@ -45,7 +39,6 @@ def _lead_row() -> LeadRow:
     )
 
 
-# --- хранилище: три исхода ---
 
 
 def test_local_store_saves_and_reads_card(memory_store):
@@ -62,7 +55,6 @@ def test_local_store_saves_and_reads_card(memory_store):
 
 
 def test_score_on_unknown_lead_is_rejected_not_silently_dropped(memory_store):
-    """Отказ — отдельный исход: молча проглоченная оценка выглядела бы как записанная."""
     with pytest.raises(StoreRejected):
         memory_store.save_score(ScoreRow(lead_id="нет-такого", tier="LOW",
                                          address_type="A0_unknown", event="B0_none"))
@@ -76,7 +68,6 @@ def test_reply_with_unknown_status_is_rejected(memory_store):
 
 
 def test_broken_json_file_is_unavailable_not_empty(tmp_path):
-    """«Не смогли прочитать» не сворачивается в «данных нет»: пустой словарь стёр бы лиды."""
     path = tmp_path / "store.json"
     path.write_text("{это не json", encoding="utf-8")
     with pytest.raises(StoreUnavailable):
@@ -95,13 +86,13 @@ def test_upsert_companies_returns_numbers_not_flag(memory_store):
     ]
     result = memory_store.upsert_companies(rows)
     assert (result.requested, result.written, result.failed, result.unavailable) == (2, 1, 1, 0)
-    # Повторный прогон обновляет, а не плодит дубли.
+    # a repeated run updates rather than duplicating
     memory_store.upsert_companies(rows[:1])
     assert len(memory_store.list_companies()) == 1
 
 
 def test_get_store_rejects_unknown_name(monkeypatch):
-    """Тихий откат на умолчание неотличим от «писали в базу и не писали» — поэтому ошибка."""
+    """An unknown store name raises instead of falling back."""
     monkeypatch.setenv("LEADCENTRE_STORE", "постгрес")
     with pytest.raises(StoreError):
         get_store()
@@ -113,7 +104,7 @@ def test_get_store_offline_is_local(monkeypatch):
     assert get_store().name == "local"
 
 
-# --- Supabase: классификация кодов ошибок (с негативным контролем) ---
+# Error-code classification, with a negative control.
 
 
 def _http_error(code: int, payload: dict) -> urllib.error.HTTPError:
@@ -147,7 +138,6 @@ def test_supabase_requires_keys(monkeypatch):
 
 
 def test_null_sink_reports_skipped_not_sent():
-    """NullSink ничего не отправлял; выдать это за успех — то же враньё, что и «отправлено»."""
     result = NullSink().send(CrmLead("id", "ACME", "HIGH", "form", "ru", "текст"))
     assert result.outcome == "skipped"
     assert result.ok is False
@@ -170,7 +160,7 @@ def test_hubspot_without_token_is_unavailable():
 
 
 def test_hubspot_contact_needs_real_contact():
-    """Пустой контакт не выдумывается: без email и телефона объект не создаётся."""
+    """A contact body is built only when there is a real contact to send."""
     sink = HubspotSink(token="x")
     lead = CrmLead("id", "ACME", "HIGH", "form", "ru", "текст")
     assert sink.contact_properties(lead) is None
@@ -197,46 +187,32 @@ def test_post_lead_returns_card_and_stores_it(client, memory_store):
 
 
 def test_reply_block_carries_the_language_of_the_body(client):
-    """Язык черновика доезжает до ответа API внутри блока `reply`.
-
-    Дефект, ради которого тест написан: поле лежало только в корне ответа, дашборд
-    читал его из блока `reply`, не находил и подставлял английский — над русским
-    письмом висел чип «DRAFT REPLY EN». Тот же дефект «ответ не на языке клиента»,
-    только протёкший через границу API.
-
-    Ожидаемое — литерал «ru»: текст обращения русский, значит и письмо русское.
-    """
     body = client.post("/leads", json={"text": TEXT_RU, "channel": "whatsapp"}).json()
     assert body["reply"]["language"] == "ru"
-    # Корневое поле осталось на месте и говорит то же самое: знание одно.
+    # the root field stays and says the same: one piece of knowledge
     assert body["language"] == body["reply"]["language"]
 
 
 def test_reply_language_follows_the_text_not_the_default(client):
-    """Негативный контроль: на английском обращении язык блока — «en», а не «ru».
-
-    Без него тест выше зеленел бы и на поле, в которое зашит один язык.
-    """
     text = "we are relocating 8 people, need an office in TECOM this month"
     body = client.post("/leads", json={"text": text, "channel": "whatsapp"}).json()
     assert body["reply"]["language"] == "en"
 
 
 def test_provider_budget_error_is_402_not_500(client, monkeypatch):
-    """Кончились деньги у провайдера — понятный ответ, а не сбой сервера."""
+    """An exhausted provider budget answers 402, not 500."""
     def boom(_message):
         raise ProviderBudgetError("кредитный баланс слишком мал")
 
     monkeypatch.setattr(api, "extract_detailed", boom)
     response = client.post("/leads", json={"text": TEXT_RU, "channel": "form"})
-    # 402 — тот же код, который дашборд читает как «провайдер без бюджета» (web/lib/api.ts).
+    # 402 is the code the dashboard already reads as an exhausted provider budget
     assert response.status_code == 402
     assert response.json()["code"] == "provider_budget"
     assert response.json()["outcome"] == "unavailable"
 
 
 def test_store_unavailable_still_returns_card(client, monkeypatch):
-    """Карточку посчитали — отдаём, но «не сохранено» говорим прямо."""
     def boom(_row):
         raise StoreUnavailable("схема не применена")
 
@@ -283,7 +259,6 @@ def test_stats_prints_three_numbers(client):
 
 
 def test_stats_says_unavailable_instead_of_zeros(client, monkeypatch):
-    """Ноль лидов при недоступном хранилище — не отчёт, а обман."""
     from leadcentre.store.base import StoreHealth
 
     monkeypatch.setattr(
@@ -296,13 +271,12 @@ def test_stats_says_unavailable_instead_of_zeros(client, monkeypatch):
 
 
 def test_health_does_not_hand_out_the_project_address():
-    """`/health` открыт без аутентификации: адрес проекта наружу отдавать нечего."""
     store = SupabaseStore(url="https://abcdefghijklm.supabase.co", secret_key="k")
     store._request = lambda *a, **kw: []  # type: ignore[method-assign]
     detail = store.health().detail
     assert "abcdefghijklm" not in detail
     assert "supabase.co" not in detail
-    assert detail  # и при этом исход не пустой: живость всё равно видна
+    assert detail  # and the outcome is not empty: liveness is still visible
 
 
 def test_discover_offline_reads_cache_and_stores(client, memory_store):
@@ -314,11 +288,6 @@ def test_discover_offline_reads_cache_and_stores(client, memory_store):
 
 
 def test_stored_company_carries_the_entity_status_not_only_the_flag(client, memory_store):
-    """Третий исход обязан доезжать до хранилища: булев `entity_active` его не несёт.
-
-    Литералы: в кэше `data/gleif_ae_lapsed_sample.json` все записи ACTIVE (ИЗМЕРЕНО
-    2026-09-11, 60 из 60), поэтому флаг True, а статус — слово `active`.
-    """
     client.post("/discover/run", json={"mode": "lapsed", "limit": 3})
     facts = [row["facts"] for row in memory_store.list_companies()]
     assert [f["entity_active"] for f in facts] == [True, True, True]
@@ -334,7 +303,7 @@ def test_leads_are_sorted_high_first(client, memory_store):
     assert tiers == ["HIGH", "MEDIUM", "LOW"]
 
 
-# --- третий исход линтера не сворачивается в булев ---
+# The linter's third outcome does not collapse into a boolean.
 
 
 @pytest.mark.parametrize(
@@ -342,7 +311,6 @@ def test_leads_are_sorted_high_first(client, memory_store):
     [("OK", True), ("VIOLATIONS", False), ("UNVERIFIABLE", None)],
 )
 def test_lint_status_maps_to_three_values(status, expected):
-    """`UNVERIFIABLE` — это None. Если станет False, «не проверяли» прочтут как «нарушение»."""
     assert api._lint_ok(status) is expected
 
 

@@ -1,5 +1,4 @@
-"""Источник — сменный адаптер. GLEIF в демо, платный провайдер или выгрузка клиента —
-такая же реализация протокола; движок про источник ничего не знает."""
+"""Company sources as swappable adapters; the engine knows nothing about any one of them."""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -10,7 +9,7 @@ from leadcentre.models import Company
 
 @dataclass(frozen=True)
 class FetchResult:
-    """Числами, а не флагом: сколько получили, сколько пропустили и почему."""
+    """Fetch result in counts: how many arrived, how many were skipped and why."""
 
     companies: tuple[Company, ...]
     fetched: int

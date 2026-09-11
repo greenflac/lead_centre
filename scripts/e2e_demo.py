@@ -1,15 +1,9 @@
-"""Сквозная проверка обещания из первого абзаца README.
+"""End-to-end check of the promise the README opens with.
 
-README обещает ровно это: сырой текст обращения превращается в карточку, с которой
-менеджер может работать за секунды — что просят, сколько людей, какой срок, какой язык,
-приоритет с причинами, дословные цитаты как доказательство и черновик ответа на языке
-клиента; и ничего не отправляется клиенту само.
+Each clause of that promise is checked as its own claim, reporting one of three outcomes.
+This does not replace the tests: they check the parts, this checks the whole promise.
 
-Этот скрипт проверяет каждое из перечисленного как отдельное утверждение и печатает
-три исхода: выполнено / не выполнено / не смогли проверить. Он не заменяет тесты —
-тесты проверяют части, а он проверяет обещание целиком, на живых провайдере и хранилище.
-
-Запуск:  PYTHONPATH=. python3 scripts/e2e_demo.py [--offline]
+Run:  PYTHONPATH=. python3 scripts/e2e_demo.py [--offline]
 """
 from __future__ import annotations
 
@@ -24,8 +18,7 @@ from leadcentre.engine.reply import draft
 from leadcentre.engine.score import score_inbound
 from leadcentre.models import InboundMessage
 
-# Обращения, на которых проверяется обещание. Не самые удобные, а с краёв:
-# срочный корпоративный, короткий вопрос о цене и спам.
+# Requests chosen from the edges, not the convenient middle.
 CASES = (
     (
         "e2e-1",
@@ -37,7 +30,7 @@ CASES = (
     ),
     ("e2e-2", "jivo", "скок стоит фриз зона?"),
     ("e2e-3", "telegram", "Здравствуйте! Продвигаем сайты в топ Google, 30% скидка."),
-    # Арабское обращение: черновик на арабском пишет модель в рамках, а не шаблон.
+    # an Arabic request: the draft is written by the model inside code-set frames
     (
         "e2e-4",
         "whatsapp",
@@ -105,7 +98,7 @@ def run_case(external_id: str, channel: str, text: str, today: date) -> list[Che
 
     reply = draft(message, facts, score.tier.value)
     if reply.outcome == "no_draft_needs_human":
-        # Заявленный исход, а не сбой: модель недоступна или её текст не прошёл линтер.
+        # a declared outcome, not a failure: the model was unavailable or failed the linter
         checks.append(
             check("черновик не выдуман, когда нельзя", bool(reply.notice), reply.notice[:70])
         )

@@ -1,10 +1,7 @@
-"""Выбор реализации хранилища. Одна точка выбора — одно знание.
+"""Single place that chooses a storage implementation.
 
-`OFFLINE=1` (или отсутствие ключей Supabase) → `LocalStore`: сеть не трогаем, CI и тесты
-работают всегда. Иначе → `SupabaseStore`. Явный `LEADCENTRE_STORE=local|supabase`
-перебивает оба правила — но неизвестное значение это ошибка, а не тихий откат на
-умолчание: при откате опечатка в переменной среды даёт прогон, который «пишет в базу»,
-ничего в неё не записывая.
+An unknown value raises rather than falling back: a typo would otherwise produce a run
+that reports writing to a database while writing nothing.
 """
 from __future__ import annotations
 
@@ -78,12 +75,12 @@ __all__ = [
 
 
 def is_offline() -> bool:
-    """Тот же признак, что у extract.py и адаптеров источников."""
+    """Reports offline mode, using the same switch as the rest of the engine."""
     return os.environ.get("OFFLINE", "") not in ("", "0")
 
 
 def get_store(kind: str | None = None) -> Store:
-    """Реализация хранилища по среде. Неизвестное имя — ошибка, а не откат на умолчание."""
+    """Returns the store chosen by the environment; an unknown name raises."""
     key = (kind or os.environ.get("LEADCENTRE_STORE") or "").strip().lower()
     if key == "local":
         return LocalStore()

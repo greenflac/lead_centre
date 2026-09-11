@@ -1,10 +1,4 @@
-"""Тесты маршрутизации моделей по длине обращения и разбора ответа провайдера.
-
-Ожидаемое — литералы: порог записан числами 600/601, имена моделей — строками.
-Из `extract` не импортируется ни `LONG_MESSAGE_CHARS`, ни `ANTHROPIC_MODEL`, ни `LONG_MODEL`:
-иначе тест поедет вместе с константой и промолчит.
-Сеть не нужна нигде: `route()` решает по длине, разбор ответа идёт по подставленному объекту.
-"""
+"""Model routing by message length, and the instrument fields that record what served a lead."""
 from __future__ import annotations
 
 import json
@@ -28,27 +22,27 @@ OPUS = "claude-opus-5"
 
 
 def _message_of_length(length: int):
-    """Обращение ровно заданной длины: маршрут решается по `len(text)`."""
+    """Builds a message of exactly the given length."""
     text = "а" * length
     message = make_message(text=text)
-    assert len(message.text) == length  # предпосылка теста, а не его вывод
+    assert len(message.text) == length  # a precondition of the test, not its conclusion
     return message
 
 
-# --- порог длины: 600 символов ---------------------------------------------------
+# The length threshold.
 
 
 @pytest.mark.parametrize(
     ("length", "expected_model"),
     [
-        (0, HAIKU),       # край снизу: пустой текст — всё ещё короткое обращение
+        (0, HAIKU),       # lower edge: empty text is still a short request
         (1, HAIKU),
-        (98, HAIKU),      # медиана длины обращения в data/inbound_seed.csv
-        (300, HAIKU),     # середина диапазона
+        (98, HAIKU),      # the median request length in the seed
+        (300, HAIKU),     # middle of the range
         (599, HAIKU),
-        (600, HAIKU),     # ровно порог: сравнение строгое, это ещё короткое
-        (601, OPUS),      # на символ больше — уже длинное
-        (1332, OPUS),     # длина edge-03, на котором ловились ошибки дешёвой модели
+        (600, HAIKU),     # exactly at the threshold: the comparison is strict, so still short
+        (601, OPUS),      # one character more: long
+        (1332, OPUS),     # the length at which the cheap model started making mistakes
         (5000, OPUS),
     ],
 )
@@ -63,7 +57,7 @@ def test_short_route_carries_cheap_settings_and_a_reason_with_the_number(length,
     assert result.model == "claude-haiku-4-5-20251001"
     assert result.effort == "low"
     assert result.thinking == "off"
-    # Форма слова — литералом: правка правила числительных обязана краснить тест.
+    # the word form as a literal: a change to plural rules must redden this
     assert f"{length} {expected_unit}" in result.reason
     assert "короткое обращение" in result.reason
 
@@ -72,7 +66,6 @@ def test_short_route_carries_cheap_settings_and_a_reason_with_the_number(length,
     ("length", "expected_unit"), [(601, "символ"), (700, "символов"), (1332, "символа")]
 )
 def test_long_route_reason_names_the_length_and_the_threshold(length, expected_unit):
-    """Все три формы русского числительного: 601 символ, 700 символов, 1332 символа."""
     result = route(_message_of_length(length))
     assert result.model == "claude-opus-5"
     assert result.reason == f"длинное обращение: {length} {expected_unit} > 600"
@@ -81,11 +74,10 @@ def test_long_route_reason_names_the_length_and_the_threshold(length, expected_u
 def test_route_returns_a_route_object_with_all_fields_filled():
     result = route(_message_of_length(10))
     assert isinstance(result, Route)
-    assert result.reason  # причина маршрута попадает в карточку лида
+    assert result.reason  # the route reason reaches the lead card
 
 
 def test_forced_model_env_disables_routing(monkeypatch):
-    """`LLM_MODEL` выключает маршрутизацию: оператор гоняет набор на одной модели."""
     monkeypatch.setenv("LLM_MODEL", "claude-sonnet-5")
     monkeypatch.setenv("LLM_EFFORT", "high")
     monkeypatch.setenv("LLM_THINKING", "adaptive")
@@ -97,16 +89,15 @@ def test_forced_model_env_disables_routing(monkeypatch):
 
 
 def test_routing_is_active_when_forced_model_is_absent(monkeypatch):
-    """Негативный контроль предыдущего теста: без переменной маршрут снова считается."""
     monkeypatch.delenv("LLM_MODEL", raising=False)
     assert route(_message_of_length(601)).model == "claude-opus-5"
 
 
-# --- сеть: маршрут решается до всякого запроса -----------------------------------
+# The route is decided before any request.
 
 
 def test_route_does_not_touch_the_network(monkeypatch):
-    """Запрет сети в CI машинный (sitecustomize), здесь дополнительно рвём urlopen и сокеты."""
+    """Routing is decided before any network call."""
     import socket
     import urllib.request
 
@@ -121,7 +112,6 @@ def test_route_does_not_touch_the_network(monkeypatch):
 
 
 def test_route_needs_no_api_key(monkeypatch):
-    """Ключа тоже не требуется: маршрут — это решение о длине, а не запрос."""
     monkeypatch.delenv("CLAUDE_KEY", raising=False)
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("LLM_MODEL", raising=False)
@@ -129,7 +119,6 @@ def test_route_needs_no_api_key(monkeypatch):
 
 
 def test_provider_sends_the_routed_model_in_the_request_body():
-    """Маршрут доезжает до тела запроса (канал воздействия виден в теле, без сети)."""
     provider = AnthropicProvider(Route("claude-opus-5", "low", "off", "тест"))
     body = provider.build_body("system", "content")
     assert body["model"] == "claude-opus-5"
@@ -138,7 +127,7 @@ def test_provider_sends_the_routed_model_in_the_request_body():
 
 
 def test_haiku_route_does_not_get_effort_or_thinking_parameters():
-    """Негативный контроль: Haiku 4.5 отвечает 400 на effort/thinking — их в теле быть не должно."""
+    """A model that rejects the effort parameters never receives them."""
     provider = AnthropicProvider(Route("claude-haiku-4-5-20251001", "low", "off", "тест"))
     body = provider.build_body("system", "content")
     assert body["model"] == "claude-haiku-4-5-20251001"
@@ -146,11 +135,11 @@ def test_haiku_route_does_not_get_effort_or_thinking_parameters():
     assert "thinking" not in body
 
 
-# --- обслужившая модель и кэш берутся из ответа, а не из намерения ---------------
+# The serving model and cache counters come from the response, not the intent.
 
 
-# Ответ модели: все обязательные поля схемы на месте — иначе разбор упадёт по своей причине,
-# а не по той, которую проверяет тест.
+# A model answer with every required schema field, or parsing would fail for its own
+# reason instead of the one under test.
 MODEL_JSON = json.dumps(
     {
         "request_types": ["office"],
@@ -193,7 +182,7 @@ class _FakeResponse:
 
 
 class _FakeProvider:
-    """Провайдер-заглушка: отвечает подставленным объектом, в сеть не ходит."""
+    """A provider that returns a canned completion."""
 
     name = "anthropic"
 
@@ -222,23 +211,21 @@ class _FakeProvider:
 
 @pytest.fixture
 def _online(monkeypatch):
-    """Выключаем OFFLINE, но сеть всё равно недостижима: провайдер подставной."""
+    """Turns the offline switch off for one test."""
     monkeypatch.delenv("OFFLINE", raising=False)
     monkeypatch.delenv("LLM_MODEL", raising=False)
 
 
 def test_served_model_comes_from_the_response_not_from_the_intent(_online):
-    """Если API обслужил другой моделью, в отчёте стоит та, что ответила, а не та, что просили."""
     provider = _FakeProvider(_FakeResponse("claude-opus-4-8"))
     extraction = extract_detailed(make_message("нужен офис"), provider=provider)
-    assert provider.model() == "claude-haiku-4-5-20251001"  # намерение
-    assert extraction.model == "claude-opus-4-8"            # свидетельство
+    assert provider.model() == "claude-haiku-4-5-20251001"  # intent
+    assert extraction.model == "claude-opus-4-8"            # evidence
     assert extraction.provider == "anthropic"
     assert extraction.offline is False
 
 
 def test_alias_answers_with_the_dated_snapshot_id(_online):
-    """Запрос по алиасу возвращается с датированным идентификатором — берём из ответа."""
     provider = _FakeProvider(_FakeResponse("claude-haiku-4-5-20251001"))
     extraction = extract_detailed(make_message("нужен офис"), provider=provider)
     assert extraction.model == "claude-haiku-4-5-20251001"
@@ -254,7 +241,6 @@ def test_cache_counters_come_from_usage(_online):
 
 
 def test_cache_counters_are_zero_when_the_cache_did_not_fire(_online):
-    """Негативный контроль: при нулях в usage счётчики нулевые, а не «наверное сработал»."""
     provider = _FakeProvider(_FakeResponse("claude-haiku-4-5-20251001"))
     extraction = extract_detailed(make_message("нужен офис"), provider=provider)
     assert (extraction.cache_read_tokens, extraction.cache_write_tokens) == (0, 0)
@@ -284,7 +270,6 @@ def test_served_by_prints_model_and_cache_numbers():
 
 
 def test_offline_extraction_names_the_stub_not_a_real_model(monkeypatch):
-    """Заглушку нельзя спутать с извлечением: модель «offline-stub», уверенность 0.0."""
     monkeypatch.setenv("OFFLINE", "1")
     extraction = extract_detailed(make_message("нужен офис"))
     assert extraction.model == "offline-stub"
@@ -295,12 +280,6 @@ def test_offline_extraction_names_the_stub_not_a_real_model(monkeypatch):
 
 
 def test_offline_stub_says_confidence_was_not_measured(monkeypatch):
-    """Ноль заглушки — метка «не смотрено», и она обязана быть отличима от измерения.
-
-    Дефект: карточка на офлайн-заглушке печатала «уверенность извлечения 0.00 — ниже
-    порога 0.50», то есть выдавала отсутствие измерения за измеренную низкую
-    уверенность. Признак стоит на самой заглушке, иначе отличить нечем.
-    """
     monkeypatch.setenv("OFFLINE", "1")
     facts = extract_detailed(make_message("нужен офис")).facts
     assert facts.confidence_measured is False
@@ -308,17 +287,12 @@ def test_offline_stub_says_confidence_was_not_measured(monkeypatch):
 
 
 def test_a_real_extraction_reports_a_measured_confidence(_online):
-    """Негативный контроль: у настоящего извлечения признак обратный.
-
-    Без него предыдущий тест зеленел бы и на поле, в которое зашито одно значение.
-    """
     provider = _FakeProvider(_FakeResponse(HAIKU))
     facts = extract_detailed(make_message("нужен офис"), provider=provider).facts
     assert facts.confidence_measured is True
 
 
 def test_cache_write_counter_comes_from_usage(_online):
-    """Первый запрос префикс записывает: записано > 0, прочитано 0 — числа из usage, не флаг."""
     provider = _FakeProvider(_FakeResponse("claude-opus-5", cache_read=0, cache_write=3162))
     extraction = extract_detailed(make_message("нужен офис"), provider=provider)
     assert extraction.cache_write_tokens == 3162
@@ -342,7 +316,6 @@ class _FakeClient:
 
 
 def test_real_pipeline_routes_long_message_to_opus_and_records_the_reason(_online, monkeypatch):
-    """Сквозь настоящий AnthropicProvider: клиент подменён, сети нет, маршрут виден в теле."""
     bodies: list[dict] = []
     response = _FakeResponse("claude-opus-5", cache_read=3000, cache_write=0)
     monkeypatch.setattr(
@@ -371,6 +344,6 @@ def test_real_pipeline_routes_short_message_to_haiku(_online, monkeypatch):
     extraction = extract_detailed(make_message("а" * 600))
 
     assert bodies[0]["model"] == "claude-haiku-4-5-20251001"
-    assert "effort" not in bodies[0]["output_config"]  # Haiku 4.5 отвечает 400 на effort
+    assert "effort" not in bodies[0]["output_config"]  # this model answers 400 to the effort parameter
     assert extraction.route_reason == "короткое обращение: 600 символов <= 600"
     assert extraction.model == "claude-haiku-4-5-20251001"

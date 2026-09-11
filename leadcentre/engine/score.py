@@ -1,8 +1,7 @@
 """Deterministic priority scoring: the model extracts facts, this code assigns the tier.
 
-INVALID ("could not score") is a separate outcome and never collapses into LOW.
-This module names reason codes and parameters only; the wording for both languages
-lives in engine/reasons.py, and the thresholds in engine/rubric.py.
+INVALID never collapses into LOW. This module names reason codes only; wording lives in
+engine/reasons.py and thresholds in engine/rubric.py.
 """
 from __future__ import annotations
 
@@ -48,10 +47,7 @@ def classify_address(company: Company) -> AddressType:
 
 
 def normalize_city(value: str) -> str:
-    """Folds a city string for comparison: lower case, one alef form, collapsed spaces.
-
-    Both sides of the comparison are folded, so the marker lists need one spelling per name.
-    """
+    """Folds a city string for comparison; both sides are folded, so lists stay short."""
     folded = value.strip().lower()
     for form in rubric.CITY_ALEF_FORMS:
         folded = folded.replace(form, rubric.CITY_ALEF_CANONICAL)
@@ -59,11 +55,7 @@ def normalize_city(value: str) -> str:
 
 
 def _city_parts(normalized: str) -> tuple[str, ...]:
-    """Splits a city field written as an address line into its parts.
-
-    Districts are matched against whole parts, since as a substring "al ain" would be
-    found inside unrelated words.
-    """
+    """Splits a city field written as an address line; districts match whole parts only."""
     parts = [normalized]
     for separator in rubric.CITY_PART_SEPARATORS:
         parts = [chunk for part in parts for chunk in part.split(separator)]
@@ -72,21 +64,16 @@ def _city_parts(normalized: str) -> tuple[str, ...]:
 
 @cache
 def _normalized(markers: tuple[str, ...]) -> frozenset[str]:
-    """Folds rubric markers with the same normaliser as the input.
-
-    Cached on the tuple rather than precomputed, so that replacing a rubric list in a
-    mutation test still reaches the comparison.
-    """
+    """Folds rubric markers with the same normaliser; cached on the tuple, not precomputed,
+    so a mutation test replacing a list still reaches the comparison."""
     return frozenset(normalize_city(m) for m in markers)
 
 
 def classify_city(city: str) -> CityMatch:
     """Classifies a registry city string into one of four outcomes.
 
-    The order of the checks is the rule itself: off-target districts, then off-target
-    city names, then target districts, then target city names, else UNRECOGNISED.
-    Off-target wins over target because raising to HIGH on a guess costs more than
-    not raising.
+    The order of the checks is the rule; off-target wins over target, because raising to
+    HIGH on a guess costs more than not raising.
     """
     normalized = normalize_city(city)
     if not normalized:
@@ -103,8 +90,7 @@ def classify_city(city: str) -> CityMatch:
     return CityMatch.UNRECOGNISED
 
 
-#: Reason per city outcome. A table, not an if-chain: a missing branch would be a tier
-#: without an explanation.
+#: Reason per city outcome; a table, so a missing branch cannot be a tier without words.
 CITY_REASON: dict[CityMatch, ReasonCode] = {
     CityMatch.OFF_TARGET: ReasonCode.CITY_OFF_TARGET,
     CityMatch.UNRECOGNISED: ReasonCode.CITY_UNRECOGNISED,
@@ -120,9 +106,7 @@ def normalize_status(value: str) -> str:
 def status_reason(company: Company) -> Reason | None:
     """Explains why the registration status produced no event; None when it did.
 
-    Three outcomes: status not set, status outside the registry vocabulary ("could not
-    determine"), and a known status that axis B counts no event for. None of them moves
-    the tier; they only make an already taken decision visible.
+    None of the three outcomes moves the tier; they make a taken decision visible.
     """
     raw = company.registration_status.strip()
     status = normalize_status(raw)
@@ -184,8 +168,7 @@ def score(company: Company, today: date) -> Score:
     reasons: list[Reason] = list(event_reasons)
     violations: list[Violation] = []
 
-    # Why every non-target outcome lowers the tier but keeps its own reason: "another
-    # emirate" and "spelling not recognised" read differently and are counted apart.
+    # Why each outcome keeps its own reason: they read differently and are counted apart.
     city_match = classify_city(company.city)
     if tier is Tier.HIGH and city_match is not CityMatch.TARGET:
         tier = Tier.MEDIUM
@@ -195,8 +178,7 @@ def score(company: Company, today: date) -> Score:
             reason(code) if code is ReasonCode.CITY_NOT_SET else reason(code, city=city)
         )
 
-    # Why only an explicit INACTIVE condemns the entity: the registry also says NULL,
-    # meaning "status not reported", and silence caps the tier without burying the lead.
+    # Why only explicit INACTIVE condemns: registry silence caps the tier, it does not bury.
     if company.entity_status is EntityStatus.INACTIVE:
         tier = Tier.LOW
         reasons.append(reason(ReasonCode.ENTITY_INACTIVE))
@@ -238,8 +220,7 @@ def _step(tier: Tier, delta: int) -> Tier:
 def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
     """Scores an inbound request: axis C modifiers over a base tier.
 
-    Spam and a request with no recognised type are LOW, not "could not score" — the text
-    was read. A broken invariant is INVALID, the separate third outcome.
+    Spam is LOW, not "could not score"; a broken invariant is INVALID.
     """
     reasons: list[Reason] = []
     violations: list[Violation] = []
@@ -275,8 +256,7 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
     if facts.headcount is not None and facts.headcount >= rubric.TEAM_MIN_HEADCOUNT:
         bumps += 1
         reasons.append(reason(ReasonCode.TEAM_OVER_FLEXI_QUOTA, headcount=facts.headcount))
-    # Why a digit is required: the model readily puts the question "how much" in this
-    # field, and asking a price does not make a lead hot.
+    # Why a digit is required: asking a price is not the same as naming a budget.
     if facts.budget_hint and any(ch.isdigit() for ch in facts.budget_hint):
         bumps += 1
         reasons.append(reason(ReasonCode.BUDGET_NAMED, budget=facts.budget_hint[:40]))
@@ -292,15 +272,13 @@ def score_inbound(message: InboundMessage, facts: LeadFacts) -> Score:
                 reason(ReasonCode.TARGET_LANGUAGE_ALONE, language=facts.language)
             )
 
-    # Why two named conditions instead of one `or`: a set of signals makes a request hot,
-    # while a single signal only rescues one whose request type went unrecognised.
+    # Why two named conditions, not one `or`: they rescue different cases.
     enough_signals = substantive >= rubric.SIGNALS_FOR_HIGH
     rescued_from_low = bool(substantive) and tier is Tier.LOW
     if enough_signals or rescued_from_low:
         tier = _step(tier, 1)
 
-    # Why three confidence outcomes: measured-and-low and never-measured both cap the
-    # tier, but an unmeasured number must not be printed next to a threshold.
+    # Why three outcomes: both cap the tier, but an unmeasured number needs its own words.
     if not facts.confidence_measured:
         tier = min(tier, Tier.MEDIUM, key=rubric.TIER_LADDER.index)
         reasons.append(reason(ReasonCode.CONFIDENCE_NOT_MEASURED))
