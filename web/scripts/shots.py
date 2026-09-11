@@ -1,12 +1,10 @@
-"""Съёмка экранов дашборда для README. Запускается против уже поднятого `next start`.
+"""Shoots the dashboard screenshots the README links to, against a running `next start`.
 
-Имена файлов зафиксированы: на них ссылается README.md и web/README.md, поэтому
-переименование ломает картинки в документации.
+File names are fixed: README.md and web/README.md reference them, so renaming breaks the
+images in the docs.
 
-Три исхода: снято / НЕ СНЯТО (страница не ответила) / НЕ СМОГЛИ (нет браузера).
-В конце печатается таблица «файл — размер — что на нём», чтобы «снято» было числом.
-
-Запуск: python3 web/scripts/shots.py [base_url] [only-prefix]
+Three outcomes: shot / not shot (the page did not answer) / could not (no browser).
+Usage: python3 web/scripts/shots.py [base_url] [only-prefix]
 """
 from __future__ import annotations
 
@@ -21,7 +19,7 @@ WIDTH, HEIGHT, SCALE = 1440, 1000, 2
 
 
 def open_lead(page, lead_id: str) -> None:
-    """Открывает карточку по id: поиск, затем первая строка списка."""
+    """Opens a card by id: search, then the first row of the list."""
     box = page.locator("input.search-box")
     box.fill(lead_id)
     page.wait_for_timeout(250)
@@ -30,8 +28,8 @@ def open_lead(page, lead_id: str) -> None:
 
 
 def shoot(page, name: str, locator=None) -> tuple[str, int]:
-    # Полный кадр снимается от верха страницы: переключение вкладки оставляет прокрутку,
-    # и шапка с полосой происхождения уезжает за край.
+    # A full frame is shot from the top: switching tabs keeps the scroll position and
+    # pushes the header off the edge.
     page.evaluate("window.scrollTo(0, 0)")
     page.wait_for_timeout(100)
     path = OUT / name
@@ -49,11 +47,10 @@ def main() -> int:
         return not only or name.startswith(only)
 
     def want_live(name: str) -> bool:
-        """Кадр живого режима: только по явному запросу, никогда «заодно».
+        """Live-mode frames are shot on explicit request only, never incidentally.
 
-        Без этого обычный прогон против мока снял бы 08/09 с ярлыком «Live backend»
-        над демо-данными — ровно та ложь, из-за которой прежние кадры показывали
-        встроенную заглушку под видом живого извлечения.
+        Otherwise an ordinary run against the mock would shoot 08/09 with a "Live
+        backend" label over demo data.
         """
         return bool(only) and name.startswith(only)
 
@@ -74,7 +71,7 @@ def main() -> int:
         if want("02"):
             open_lead(page, "urg-13")
             taken.append(shoot(page, "02-lead-card.png", page.locator(".inbox > div").nth(1)))
-            # Крупный план: нажата причина — подсветка цитаты в тексте обращения.
+            # Close-up: a reason is pressed, highlighting its quote in the message.
             page.locator("button.reason-btn").first.click()
             page.wait_for_timeout(150)
             taken.append(shoot(page, "02b-lead-card-closeup.png", page.locator(".panel").nth(1)))
@@ -85,10 +82,9 @@ def main() -> int:
             open_lead(page, "gen-19")
             taken.append(shoot(page, "02d-lead-card-arabic.png", page.locator(".panel").nth(1)))
 
-            # edge-03 — самое длинное обращение набора: семь вопросов подряд, пять
-            # запрошенных услуг. Нажата причина про бюджет, чтобы на кадре было видно,
-            # что она читается цитатой клиента, а не склейкой маркеров, и что за ней
-            # стоит подсвеченный фрагмент текста.
+            # edge-03 is the longest request in the set: seven questions, five services.
+            # The budget reason is pressed so the frame shows it backed by the client's
+            # own sentence rather than a join of markers.
             open_lead(page, "edge-03")
             page.locator("button.reason-btn").nth(1).click()
             page.wait_for_timeout(150)
@@ -96,9 +92,9 @@ def main() -> int:
                                page.locator(".panel").nth(1)))
 
         if want("07"):
-            # Правдоподобный запрос, а не «zzzz»: пустое состояние показывают менеджеру, и в
-            # строке поиска должно стоять то, что он мог бы набрать. ИЗМЕРЕНО: «Ras Al Khaimah»
-            # не встречается ни в одном из 70 обращений, то есть состояние честно пустое.
+            # A plausible query rather than "zzzz": the empty state is shown to a manager,
+            # so the search box holds something they might type. "Ras Al Khaimah" appears
+            # in none of the 70 requests, so the state is genuinely empty.
             page.locator("input.search-box").fill("Ras Al Khaimah")
             page.wait_for_timeout(300)
             page.locator("input.search-box").blur()
@@ -114,12 +110,10 @@ def main() -> int:
             page.get_by_role("tab", name="Inbox").click()
             page.wait_for_timeout(300)
 
-        # Кадры живого режима снимаются только против дашборда, СОБРАННОГО с
-        # NEXT_PUBLIC_API_URL: Next вшивает эту переменную в сборку, поэтому отдельной
-        # сборки не избежать. Оркестровка — `make shots-live`; здесь только съёмка.
-        # Без флага не снимаются намеренно: против мока получится ярлык «Live backend»
-        # над демо-данными, а это ровно та ложь, из-за которой прежние кадры 08/09
-        # показывали заглушку под видом живого извлечения.
+        # Live frames need a dashboard built with NEXT_PUBLIC_API_URL, since Next bakes
+        # that variable into the build. `make shots-live` does the orchestration; this
+        # script only shoots. Without the flag they are skipped on purpose: against the
+        # mock the result is a "Live backend" label over demo data.
         if want_live("08"):
             taken.append(shoot(page, "08-live-backend.png"))
 
@@ -129,12 +123,11 @@ def main() -> int:
             page.get_by_role("button", name="Urgent team relocation (RU)").click()
             page.wait_for_timeout(200)
             page.get_by_role("button", name="Score this request").click()
-            # Живое извлечение идёт секундами, а не мгновенно: ждём карточку, а не таймер.
+            # Live extraction takes seconds: wait for the card, not for a timer.
             page.wait_for_selector(".card-head", timeout=90000)
             page.wait_for_timeout(600)
-            # Снимается сама карточка, а не окно: на живом обращении она длиннее экрана,
-            # и кадр по окну обрезал её ровно перед черновиком — то есть перед тем, ради
-            # чего кадр и нужен.
+            # The card itself is shot, not the viewport: on a live request it is taller
+            # than the screen, and a viewport frame cut it off right before the draft.
             taken.append(shoot(page, "09-live-new-request.png",
                                page.locator(".panel").last))
 

@@ -1,24 +1,15 @@
-"""Сверка двух путей движка: Python (leadcentre) против TypeScript (web/lib/mock*).
+"""Compares the two engine paths field by field: Python against the TypeScript port.
 
-Зачем: браузер без бэкенда не умеет запускать Python, поэтому в `web/lib/mockEngine.ts` и
-`web/lib/mockReply.ts` живёт порт извлечения, приоритета и черновика. Два способа узнать
-одно и то же — дефект, и единственная защита от расхождения — регулярная сверка
-числами. Прибор сравнивает поле в поле на выборке обращений из data/inbound_seed.csv.
+The browser cannot run Python, so web/lib/mockEngine.ts and mockReply.ts carry a port of
+extraction, scoring and drafting. Two places that know the same thing drift, and the only
+defence is to compare them with numbers on requests from data/inbound_seed.csv.
 
-Как: TS-модули собираются одноразовым скриптом через node (esbuild не нужен — файлы
-переписываются в CommonJS штатным tsc из web/node_modules).
+Four planted rows act as the negative control -- a swapped tier, draft, English reason
+and reason-to-quote link -- and the instrument must name all four, otherwise "0
+disagreements" cannot be told apart from "nothing was compared".
 
-Негативный контроль прибора: в набор добавлены четыре подложные строки — подменённый
-приоритет, подменённый текст черновика, подменённая английская причина и подменённая
-связка «причина — цитаты»; прибор обязан назвать все четыре расхождениями. Без этого
-«0 расхождений» не отличить от «прибор ничего не сравнивает».
-
-Причины сверяются на обоих языках каталога `engine/reasons.py`: карточка дашборда идёт
-по-английски, измерительный стенд и логи — по-русски.
-
-Три исхода: СОШЛОСЬ / РАСХОЖДЕНИЕ / НЕ СМОГЛИ СВЕРИТЬ (node или tsc недоступны).
-
-Запуск: PYTHONPATH=. python3 web/scripts/crosscheck.py [сколько обращений]
+Three outcomes: agree / disagree / could not compare (node or tsc unavailable).
+Usage: PYTHONPATH=. python3 web/scripts/crosscheck.py [how many requests]
 """
 from __future__ import annotations
 
@@ -41,20 +32,17 @@ from leadcentre.engine.reasons import VIOLATION_CATALOGUE, Language, ViolationCo
 from leadcentre.engine.score import score_inbound
 from leadcentre.models import InboundMessage
 
-# Связку «причина — цитаты» строит генератор демо-данных, и он же единственное место, где
-# она живёт на стороне Python: сверять копию было бы сверкой копии с копией.
+# The reason-to-quote link lives only in the demo generator on the Python side; a local
+# copy would mean comparing a copy with a copy.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gen_mock import link_reasons
 
-# Выборка: по одному обращению каждого вида плюс те, на которых движок менялся
-# (renewal — gen-20, продление лицензии — urg-13, длинное — edge-03, спам — spam-01).
+# One request of each kind, plus the ones the engine changed on.
 #
-# ИЗМЕРЕНО 2026-09-11: на выборке из десяти обращений прибор не ловил две мутации порта —
-# сдвиг дня недели в правиле «до пятницы» и снятие инварианта «названный срок гасит
-# словесную срочность». Обеих форм в выборке просто не было, и «расхождений 0» означало
-# «нечем измерить», а не «сходится». Добавлены два обращения, каждое закрывает свою:
-#   urg-05 — «до пятницы», единственное в наборе;
-#   urg-11 — «срочно» вместе с названной датой, единственное такое сочетание.
+# Measured 2026-09-11: with ten requests the instrument missed two port mutations -- a
+# weekday shift in the "by friday" rule and the dropped invariant that a stated deadline
+# cancels worded urgency. Neither form was in the sample, so "0 disagreements" meant
+# "nothing to measure". urg-05 and urg-11 close one each.
 SAMPLE_IDS = ("urg-01", "urg-13", "gen-20", "gen-19", "prc-01",
               "edge-03", "spam-01", "visa-06", "acct-02", "urg-02",
               "urg-05", "urg-11")
@@ -82,7 +70,7 @@ process.stdout.write(JSON.stringify(out));
 
 
 def build_ts(workdir: Path) -> Path:
-    """Компилирует lib/*.ts в CommonJS. Возвращает каталог с .js."""
+    """Compiles lib/*.ts to CommonJS and returns the directory holding the .js."""
     out = workdir / "js"
     tsc = WEB / "node_modules" / ".bin" / "tsc"
     if not tsc.exists():
@@ -90,8 +78,8 @@ def build_ts(workdir: Path) -> Path:
     cmd = [str(tsc), "--module", "commonjs", "--target", "es2020", "--outDir", str(out),
            "--skipLibCheck", "--lib", "es2020",
            str(WEB / "lib" / "mockEngine.ts"), str(WEB / "lib" / "mockReply.ts")]
-    # check=False намеренно: tsc может ругаться на типы и всё же собрать модули —
-    # успех проверяется наличием файла, а не кодом возврата.
+    # check=False on purpose: tsc may complain about types and still emit the modules,
+    # so success is judged by the file, not the exit code.
     result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if not (out / "mockEngine.js").exists():
         raise RuntimeError(f"tsc не собрал модули: {result.stdout}{result.stderr}")
@@ -122,16 +110,16 @@ def python_side(row: dict) -> dict:
         "confidence": facts.confidence,
         "quotes": list(facts.quotes),
         "tier": result.tier.value,
-        # Причины сверяются на ОБОИХ языках: карточка идёт по-английски, а измерительный
-        # стенд и логи — по-русски, и разъехаться они не имеют права.
+        # Reasons are compared in both languages: the card renders English, the harness
+        # and logs Russian, and the two must not drift.
         "reasons_ru": list(result.reasons_in(Language.RU)),
         "reasons_en": list(result.reasons_in(Language.EN)),
         "reply_language": drafted.language,
         "reply_outcome": drafted.outcome,
         "used_prices": list(drafted.used_prices),
         "reply_body": drafted.body,
-        # Какая цитата доказывает какую причину: на карточке это подсветка под причиной,
-        # и разъехавшийся отбор показал бы менеджеру доказательство не той причины.
+        # Which quote proves which reason: a drifted selection would show the manager
+        # evidence belonging to a different reason.
         "reason_links": [{"code": link["code"], "quotes": link["quotes"]}
                          for link in link_reasons(result, list(facts.quotes), facts,
                                                   date.fromisoformat(row["received_at"]))],
@@ -164,8 +152,8 @@ FIELDS = ("request_types", "headcount", "timeline_days", "budget_hint", "is_spam
           "confidence", "quotes", "tier", "reasons_ru", "reasons_en", "reply_language",
           "reply_outcome", "used_prices", "reply_body", "reason_links")
 
-# Арабский черновик пишет модель, и в браузере её нет — это заявленное различие путей,
-# а не расхождение реализации. Сравниваются все поля, кроме тела и исхода черновика.
+# The Arabic draft is written by the model, which the browser has no access to: a
+# declared difference between the paths, so body and outcome are left out.
 ARABIC_EXEMPT = ("reply_body", "reply_outcome", "used_prices")
 
 
@@ -177,13 +165,13 @@ VIOLATION_PAIR_RE = re.compile(r"(\w+):\s*\"([^\"]+)\"")
 
 
 def check_violation_texts() -> tuple[int, int, list[str]]:
-    """Тексты нарушений инвариантов в порте против каталога движка.
+    """Compares the port's invariant-violation texts against the engine catalogue.
 
-    Отдельная проверка, а не поле в общей сверке: на демо-наборе нарушений ноль, и через
-    прогон обращений эти строки не наблюдаемы вовсе. Пока их никто не сверял, порт писал
-    их по-русски и они попадали на английскую карточку.
+    A check of its own rather than a field: the demo set has zero violations, so these
+    strings are invisible to a request run. While nobody compared them, the port wrote
+    them in Russian and they reached the English card.
 
-    Возвращает: сверено, разошлось, строки расхождений.
+    Returns: compared, disagreed, disagreement lines.
     """
     source = (WEB / "lib" / "mockEngine.ts").read_text(encoding="utf-8")
     block = VIOLATION_TEXTS_RE.search(source)
@@ -213,8 +201,8 @@ def main() -> int:
         payload.write_text(json.dumps(rows, ensure_ascii=False), encoding="utf-8")
         driver = workdir / "driver.js"
         driver.write_text(DRIVER, encoding="utf-8")
-        # check=False намеренно: ненулевой код — это исход «не смогли сверить», который
-        # печатается числом, а не исключение, обрывающее прогон.
+        # check=False on purpose: a non-zero code is the "could not compare" outcome,
+        # printed as a number rather than raised as an exception.
         proc = subprocess.run(["node", str(driver), str(js_dir), str(payload)],
                               capture_output=True, text=True, check=False)
         if proc.returncode != 0:
@@ -231,7 +219,7 @@ def main() -> int:
 
     viol_checked, viol_diff, viol_details = check_violation_texts()
 
-    # Негативный контроль: подложные строки.
+    # Negative control: planted rows.
     controls: list[tuple[str, dict, dict, str]] = []
     for probe, field, value in (("контроль-приоритет", "tier", "LOW"),
                                 ("контроль-черновик", "reply_body", "подменённый текст"),

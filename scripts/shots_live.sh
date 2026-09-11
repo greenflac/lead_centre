@@ -1,39 +1,36 @@
 #!/usr/bin/env bash
-# Кадры живого режима: дашборд, собранный против настоящего API, а не против мока.
+# Live-mode screenshots: the dashboard built against the real API, not the mock.
 #
-# Почему отдельный сценарий. Next вшивает NEXT_PUBLIC_API_URL в сборку, поэтому живой
-# режим требует своей сборки — «просто запустить с переменной» не работает. Прежние кадры
-# 08/09 снимались руками, и на них попал API, поднятый с OFFLINE=1: на экране ярлык
-# «Live backend», а под ним встроенная заглушка с «уверенность извлечения 0.00». Этот
-# скрипт делает так, что ошибиться нечем: он сам проверяет, что API отвечает
-# "offline": false, и отказывается снимать, если это не так.
+# Why a script of its own: Next bakes NEXT_PUBLIC_API_URL into the build, so live mode
+# needs a build of its own -- running with the variable set is not enough. Shot by hand,
+# 08/09 once caught an API started with OFFLINE=1, showing a "Live backend" label over
+# the built-in stub. This script checks that /health reports "offline": false and refuses
+# to shoot otherwise.
 #
-# Нужен ключ модели в среде (CLAUDE_KEY). Живые вызовы стоят денег — два обращения.
+# Needs a model key in the environment (CLAUDE_KEY). Live calls cost money: two requests.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-# Порт не 8000: на нём часто уже висит API, поднятый руками, и тогда проверка здоровья
-# отвечает про чужой процесс. Занят — отказываемся, а не притворяемся, что подняли свой.
+# Not port 8000: an API started by hand often sits there, and then the health check
+# answers about someone else's process. If it is taken, refuse rather than pretend.
 API_PORT="${API_PORT:-8123}"
 WEB_PORT="${WEB_PORT:-4500}"
 API="http://127.0.0.1:${API_PORT}"
 
-# Хранилище на время съёмки — чистое и локальное, а не общая демо-база. Иначе в инбокс
-# попадают осадки прошлых проб, и на кадре три лида, из которых два одинаковых: зритель
-# прочитает это как «система дублирует обращения». Файл возвращается на место всегда.
+# A clean local store for the shoot, not the shared demo database: leftovers from past
+# runs would put duplicate leads in the inbox. The file is always restored afterwards.
 STORE="$ROOT/data/store_offline.json"
 STORE_BACKUP="$(mktemp)"
 
 cleanup() {
-  # Убиваем дочерние процессы по имени, а не только обёртки-подоболочки: `kill $PID`
-  # снимает подоболочку, а node и uvicorn остаются держать порты. Тогда следующий прогон
-  # проверяет здоровье ЧУЖОГО процесса и снимает кадры с чужими данными — ровно так
-  # и появились прежние 08/09 с заглушкой под ярлыком «Live backend».
+  # Kill the child processes by name, not just the wrapping subshell: `kill $PID` takes
+  # down the subshell while node and uvicorn keep holding the ports, and the next run
+  # then health-checks someone else's process and shoots its data.
   [[ -n "${WEB_PID:-}" ]] && kill "$WEB_PID" 2>/dev/null || true
   pkill -f "next start -p ${WEB_PORT}" 2>/dev/null || true
   pkill -f "next-server" 2>/dev/null || true
-  # Убиваем именно наш uvicorn, а не только обёртку-подоболочку: иначе порт остаётся
-  # занятым, и следующий прогон проверит здоровье чужого процесса.
+  # Kill our uvicorn itself, or the port stays taken and the next run health-checks a
+  # different process.
   [[ -n "${API_PID:-}" ]] && kill "$API_PID" 2>/dev/null || true
   pkill -f "leadcentre.api" 2>/dev/null || true
   if [[ -f "$STORE_BACKUP" ]]; then
@@ -96,7 +93,7 @@ fi
 WEB_PID=$!
 for _ in $(seq 1 30); do curl -sf -o /dev/null "http://127.0.0.1:$WEB_PORT/" && break; sleep 1; done
 
-# Прибор обязан доказать, что дашборд говорит с НАШИМ API, а не с чужим и не с моком.
+# Prove the dashboard talks to our API rather than another one or the mock.
 PROXY=$(curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:$WEB_PORT/api/backend/leads")
 if [[ "$PROXY" != "200" ]]; then
   echo "ОТКАЗ: дашборд не достучался до API через прокси (HTTP $PROXY)."

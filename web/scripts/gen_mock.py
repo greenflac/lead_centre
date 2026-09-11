@@ -1,23 +1,12 @@
-"""Генератор mock-данных для дашборда: настоящие файлы репозитория → web/mock/*.json.
+"""Builds the dashboard's offline data set: repository files -> web/mock/*.json.
 
-Почему генератор, а не рукописный JSON: и приоритеты, и причины, и evidence, и
-черновики ответов должны быть теми же, что выдаст живой бэкенд. Поэтому скрипт
-импортирует настоящий движок — `leadcentre.engine.score.score_inbound`, `score.score`,
-`leadcentre.engine.reply.draft`, `leadcentre.sources.gleif.GleifAdapter` — и не
-воспроизводит ни одну из этих формул у себя.
+Priorities, reasons, evidence and draft replies come from the real engine, which this
+script imports rather than reimplements. The one thing it does itself is
+`extract_facts_offline()`, standing in for the LLM extraction so the mock builds with no
+network and no key; every card it produces carries `facts_source: "offline_heuristic"`.
 
-Что скрипт делает сам и почему это честно помечено:
-  * `extract_facts_offline()` — заменитель LLM-извлечения (`engine/extract.py` ходит в
-    Anthropic/Pollinations, а mock обязан собираться без сети и без ключа). Это
-    ЭВРИСТИКА ДЛЯ ДЕМО-ДАННЫХ, не движок: она отмечена в каждой карточке полем
-    `facts_source: "offline_heuristic"`, и дашборд показывает это в карточке.
-    Когда бэкенд поднимется, mock перестаёт использоваться (NEXT_PUBLIC_API_URL).
-
-Вход:  data/inbound_seed.csv (70 синтетических обращений),
-       data/gleif_ae_lapsed_sample.json (60 просрочек LEI, через GleifAdapter offline).
-Выход: web/mock/leads.json, web/mock/companies.json, web/mock/stats.json.
-
-Запуск: python3 web/scripts/gen_mock.py
+In:  data/inbound_seed.csv, data/gleif_ae_lapsed_sample.json
+Out: web/mock/leads.json, web/mock/companies.json, web/mock/stats.json
 """
 from __future__ import annotations
 
@@ -41,36 +30,30 @@ from leadcentre.engine.score import score, score_inbound
 from leadcentre.models import InboundMessage, Tier
 from leadcentre.sources.gleif import GleifAdapter
 
-# --- чем обслужен лид (README обещает это в карточке) ---
+# --- what served the lead ---
 #
-# В mock-режиме модель НЕ вызывается: факты даёт офлайн-эвристика rules_facts. Поэтому в
-# карточку идёт то, что действительно исполнилось: имя эвристики, её замеренное время
-# и нулевая стоимость. Отдельной строкой — решение маршрутизатора: какую модель выбрал бы
-# живой контур для этого текста. Решение настоящее, его принимает extract.route() по длине
-# обращения, до всякой сети, поэтому его можно показать честно и назвать «маршрут», а не
-# «обслужено».
+# No model is called here, so the card reports what actually ran: the heuristic, its
+# measured time and zero cost. The route is shown separately -- it is a real decision
+# extract.route() makes from the text length, before any network call.
 OFFLINE_MODEL = "rules_facts (offline heuristic)"
 
-# Язык интерфейса дашборда. Причины движка отрисовываются на нём (каталог
-# engine/reasons.py двуязычный), текст обращения и черновик — на языке клиента.
+# Dashboard interface language; the message and the draft stay in the client's.
 UI_LANGUAGE = Language.EN
 
-# ИЗМЕРЕНО, прогон набора на живом контуре, записан в README §«Measured»:
-# $0.0033 за обращение при холодном кэше; задержка извлечения — 35.1 с на 8 обращений.
-# Числа сюда попадают как справка «сколько стоит то же самое на модели», и в карточке
-# помечены как замер по набору, а не как замер этого обращения.
+# Measured on a live run of the set: $0.0033 per message on a cold cache, 35.1 s of
+# extraction for 8 messages. Shown as a set-wide figure, not as this message's.
 LIVE_COST_USD_PER_LEAD = 0.0033
 LIVE_LATENCY_S = 35.1 / 8
 
 SEED_CSV = REPO / "data" / "inbound_seed.csv"
 OUT_DIR = REPO / "web" / "mock"
 
-# «Сегодня» демо-данных. ВЫБРАНО: дата, на которую снят seed и выборка GLEIF — иначе
-# «время с получения» уедет и все обращения станут месячной давности.
+# The demo's "today": the date the seed and the GLEIF sample were taken, so that
+# "time since received" does not drift.
 TODAY = date(2026, 9, 9)
 NOW = datetime(2026, 9, 9, 18, 0, tzinfo=UTC)
 
-# --- эвристика извлечения (только для mock, см. докстринг) ---
+# --- extraction heuristic, mock only ---
 
 
 JURISDICTION_MARKERS = (
@@ -79,8 +62,8 @@ JURISDICTION_MARKERS = (
                   "шамс", "shams", "rakez", "saif")),
 )
 
-# Фразы срочности → срок в днях. ВЫБРАНО (автор, 2026-09-09) по формулировкам seed;
-# порог «горячего» срока живёт в rubric.URGENT_TIMELINE_DAYS, здесь только чтение текста.
+# Worded urgency -> days, chosen from the seed wording. The hot-window threshold lives
+# in rubric.URGENT_TIMELINE_DAYS; this table only reads text.
 TIMELINE_PHRASES: tuple[tuple[str, int], ...] = (
     ("срочно", 5),
     ("asap", 5),
@@ -114,8 +97,8 @@ HEADCOUNT_RE_TEAM = re.compile(r"(?:команд\w*|team)\D{0,12}(\d{1,3})", re.
 PHONE_RE = re.compile(r"\+?\d[\d\-\s()]{8,}\d")
 EMAIL_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
 
-# Уверенность извлечения. ВЫБРАНО: в mock нет модели, поэтому число выводится из того,
-# сколько фактов реально нашлось, и никогда не выдаётся за замер (поле facts_source).
+# Extraction confidence: with no model in the mock, the number follows from how many
+# facts were found and is never passed off as a measurement (see facts_source).
 CONF_BASE = 0.55
 CONF_PER_FACT = 0.09
 CONF_MAX = 0.93
@@ -128,7 +111,7 @@ def _sentences(text: str) -> list[str]:
 
 
 def _quote_for(text: str, marker: str) -> str | None:
-    """Цитата-доказательство: предложение, в котором нашёлся маркер."""
+    """Returns the sentence a marker was found in, which is the evidence quote."""
     low = text.lower()
     if marker not in low:
         return None
@@ -150,13 +133,12 @@ CATEGORY_BY_PREFIX = {
 
 
 
-# --- какая цитата доказывает какую причину (02_references.md §6.3) ---
+# --- which quote proves which reason ---
 #
-# Связь не выводится из формулировки причины руками: по каждой цитате прогоняется тот же
-# извлекатель rules_facts, что дал факты, и цитата признаётся доказательством, если из неё
-# самой следует тот же факт (никаких копий маркеров). Причины, у которых цитаты быть
-# не может (язык обращения, уверенность извлечения), получают пустой список: третий исход
-# «не цитируется» не сворачивается в «цитата не нашлась».
+# The link is not written by hand: every quote is run back through the same rules_facts
+# extractor, and counts as evidence only when the same fact follows from it alone. A
+# reason that cannot have a quote gets an empty list -- "not quotable" is its own
+# outcome, not a failed search.
 
 def _facts_of(fragment: str, received_on: date) -> object:
     return rules_facts(InboundMessage(
@@ -165,10 +147,10 @@ def _facts_of(fragment: str, received_on: date) -> object:
 
 
 def link_reasons(result, quotes, facts, received_on: date) -> list[dict]:
-    """Для каждой причины — индексы цитат, из которых она следует.
+    """Returns, per reason, the indices of the quotes it follows from.
 
-    Связь идёт по КОДУ причины (`Score.reason_items`), а не по началу её текста:
-    формулировки живут в `engine/reasons.py` и переписываются, а код — контракт.
+    Matched on the reason code, not its wording: the wording lives in engine/reasons.py
+    and gets rewritten, the code is the contract.
     """
     per_quote = [_facts_of(q, received_on) for q in quotes]
 
@@ -180,10 +162,9 @@ def link_reasons(result, quotes, facts, received_on: date) -> list[dict]:
         ReasonCode.URGENT_STATED: lambda f: f.urgency_stated,
         ReasonCode.PACKAGE_REQUEST: lambda f: bool(f.request_types),
         ReasonCode.TEAM_OVER_FLEXI_QUOTA: lambda f: f.headcount == facts.headcount,
-        # Цитата доказывает бюджет, только если из неё следует ТОТ ЖЕ бюджет. Просто
-        # «в цитате нашлось хоть что-то денежное» подсовывало под причину
-        # «budget named: 150 тысяч» предложение про оборот «около 4 млн AED» (edge-03):
-        # доказательство называло другое число, чем причина.
+        # A quote proves a budget only when the same amount follows from it. Accepting
+        # any money-looking quote once put a sentence about 4m AED turnover under a
+        # reason naming 150k -- the evidence stated a different number than the reason.
         ReasonCode.BUDGET_NAMED: lambda f: f.budget_hint == facts.budget_hint,
         ReasonCode.SPAM_OR_OFF_TOPIC: lambda f: f.is_spam,
     }
@@ -204,8 +185,8 @@ def build_leads() -> list[dict]:
         external_id = row["external_id"]
         text = row["text"]
         received_on = date.fromisoformat(row["received_at"])
-        # Время внутри суток — детерминированное, чтобы «2 ч назад» не прыгало между
-        # прогонами: минута выводится из позиции строки, а не из random.
+        # The time of day is derived from the row position, not random, so that
+        # "2 h ago" does not jump between runs.
         received_at = datetime(
             received_on.year, received_on.month, received_on.day,
             8 + (index * 7) % 11, (index * 17) % 60, tzinfo=UTC,
@@ -217,7 +198,7 @@ def build_leads() -> list[dict]:
             received_at=received_on,
             is_synthetic=row["is_synthetic"].strip().lower() == "true",
         )
-        # Общая с измерительным стендом эвристика: своя копия расходилась.
+        # Shared with the eval harness; a local copy drifted.
         started = time.perf_counter()
         facts = rules_facts(
             InboundMessage(
@@ -231,10 +212,8 @@ def build_leads() -> list[dict]:
         result = score_inbound(message, facts)
         drafted = reply_mod.draft(message, facts, result.tier, prices)
         chosen = extract_mod.route(message)
-        # Подпись маршрута берётся из каталога движка на языке интерфейса, а не собирается
-        # здесь: своя английская формулировка была вторым источником текста и разошлась
-        # бы с русской при первой же правке. `Route.reason` остаётся русской строкой для
-        # отчётов, но помнит свой код — из кода и отрисовывается английский.
+        # The route caption is rendered from the engine catalogue by code, so the English
+        # and Russian wordings cannot drift apart.
         route_reason = render_reason(chosen.reason_item, UI_LANGUAGE)
         quotes = [e.value for e in result.evidence if e.kind == "quote"]
         leads.append({
@@ -246,8 +225,8 @@ def build_leads() -> list[dict]:
             "received_at": received_at.isoformat().replace("+00:00", "Z"),
             "is_synthetic": message.is_synthetic,
             "tier": result.tier.value,
-            # Причины — на языке интерфейса. Текст обращения и черновик остаются на языке
-            # клиента: язык интерфейса и язык переписки — разные вещи.
+            # Reasons follow the interface language; the message and draft follow the
+            # client's.
             "reasons": list(result.reasons_in(UI_LANGUAGE)),
             "reason_links": link_reasons(result, quotes, facts, received_on),
             "evidence": [{"kind": e.kind, "value": e.value} for e in result.evidence],
@@ -265,8 +244,8 @@ def build_leads() -> list[dict]:
                 "confidence": facts.confidence,
             },
             "facts_source": "offline_heuristic",
-            # Чем обслужен лид: исполнилось — офлайн-эвристика; маршрут — настоящее
-            # решение extract.route() по длине текста.
+            # What ran is the offline heuristic; the route is extract.route()'s real
+            # decision on the text length.
             "serving": {
                 "provider": "offline",
                 "model": OFFLINE_MODEL,
@@ -369,7 +348,7 @@ def main() -> int:
                         encoding="utf-8")
         print(f"{path.relative_to(REPO)}: "
               f"{len(payload) if isinstance(payload, list) else 'object'}")
-    # Числами, а не флагом.
+    # Numbers, not a flag.
     print(f"leads: checked {len(leads)}, tiers {stats['leads']['by_tier']}, "
           f"violations {stats['leads']['violations']}")
     print(f"companies: checked {len(companies)}, tiers {stats['companies']['by_tier']}, "
