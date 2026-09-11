@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field
 from leadcentre.crm import CrmLead, get_sink
 from leadcentre.engine import lint as lint_module
 from leadcentre.engine import reply as reply_module
+from leadcentre.engine.evidence import reason_links_payload
 from leadcentre.engine.extract import (
     PROMPT_VERSION,
     ExtractionError,
@@ -28,7 +29,7 @@ from leadcentre.engine.extract import (
 )
 from leadcentre.engine.reasons import DEFAULT_LANGUAGE
 from leadcentre.engine.score import score, score_inbound
-from leadcentre.models import InboundMessage, Tier
+from leadcentre.models import InboundMessage, Tier, facts_from_dict
 from leadcentre.report import build as build_report
 from leadcentre.sources.gleif import GleifAdapter
 from leadcentre.store import (
@@ -184,8 +185,38 @@ def _card_payload(card: LeadCard) -> dict[str, Any]:
     """Converts a stored card into an API payload, re-rendering reasons in both languages."""
     payload = card.as_dict()
     if payload.get("score") is not None:
-        payload["score"] = {**payload["score"], **_reasons_block(card.reasons())}
+        restored = card.reasons()
+        payload["score"] = {**payload["score"], **_reasons_block(restored)}
+        links = _reason_links(
+            restored.items,
+            facts_from_dict(payload["lead"].get("facts") or {}),
+            payload["lead"].get("received_at"),
+        )
+        if links is not None:
+            payload["score"]["reason_links"] = links
     return payload
+
+
+def _optional(key: str, value: Any) -> dict[str, Any]:
+    """Keeps a key out of the payload when there is no answer, rather than sending a blank."""
+    return {} if value is None else {key: value}
+
+
+def _reason_links(items, facts, received_at: Any) -> list[dict[str, Any]] | None:
+    """Links each reason to the quotes proving it, or None when it could not be done.
+
+    Three outcomes, not two. A reason that cannot be quoted gets an empty list; a card
+    with no quotes or no usable date gets None, and the key is then left out entirely.
+    An empty list in its place would read as "every reason is unquoted", which is a
+    different statement -- and the dashboard renders the two differently.
+    """
+    if not items or not facts.quotes:
+        return None
+    try:
+        received_on = date.fromisoformat(str(received_at)[:10])
+    except (TypeError, ValueError):
+        return None
+    return reason_links_payload(tuple(items), facts.quotes, facts, received_on)
 
 
 def _facts_payload(facts) -> dict[str, Any]:
@@ -311,7 +342,10 @@ def handle_lead(payload: LeadIn, today: date | None = None) -> dict[str, Any]:
         "channel": payload.channel,
         "language": reply_payload["language"],
         "facts": _facts_payload(facts),
-        "score": _score_payload(inbound_score),
+        "score": _score_payload(inbound_score) | _optional(
+            "reason_links",
+            _reason_links(inbound_score.reason_items, facts, message.received_at),
+        ),
         "reply": reply_payload,
         "lint": {
             "status": lint_result.status,

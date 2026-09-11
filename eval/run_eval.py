@@ -25,7 +25,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from leadcentre.engine import extract as extract_mod
-from leadcentre.models import InboundMessage, LeadFacts, RequestType, Tier
+from leadcentre.models import InboundMessage, LeadFacts, Tier, facts_from_dict
 
 # A human labels a lead with one of three tiers; INVALID is an engine outcome, not a
 # human judgement, so it is not among them.
@@ -170,21 +170,6 @@ def facts_to_dict(facts: LeadFacts) -> dict:
         "confidence": facts.confidence,
         "quotes": list(facts.quotes),
     }
-
-
-def facts_from_dict(raw: dict) -> LeadFacts:
-    return LeadFacts(
-        request_types=tuple(RequestType(v) for v in raw.get("request_types", ())),
-        jurisdiction_hint=raw.get("jurisdiction_hint"),
-        headcount=raw.get("headcount"),
-        timeline_days=raw.get("timeline_days"),
-        budget_hint=raw.get("budget_hint"),
-        language=raw.get("language", "en"),
-        is_spam=bool(raw.get("is_spam")),
-        has_contact=bool(raw.get("has_contact")),
-        confidence=float(raw.get("confidence") or 0.0),
-        quotes=tuple(raw.get("quotes", ())),
-    )
 
 
 @dataclass

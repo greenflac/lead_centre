@@ -21,10 +21,11 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 
+from leadcentre.engine import evidence as evidence_mod
 from leadcentre.engine import extract as extract_mod
 from leadcentre.engine import reply as reply_mod
 from leadcentre.engine.facts_rules import rules_facts
-from leadcentre.engine.reasons import Language, ReasonCode
+from leadcentre.engine.reasons import Language
 from leadcentre.engine.reasons import render as render_reason
 from leadcentre.engine.score import score, score_inbound
 from leadcentre.models import InboundMessage, Tier
@@ -135,46 +136,17 @@ CATEGORY_BY_PREFIX = {
 
 # --- which quote proves which reason ---
 #
-# The link is not written by hand: every quote is run back through the same rules_facts
-# extractor, and counts as evidence only when the same fact follows from it alone. A
-# reason that cannot have a quote gets an empty list -- "not quotable" is its own
-# outcome, not a failed search.
-
-def _facts_of(fragment: str, received_on: date) -> object:
-    return rules_facts(InboundMessage(
-        external_id="quote", channel="form", text=fragment, received_at=received_on,
-    ))
-
+# The link itself lives in the engine (engine/evidence.py) so that the dashboard's offline
+# data and the live API answer cannot disagree about it. Only the rendering is here.
 
 def link_reasons(result, quotes, facts, received_on: date) -> list[dict]:
-    """Returns, per reason, the indices of the quotes it follows from.
-
-    Matched on the reason code, not its wording: the wording lives in engine/reasons.py
-    and gets rewritten, the code is the contract.
-    """
-    per_quote = [_facts_of(q, received_on) for q in quotes]
-
-    def pick(test) -> list[int]:
-        return [i for i, f in enumerate(per_quote) if test(f)]
-
-    by_code = {
-        ReasonCode.URGENT_TIMELINE: lambda f: f.timeline_days == facts.timeline_days,
-        ReasonCode.URGENT_STATED: lambda f: f.urgency_stated,
-        ReasonCode.PACKAGE_REQUEST: lambda f: bool(f.request_types),
-        ReasonCode.TEAM_OVER_FLEXI_QUOTA: lambda f: f.headcount == facts.headcount,
-        # A quote proves a budget only when the same amount follows from it. Accepting
-        # any money-looking quote once put a sentence about 4m AED turnover under a
-        # reason naming 150k -- the evidence stated a different number than the reason.
-        ReasonCode.BUDGET_NAMED: lambda f: f.budget_hint == facts.budget_hint,
-        ReasonCode.SPAM_OR_OFF_TOPIC: lambda f: f.is_spam,
-    }
-    linked: list[dict] = []
+    """Returns, per reason, its text in the interface language plus its quote indices."""
+    links = evidence_mod.link_reasons(result.reason_items, quotes, facts, received_on)
     texts = result.reasons_in(UI_LANGUAGE)
-    for item, text in zip(result.reason_items, texts, strict=True):
-        test = by_code.get(item.code)
-        linked.append({"text": text, "code": item.code.value,
-                       "quotes": pick(test) if test else []})
-    return linked
+    return [
+        {"text": text, "code": code, "quotes": list(indices)}
+        for text, (code, indices) in zip(texts, links, strict=True)
+    ]
 
 
 def build_leads() -> list[dict]:
