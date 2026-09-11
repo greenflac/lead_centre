@@ -11,7 +11,7 @@
     кэшируются в `data/extract_cache.json` по хэшу текста, так что повторный прогон
     денег не стоит.
 
-Что стенд НЕ измеряет: качество на реальном потоке SORP. Разметка — синтетика, движок
+Что стенд НЕ измеряет: качество на реальном потоке обращений. Разметка — синтетика, движок
 и разметка сделаны в одном доме, поэтому каппа здесь называется «согласие с разметкой
 автора на синтетике», а не «точность». Подробности — в eval/README.md.
 """
@@ -58,9 +58,6 @@ EXIT_UNMEASURABLE = 2  # не смогли проверить: мерить бы
 
 class CannotMeasure(RuntimeError):
     """Третий исход на одном обращении: приоритет получить не смогли."""
-
-
-# --- вход ---
 
 
 def load_messages(path: Path) -> list[InboundMessage]:
@@ -150,9 +147,6 @@ def call_scorer(fn, facts: LeadFacts, message: InboundMessage) -> Tier:
     if not isinstance(tier, Tier):
         raise CannotMeasure(f"скоринг вернул не Tier, а {type(tier).__name__}")
     return tier
-
-
-# --- кэш ответов модели ---
 
 
 def cache_key(message: InboundMessage) -> str:
@@ -307,9 +301,6 @@ def print_confusion(matrix: dict[tuple[str, str], int]) -> None:
     print(f"{'сумма':<20}" + "".join(f"{v:>9}" for v in totals) + f"{sum(totals):>9}")
 
 
-# --- блоки измерения ---
-
-
 @dataclass
 class Block:
     """Итог блока числами и одним из трёх исходов."""
@@ -444,9 +435,6 @@ def measure_controls(engine: Engine, messages: dict[str, InboundMessage], path: 
     else:
         block.verdict = "не годно"
     return block
-
-
-# --- прогон ---
 
 
 def run(argv: list[str] | None = None) -> int:

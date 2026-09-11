@@ -1,7 +1,8 @@
-# SORP Lead Centre — dashboard
+# Lead Centre — dashboard
 
-Next.js (App Router) front end for the Lead Centre engine. It runs against the Python
-backend, or entirely on generated demo data with no backend at all.
+Next.js (App Router) front end for the Lead Centre engine — inbound-request triage for an
+international consultancy in Dubai. It runs against the Python backend, or entirely on
+generated demo data with no backend at all.
 
 | Tab | What it is |
 |---|---|
@@ -106,12 +107,12 @@ cd web && npm run build && npm start                      # terminal 2
 
 ## Honest labels
 
-* Every request card carries a **synthetic data** tag: the seed is invented, SORP has no
-  exported request log yet.
+* Every request card carries a **synthetic data** tag: the seed is invented — the
+  consultancy has no exported request log yet.
 * Registry rows carry **public registry record** instead — they are real GLEIF entries from a
   cached sample; the priority and the reason are ours, the fields are the registry's.
 * Prices in draft replies are ranges from the demo price list, marked as such. They are not
-  SORP's prices.
+  the consultancy's real prices.
 * Arabic drafts have not been read by a native speaker, and the card says so — in English,
   because that notice is for the manager, not for the customer.
 

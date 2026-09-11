@@ -2,7 +2,49 @@
 
 import type { Evidence, Tier } from "../lib/types";
 
-export function TierChip({ tier }: { tier: Tier }) {
+interface TierChipProps {
+  tier: Tier;
+}
+
+interface SyntheticTagProps {
+  what?: string;
+  title?: string;
+}
+
+interface ChipProps {
+  children: React.ReactNode;
+  title?: string;
+}
+
+interface ErrorNoticeProps {
+  title: string;
+  message: string;
+  detail?: string;
+  onRetry?: () => void;
+}
+
+interface EmptyStateProps {
+  title: string;
+  hint?: string;
+  action?: React.ReactNode;
+}
+
+interface LoadingRowsProps {
+  rows?: number;
+}
+
+interface EvidenceListProps {
+  items: Evidence[];
+}
+
+interface ConfidenceBandProps {
+  value: number;
+}
+
+export type ConfidenceLevel = "High" | "Medium" | "Low";
+
+/** Priority as a chip. INVALID reads "not scored": a third outcome, not a low tier. */
+export function TierChip({ tier }: TierChipProps): React.JSX.Element {
   const label = tier === "INVALID" ? "not scored" : tier;
   return (
     <span
@@ -17,11 +59,8 @@ export function TierChip({ tier }: { tier: Tier }) {
 /** Honest provenance label. Invented data and real public records are never shown alike. */
 export function SyntheticTag({
   what = "synthetic",
-  title = "Invented demo data. Not a real SORP request or customer record.",
-}: {
-  what?: string;
-  title?: string;
-}) {
+  title = "Invented demo data. Not a real request or customer record.",
+}: SyntheticTagProps): React.JSX.Element {
   return (
     <span className="chip chip-plain" title={title}>
       {what}
@@ -29,7 +68,7 @@ export function SyntheticTag({
   );
 }
 
-export function Chip({ children, title }: { children: React.ReactNode; title?: string }) {
+export function Chip({ children, title }: ChipProps): React.JSX.Element {
   return (
     <span className="chip chip-plain" title={title}>
       {children}
@@ -37,24 +76,18 @@ export function Chip({ children, title }: { children: React.ReactNode; title?: s
   );
 }
 
+/** A failure the reader can act on: what broke, the raw answer folded away, a retry. */
 export function ErrorNotice({
   title,
   message,
   detail,
   onRetry,
-}: {
-  title: string;
-  message: string;
-  detail?: string;
-  onRetry?: () => void;
-}) {
+}: ErrorNoticeProps): React.JSX.Element {
   return (
     <div className="notice notice-error">
       <div className="notice-title">{title}</div>
       <div>{message}</div>
-      {/* Сырой ответ провайдера — под раскрытием, а не в основном потоке: человеческая
-          строка выше уже всё сказала, а дословный JSON на экране показывает постороннему
-          и имя модели, и состояние нашего счёта. Не выброшен: без него нечем чинить. */}
+      {/* Why folded: raw JSON on screen shows a bystander the model name and our account state. */}
       {detail ? (
         <details className="details details-inline notice-details">
           <summary className="details-summary">Technical detail</summary>
@@ -72,19 +105,8 @@ export function ErrorNotice({
   );
 }
 
-/**
- * Empty states answer three questions: what this is, why it is separate, what to do next
- * (02_references.md §4). A dead end behind a clickable filter reads as a prototype.
- */
-export function EmptyState({
-  title,
-  hint,
-  action,
-}: {
-  title: string;
-  hint?: string;
-  action?: React.ReactNode;
-}) {
+/** Empty states say what this is, why it is separate and what to do next. */
+export function EmptyState({ title, hint, action }: EmptyStateProps): React.JSX.Element {
   return (
     <div className="empty-state">
       <div className="empty-state-title">{title}</div>
@@ -94,7 +116,7 @@ export function EmptyState({
   );
 }
 
-export function LoadingRows({ rows = 6 }: { rows?: number }) {
+export function LoadingRows({ rows = 6 }: LoadingRowsProps): React.JSX.Element {
   return (
     <div aria-busy="true" aria-label="Loading">
       {Array.from({ length: rows }, (_, index) => (
@@ -104,7 +126,8 @@ export function LoadingRows({ rows = 6 }: { rows?: number }) {
   );
 }
 
-export function EvidenceList({ items }: { items: Evidence[] }) {
+/** Quotes a score rests on. An empty list says so instead of rendering nothing. */
+export function EvidenceList({ items }: EvidenceListProps): React.JSX.Element {
   if (!items.length) {
     return <div className="note">No evidence attached — the engine cannot raise this to HIGH.</div>;
   }
@@ -125,22 +148,17 @@ export function EvidenceList({ items }: { items: Evidence[] }) {
   );
 }
 
-/**
- * Extraction confidence as a band, not as a decimal (02_references.md §6.5). A reader has
- * no scale for "0.87", and "1.00" asks for faith. Thresholds ВЫБРАНО (author, 2026-09-10):
- * the offline heuristic reports 1.00 ("markers matched") or 0.00 ("nothing matched"), and
- * the LLM extractor returns its own number in between; 0.85 and 0.5 split it into three.
- */
+/** Band boundaries. CHOSEN: a reader has no scale for "0.87", so three bands carry it. */
 export const CONFIDENCE_HIGH = 0.85;
 export const CONFIDENCE_MEDIUM = 0.5;
 
-export function confidenceLevel(value: number): "High" | "Medium" | "Low" {
+export function confidenceLevel(value: number): ConfidenceLevel {
   if (value >= CONFIDENCE_HIGH) return "High";
   if (value >= CONFIDENCE_MEDIUM) return "Medium";
   return "Low";
 }
 
-export function ConfidenceBand({ value }: { value: number }) {
+export function ConfidenceBand({ value }: ConfidenceBandProps): React.JSX.Element {
   const level = confidenceLevel(value);
   const lit = level === "High" ? 3 : level === "Medium" ? 2 : 1;
   return (
@@ -156,12 +174,7 @@ export function ConfidenceBand({ value }: { value: number }) {
   );
 }
 
-/**
- * Direction of a block of customer text, by the first strongly-directional character —
- * the same rule the browser applies for dir="auto".
- * The attribute stays "auto" so the browser decides the layout; this only picks the type
- * size, because Naskh at the Latin size reads noticeably smaller (§3.2).
- */
+/** Direction by the first strongly-directional character, as dir="auto" does. Picks type size only. */
 export function isRtlText(text: string): boolean {
   for (const ch of text) {
     if ((ch >= "\u0600" && ch <= "\u06ff") || (ch >= "\u0750" && ch <= "\u077f") ||
@@ -172,7 +185,7 @@ export function isRtlText(text: string): boolean {
   return false;
 }
 
-/** "3 h ago" — relative to a fixed clock so the demo data does not read as months old. */
+/** "3 h ago", relative to a passed-in clock rather than to the wall clock. */
 export function timeAgo(iso: string, now: Date): string {
   const minutes = Math.max(0, Math.round((now.getTime() - new Date(iso).getTime()) / 60000));
   if (minutes < 1) return "just now";
@@ -183,6 +196,7 @@ export function timeAgo(iso: string, now: Date): string {
   return days === 1 ? "1 day ago" : `${days} days ago`;
 }
 
+/** Channel codes as the manager reads them; an unknown code is shown raw. */
 export const CHANNEL_LABEL: Record<string, string> = {
   jivo: "Jivo chat",
   whatsapp: "WhatsApp",

@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { apiBase, getCompanies, getLeads, getStats, isMock } from "../lib/api";
-import { ApiError, type Company, type Lead, type Stats } from "../lib/types";
 import DiscoveredView from "../components/DiscoveredView";
 import InboxView from "../components/InboxView";
 import NewLeadView from "../components/NewLeadView";
+import { apiBase, getCompanies, getLeads, getStats, isMock } from "../lib/api";
+import { ApiError, type Company, type Lead, type Stats } from "../lib/types";
 
 type TabKey = "inbox" | "new" | "discovered";
 
@@ -15,11 +15,13 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "discovered", label: "Discovered" },
 ];
 
+/** Anything thrown by the API layer, narrowed to the type the UI knows how to explain. */
 function toApiError(caught: unknown): ApiError {
   return caught instanceof ApiError ? caught : new ApiError("unknown", String(caught));
 }
 
-export default function Page() {
+/** The whole dashboard: the three counters, the tab bar and the active tab. */
+export default function Page(): React.JSX.Element {
   const [tab, setTab] = useState<TabKey>("inbox");
   const [leads, setLeads] = useState<Lead[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -106,7 +108,7 @@ export default function Page() {
     <>
       <header className="topbar">
         <div className="topbar-inner">
-          <span className="brand-name">SORP Lead Centre</span>
+          <span className="brand-name">Lead Centre</span>
           <span className="brand-sub">inbound triage &amp; registry watchlist</span>
         </div>
       </header>
@@ -131,7 +133,7 @@ export default function Page() {
                   <div>
                     {companies.length} real registry records — <code>{stats?.companies.source ?? "gleif"}</code>
                   </div>
-                  <div>price ranges come from a demo price list, not SORP&apos;s</div>
+                  <div>price ranges come from a demo price list, not a real one</div>
                   <div>facts come from an offline heuristic — no model is called in this mode</div>
                 </div>
               </details>
@@ -148,8 +150,8 @@ export default function Page() {
       </div>
 
       <main className="shell">
-        {/* Три числа, а не пять равновесных плиток (02_references.md §6.1). Watchlist уехал
-            во вкладку Discovered, где он и живёт; режим данных — в полосу выше. */}
+        {/* Три числа, а не пять равновесных плиток (02_references.md §6.1): watchlist
+            живёт во вкладке Discovered, режим данных — в полосе выше. */}
         <div className="stats">
           <div className="stat">
             <div className="stat-label">Requests scored</div>
@@ -177,9 +179,7 @@ export default function Page() {
               <span className="stat-sub">
                 {" "}
                 ·{" "}
-                {/* Три исхода сохранены дословно: «не смогли узнать» не сворачивается
-                    в «ноль». Изменены только слова — имя эндпоинта и «нарушения
-                    инварианта» менеджер не читает. */}
+                {/* Третий исход: «не смогли узнать» не сворачивается в «ноль». */}
                 {statsFailed
                   ? "could not read how many failed the engine's own checks"
                   : `${stats?.leads.violations ?? 0} failed the engine's own checks`}

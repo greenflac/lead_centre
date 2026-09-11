@@ -159,8 +159,6 @@ class RouteReasonCode(str, Enum):
     OFFLINE_NO_CALL = "offline_no_call"
 
 
-# --- числительные -----------------------------------------------------------------
-
 #: Префикс спецификатора формата, включающий согласование числа с существительным:
 #: `{days:plural:day}` -> «14 дней» / «14 days».
 PLURAL_SPEC = "plural:"
@@ -273,9 +271,6 @@ def _plural_nouns(template: str) -> frozenset[str]:
         for _, name, spec, _ in string.Formatter().parse(template)
         if name and spec and spec.startswith(PLURAL_SPEC)
     )
-
-
-# --- каталог ----------------------------------------------------------------------
 
 
 @dataclass(frozen=True)
@@ -498,8 +493,6 @@ CATALOGUE: dict[ReasonCode, ReasonSpec] = {
     ),
 }
 
-
-# --- нарушения инвариантов --------------------------------------------------------
 
 VIOLATION_CATALOGUE: dict[ViolationCode, ReasonSpec] = {
     ViolationCode.HIGH_WITHOUT_EVIDENCE: ReasonSpec(
@@ -737,9 +730,6 @@ def violation(code: ViolationCode, **params: object) -> Violation:
 def route_reason(code: RouteReasonCode, **params: object) -> RouteReason:
     """Собрать причину маршрута: `route_reason(..., length=1332, limit=600)`."""
     return RouteReason(code, _params(params))
-
-
-# --- отрисовка --------------------------------------------------------------------
 
 
 def render(item: Phrase, language: Language = DEFAULT_LANGUAGE) -> str:

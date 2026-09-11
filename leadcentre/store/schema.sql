@@ -1,4 +1,4 @@
--- SORP Lead Centre — схема хранилища (Supabase / Postgres).
+-- Lead Centre — схема хранилища (Supabase / Postgres).
 --
 -- НАКАЧЕНО: 2026-09-09 `lead_centre_initial_schema`, 2026-09-10 `scores_reason_items`
 -- (колонка причин-кодов) — обе через MCP-сервер Supabase. Идентификатор проекта здесь
@@ -30,7 +30,7 @@
 
 create extension if not exists pgcrypto;
 
--- Обращения из каналов SORP и из внешних источников.
+-- Обращения из клиентских каналов и из внешних источников.
 create table if not exists public.leads (
     id           uuid primary key default gen_random_uuid(),
     source       text        not null,   -- form | whatsapp | telegram | jivo | csv | api

@@ -74,7 +74,7 @@ OUTCOME_REJECTED = "rejected"
 OUTCOME_UNAVAILABLE = "unavailable"
 
 app = FastAPI(
-    title="SORP Lead Centre",
+    title="Lead Centre",
     version="0.1.0",
     description="Квалификация входящих обращений и компаний из внешних реестров",
 )
@@ -86,6 +86,11 @@ _sink = None
 
 
 def store():
+    """Хранилище процесса; создаётся при первом обращении.
+
+    Returns:
+        Реализацию `Store`, выбранную `get_store()` по среде.
+    """
     global _store
     if _store is None:
         _store = get_store()
@@ -93,16 +98,20 @@ def store():
 
 
 def sink():
+    """Приёмник CRM процесса; создаётся при первом обращении.
+
+    Returns:
+        Реализацию `CrmSink`, выбранную `get_sink()` по среде.
+    """
     global _sink
     if _sink is None:
         _sink = get_sink()
     return _sink
 
 
-# --- модели запросов ---
-
-
 class LeadIn(BaseModel):
+    """Тело `POST /leads`: одно входящее обращение как пришло из канала."""
+
     text: str = Field(..., description="Текст обращения как пришёл из канала")
     channel: str = Field("form", description="jivo | whatsapp | telegram | form")
     source: str | None = Field(None, description="Откуда пришло; по умолчанию = channel")
@@ -113,11 +122,15 @@ class LeadIn(BaseModel):
 
 
 class DisagreeIn(BaseModel):
+    """Тело `POST /leads/{id}/disagree`: почему менеджер не согласен с оценкой."""
+
     reason: str = Field(..., min_length=1, description="Почему оценка неверна — вход для eval")
     author: str = ""
 
 
 class DiscoverIn(BaseModel):
+    """Тело `POST /discover/run`: режим обхода реестра и размер страницы."""
+
     mode: str = Field("lapsed", description="lapsed | fresh")
     limit: int = Field(DEFAULT_DISCOVER_LIMIT, ge=1, le=MAX_DISCOVER_LIMIT)
 
@@ -481,11 +494,13 @@ def handle_stats() -> dict[str, Any]:
     return {**base, "outcome": OUTCOME_OK, **counters}
 
 
-# --- обработчики ---
-
-
 @app.get("/health")
 def health() -> dict[str, Any]:
+    """Живость сервиса и его зависимостей.
+
+    Returns:
+        Исход хранилища, режим сети (`offline`) и имя приёмника CRM.
+    """
     health = store().health()
     return {
         "outcome": health.outcome,
@@ -498,6 +513,7 @@ def health() -> dict[str, Any]:
 
 @app.post("/leads")
 def post_lead(payload: LeadIn) -> dict[str, Any]:
+    """Принимает обращение и возвращает карточку; вся работа — в `handle_lead`."""
     return handle_lead(payload)
 
 
@@ -516,6 +532,14 @@ def get_leads(limit: int = DEFAULT_LIST_LIMIT) -> dict[str, Any]:
 
 @app.get("/leads/{lead_id}", response_model=None)
 def get_lead(lead_id: str) -> JSONResponse | dict[str, Any]:
+    """Одна карточка по идентификатору.
+
+    Args:
+        lead_id: Идентификатор обращения, выданный при записи.
+
+    Returns:
+        Карточку с исходом `ok` либо 404 с исходом `rejected`, если её нет.
+    """
     card = store().get_card(lead_id)
     if card is None:
         return JSONResponse(
@@ -600,11 +624,20 @@ def disagree(lead_id: str, payload: DisagreeIn) -> JSONResponse | dict[str, Any]
 
 @app.post("/discover/run")
 def discover_run(payload: DiscoverIn | None = None) -> dict[str, Any]:
+    """Запускает обход реестра; вся работа — в `handle_discover`."""
     return handle_discover(payload or DiscoverIn())
 
 
 @app.get("/companies")
 def companies(limit: int = DEFAULT_LIST_LIMIT) -> dict[str, Any]:
+    """Компании, найденные обходом реестра.
+
+    Args:
+        limit: Сколько строк вернуть.
+
+    Returns:
+        Список компаний либо исход `unavailable`, если хранилище не ответило.
+    """
     try:
         rows = store().list_companies(limit)
     except StoreError as exc:
@@ -614,6 +647,7 @@ def companies(limit: int = DEFAULT_LIST_LIMIT) -> dict[str, Any]:
 
 @app.get("/stats")
 def stats() -> dict[str, Any]:
+    """Счётчики прогона: проверено, нарушений, не смогли; работа — в `handle_stats`."""
     return handle_stats()
 
 

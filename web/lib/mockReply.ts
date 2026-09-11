@@ -1,14 +1,6 @@
-// Draft replies for requests typed into the demo form, mock mode only.
-//
-// Mirrors leadcentre/engine/reply.py and the ranges of
-// data/pricelist_demo.yaml in TypeScript. Same reason as mockEngine.ts: the browser cannot
-// run the Python drafter with no backend attached. With NEXT_PUBLIC_API_URL set, the live
-// adapter returns the Python draft and this file is never called.
-// The numbers below are a DEMO price list, not SORP's price list.
-// Re-synced 2026-09-10 against reply.py: renewal_year, the "Ориентир по рынку:" price line,
-// the closer that asks only about facts we do NOT have, the two-range cap, and the Arabic
-// outcome (the browser has no model, so ar ends in no_draft_needs_human — the same third
-// outcome the Python drafter produces when the model is unavailable).
+// Draft replies for the demo form, mock mode only: a port of leadcentre/engine/reply.py
+// and the ranges of data/pricelist_demo.yaml. The numbers are a DEMO price list.
+// Why a second copy exists: the browser cannot run the Python drafter with no backend.
 
 import type { LeadFacts, Reply } from "./types";
 
@@ -98,30 +90,27 @@ const QUESTIONS = {
   ],
 };
 
-// Неразрывные пробелы внутри суммы и между валютой и числом — как в reply.py: обычный
-// пробел даёт перенос строки посреди диапазона, и «AED» уезжает от своей суммы
-// (ИЗМЕРЕНО глазами на арабской карточке 02d, снимок от 2026-09-10).
+// Why NBSP: a plain space lets a line break fall between "AED" and its own figure.
 const NBSP = "\u00a0";
 
+/** Thousands separated by NBSP, so a sum never breaks across lines. */
 function amount(value: number): string {
   return value.toLocaleString("en-US").replace(/,/g, NBSP);
 }
 
-// Изоляты направления вокруг латинско-цифровой вставки (reply.ltr_run): без них сумма
-// внутри арабской строки визуально распадается. В ru/en они невидимы — одна ветка на все
-// языки, как в Python.
+// Why isolates: without them a Latin-and-digit sum falls apart inside an Arabic line.
 const LRI = "\u2066";
 const PDI = "\u2069";
 
-// Склейка слов вокруг тире диапазона (reply.price_fragment): после тире браузер тоже
-// имеет право перенести строку, и в узкой колонке «AED 15 000–» оставалось наверху,
-// а «35 000» уезжало вниз. Диапазон, разорванный пополам, читается как одна цена.
+// Why a word joiner: a browser may break after the dash, and half a range reads as one price.
 const WORD_JOINER = "\u2060";
 
+/** One price range, held together as a single unbreakable, direction-isolated run. */
 function priceFragment(item: PriceItem): string {
   return `${LRI}AED${NBSP}${amount(item.min)}${WORD_JOINER}–${WORD_JOINER}${amount(item.max)}${PDI}`;
 }
 
+/** A whole price line: what it is, the range, and the unit it is priced in. */
 function priceLine(key: string, language: "ru" | "en"): string {
   const item = PRICES[key];
   const label = language === "ru" ? item.label_ru : item.label_en;
@@ -131,9 +120,7 @@ function priceLine(key: string, language: "ru" | "en"): string {
     : `Market range: ${label} — ${priceFragment(item)} ${unit}.`;
 }
 
-// Порт reply.CLOSER_QUESTION_ORDER / FACT_IS_KNOWN / GROUNDING: последняя строка
-// спрашивает только про то, чего в фактах НЕТ. Спросить про уже сказанное — показать
-// клиенту, что обращение не прочитали.
+// Why: the closing line asks only about facts we do NOT have; asking twice reads as unread.
 const CLOSER_QUESTION_ORDER = ["headcount", "timeline_days", "jurisdiction_hint", "has_contact"] as const;
 
 const FACT_IS_KNOWN: Record<string, (f: LeadFacts) => boolean> = {
@@ -173,6 +160,7 @@ const GROUNDED_MEETING_TAIL = {
 };
 const GROUNDING_JOINER = { ru: " и ", en: " and " };
 
+/** A meeting offer that repeats back what the customer already told us, at most two facts. */
 function groundedMeeting(facts: LeadFacts, language: "ru" | "en"): string {
   const parts: string[] = [];
   for (const key of CLOSER_QUESTION_ORDER) {
@@ -187,6 +175,7 @@ function groundedMeeting(facts: LeadFacts, language: "ru" | "en"): string {
   return `${lead[0].toUpperCase()}${lead.slice(1)} — ${GROUNDED_MEETING_TAIL[language]}`;
 }
 
+/** The last line: urgent hand-off, the first fact we lack, or a meeting grounded in facts. */
 function closer(facts: LeadFacts, language: "ru" | "en"): string {
   if (facts.timeline_days !== null && facts.timeline_days <= URGENT_TIMELINE_DAYS) {
     return CLOSER_URGENT[language];
@@ -217,14 +206,12 @@ function pickPriceKeys(facts: LeadFacts): string[] {
   return keys.slice(0, 2);
 }
 
-/** Порт reply.DOMINANT_SCRIPT_SHARE. Значение живёт в Python, здесь — копия под сверкой. */
+/** Mirrors reply.DOMINANT_SCRIPT_SHARE; the value lives in Python, this copy is cross-checked. */
 const DOMINANT_SCRIPT_SHARE = 0.8;
 
 /**
- * Port of reply.detect_script_language: язык называет ПРЕОБЛАДАЮЩАЯ письменность.
- * Три исхода: язык назван; письменности нет вовсе (латиница); письменности две и ни одна
- * не преобладает — тогда решает флаг. Одна вежливая фраза на чужом языке в конце длинного
- * письма языка разговора не меняет.
+ * Language named by the DOMINANT script, with three outcomes: named; no script at all; two
+ * scripts and neither dominant, where the facts decide. One polite foreign phrase changes nothing.
  */
 function scriptLanguage(text: string): "ar" | "ru" | null {
   let ar = 0;
@@ -240,6 +227,11 @@ function scriptLanguage(text: string): "ar" | "ru" | null {
   return best / total >= DOMINANT_SCRIPT_SHARE ? language : null;
 }
 
+/**
+ * Port of reply.draft. Four outcomes, never two: a drafted reply, questions instead of
+ * invented numbers, spam skipped, and "no draft, a human takes this" — the last one is what
+ * Arabic gets here, because the model that writes it is not in the browser.
+ */
 export function draftReply(facts: LeadFacts, tier: string, text = ""): Reply {
   const byScript = scriptLanguage(text);
   const resolved = byScript ?? (facts.language === "ru" ? "ru" : "en");
@@ -248,15 +240,13 @@ export function draftReply(facts: LeadFacts, tier: string, text = ""): Reply {
     return { body: "", language: resolved, outcome: "spam_skipped", needs_human: false, used_prices: [] };
   }
 
-  // Порт _needs_human: горячие, срочные и те, кого не смогли оценить.
+  // Hot, urgent, and the ones that could not be scored all go to a human.
   const needsHuman =
     tier === "HIGH" ||
     tier === "INVALID" ||
     (facts.timeline_days !== null && facts.timeline_days <= URGENT_TIMELINE_DAYS);
 
-  // Арабский пишет модель, а не наш шаблон (reply.py: шаблон не носителя читается как
-  // неуважение). Модели в браузере нет, поэтому исход — NO_DRAFT и человек, а не тихая
-  // подмена языка на английский.
+  // Why no Arabic draft: only the model writes it, and there is no model in the browser.
   if (resolved === "ar") {
     return {
       body: "",
@@ -264,9 +254,6 @@ export function draftReply(facts: LeadFacts, tier: string, text = ""): Reply {
       outcome: "no_draft_needs_human",
       needs_human: true,
       used_prices: [],
-      // Служебный текст английского интерфейса — по-английски. Русская пометка на
-      // английской карточке читается как недоделка; движок по той же причине перевёл
-      // NATIVE_REVIEW_NOTICE.
       notice:
         "The Arabic draft is written by the model inside limits set by the code, and a native " +
         "speaker must read it before sending. In demo mode there is no backend and no model, " +
@@ -303,7 +290,7 @@ export function draftReply(facts: LeadFacts, tier: string, text = ""): Reply {
   lines.push(...keys.map((key) => priceLine(key, language)));
   lines.push(DISCLAIMER[language]);
   lines.push(closer(facts, language));
-  // 4-6 строк: режем середину, а не концовку.
+  // 4-6 lines: the middle is dropped, never the closing line.
   while (lines.length > 6) lines.splice(2, 1);
 
   const skipped = facts.request_types.filter((request) => !SUBSTANCE[request]);
@@ -313,7 +300,6 @@ export function draftReply(facts: LeadFacts, tier: string, text = ""): Reply {
     outcome: "draft",
     needs_human: needsHuman || skipped.length > 0,
     used_prices: keys,
-    // То же самое: пометка адресована менеджеру, читающему английский экран.
     notice: skipped.length
       ? `not covered by the draft — request types with no template: ${skipped.join(", ")}`
       : "",

@@ -1,10 +1,8 @@
-"""Детерминированное извлечение фактов из текста — без модели.
+"""Deterministic fact extraction from text, without a model.
 
-Единственная реализация режима `rules`: ею меряют движок в eval и ею же наполняется
-демонстрационный набор дашборда, поэтому замер и демонстрация не могут разойтись.
-
-confidence здесь означает «нашлись ли маркеры», а не уверенность модели.
-Настоящее извлечение — engine/extract.py.
+The only implementation of `rules` mode, shared by the eval harness and the demo set.
+Here `confidence` means "markers matched", not a model probability; the model-backed
+path is engine/extract.py.
 """
 from __future__ import annotations
 
@@ -13,8 +11,6 @@ from datetime import date
 
 from leadcentre.engine import extract as extract_mod
 from leadcentre.models import InboundMessage, LeadFacts, RequestType
-
-# --- факты без модели: режим rules ---
 
 SPAM_MARKERS = (
     "seo agency", "rank your website", "ищу работу", "резюме вышлю", "cv attached",
@@ -42,14 +38,13 @@ TYPE_MARKERS: dict[RequestType, tuple[str, ...]] = {
         "отчётност", "отчетност",
     ),
     RequestType.RENEWAL: (
-        # Основы, а не целые слова: «продлева» покрывает продлеваем/продлеваете/продлевает,
-        # «renew» — renewal/renewing/renewals. «истёк» пишут и через ё, и через е,
-        # поэтому нужны обе формы.
+        # Why stems, not whole words: one stem covers every inflected form; «истёк» is
+        # written with both ё and е.
         "продлен", "продли", "продлева", "renew", "истекает", "истекл", "истёк", "истек",
         "заканчивается", "expires", "expiry", "expiring", "ежегодн", "annual fee",
     ),
     RequestType.BANK: (
-        # Счёт часто открывают, не называя банк, — нужны маркеры на само действие.
+        # Why action markers too: an account is often opened without naming a bank.
         "банк", "bank", "счёт в банке", "счет в банке", "открыть счёт", "открыть счет",
         "открытие счёта", "открытие счета", "open an account", "current account",
         "платёжный шлюз", "payment gateway",
@@ -61,10 +56,9 @@ BUDGET_MARKERS = (
     "approved",
 )
 
-# Детерминированный извлекатель нашёл литерал, а не предположил, поэтому уверенность
-# вырожденная. Это не вероятность модели: в режиме llm confidence приходит из её ответа.
+# Why degenerate: a literal was found or it was not; this is not a model probability.
 RULES_CONFIDENCE_MATCHED = 1.0
-RULES_CONFIDENCE_EMPTY = 0.0   # ничего не нашли — честный ноль, а не догадка
+RULES_CONFIDENCE_EMPTY = 0.0
 
 
 MONTHS = {
@@ -74,37 +68,29 @@ MONTHS = {
     "september": 9, "october": 10, "november": 11, "december": 12, "nov": 11, "dec": 12,
 }
 
-# Предлог необязателен: «срок - 3 недели» и «нужно за 10 дней» — такой же названный
-# клиентом срок, как «через 3 недели». Раньше предлог требовался, и обращение urg-06
-# из data/inbound_seed.csv теряло срок целиком (ИЗМЕРЕНО 2026-09-11: 1 обращение из 70).
-# «день» в списке единиц отдельно: основа «дн» покрывает дня/дней/дн., но не
-# именительный падеж — «срок - 1 день» не извлекался и с предлогом (тот же класс
-# дефекта, найден тестом на краю диапазона).
+# Why the preposition is optional: "срок - 3 недели" states a deadline just as
+# "через 3 недели" does. «день» is listed separately because the stem «дн» misses it.
 NUM_DAYS_RE = re.compile(
     r"(?:(?:через|in|within)\s+)?(\d+)\s*(?:дн|дней|день|day|days)", re.IGNORECASE
 )
 NUM_WEEKS_RE = re.compile(r"(?:(?:через|in|within)\s+)?(\d+)\s*(?:недел|week)", re.IGNORECASE)
-# Число без предлога ловит и рассказ о прошлом («две недели назад писали»), поэтому
-# совпадение с хвостом из этого списка не считается сроком: срок в прошлом — не срок.
-# Смотрим ровно на хвост, а не на всё предложение: «3 недели назад» и «через 3 недели,
-# а месяц назад…» — разные вещи.
+# Why a tail guard: without the preposition the number also matches talk about the past,
+# and a deadline in the past is not a deadline. Only the tail is inspected, not the sentence.
 PAST_TAIL_MARKERS = ("назад", "ago")
 PAST_TAIL_CHARS = 12
 EXPIRES_RE = re.compile(
     r"(?:expires?|истека\w*|заканчива\w*|слетает)\D{0,25}(\d+)\s*(дн|day|week|недел)", re.IGNORECASE
 )
-# До двух необязательных слов между числом и единицей: «12 рабочих мест», «3 рабочие визы
-# для сотрудников», «6 employment visas» пишут именно так. Виза и партнёр в списке единиц
-# потому, что размер команды в обращении чаще называют через них, чем словом «человек».
+# Why up to two words may sit between number and unit: "12 рабочих мест", "6 employment
+# visas". Visas and partners are units because team size is usually named through them.
 HEADCOUNT_RE = re.compile(
     r"(\d+)\s*(?:[а-яёa-z]+\s+){0,2}?"
     r"(?:человек|чел\b|людей|people|ppl|persons|seats|мест\b|сотрудник\w*|staff"
     r"|партнёр\w*|партнер\w*|виз\w*|visas?)",
     re.IGNORECASE,
 )
-# Сумма берётся целиком, а не одним последним числом. Цитата — обещание дословности:
-# «120-150 тысяч дирхам», урезанные до «150 тысяч», превращают диапазон в точку, а «до
-# 180k AED» без «до» — потолок в ориентир. И то и другое читатель ловит по тексту рядом.
+# Why the whole amount is captured: trimming "120-150 тысяч" to "150 тысяч" turns a range
+# into a point, and dropping "до" turns a ceiling into an estimate.
 MONEY_QUALIFIERS = r"(?:до|от|около|примерно|порядка|up\s+to|around|about)\s+"
 MONEY_UNITS = r"(?:aed|дирхам\w*|тысяч\w*|k\b)"
 MONEY_RE = re.compile(
@@ -116,12 +102,7 @@ MONEY_RE = re.compile(
 
 
 def _future_match(pattern: re.Pattern[str], low: str) -> re.Match[str] | None:
-    """Первое совпадение, за которым не стоит слово о прошлом.
-
-    Три исхода у самого поиска нет — есть «нашли срок» и «нет»; но совпадение,
-    за которым идёт «назад»/«ago», это не срок, а рассказ о прошлом, и считать его
-    сроком хуже, чем не найти ничего.
-    """
+    """Returns the first match not followed by a word about the past, else None."""
     for match in pattern.finditer(low):
         tail = low[match.end(): match.end() + PAST_TAIL_CHARS]
         if any(marker in tail for marker in PAST_TAIL_MARKERS):
@@ -131,7 +112,7 @@ def _future_match(pattern: re.Pattern[str], low: str) -> re.Match[str] | None:
 
 
 def _timeline_days(text: str, received_at: date) -> int | None:
-    """Срок в днях, детерминированно. Не нашли — None, а не ноль (неизвестно != срочно)."""
+    """Returns the deadline in days, or None when none is stated (unknown is not urgent)."""
     low = text.lower()
     m = _future_match(NUM_DAYS_RE, low)
     if m:
@@ -143,10 +124,7 @@ def _timeline_days(text: str, received_at: date) -> int | None:
     if m:
         value = int(m.group(1))
         return value * 7 if m.group(2).lower().startswith(("недел", "week")) else value
-    # Срок, названный словами («до пятницы», «в этом месяце»), — такой же названный
-    # клиентом срок, как «через 3 недели»; считается от даты обращения. Раньше эти слова
-    # лежали в списке маркеров срочности и срок из них не извлекался вовсе.
-    # Раньше названия месяца: «в этом месяце» точнее, чем случайно упомянутый месяц.
+    # Why before month names: "в этом месяце" is more precise than a month mentioned in passing.
     named = extract_mod.deadline_days(text, received_at)
     if named is not None:
         return named
@@ -160,27 +138,21 @@ def _timeline_days(text: str, received_at: date) -> int | None:
             best = delta
     if best is not None:
         return best
-    # Слово «срочно» — не дата. Раньше здесь подставлялись две недели, и карточка
-    # показывала «timeline 14 days» на тексте, где никакого числа не было: выдуманное
-    # число, поданное как извлечённый факт. Сама срочность не теряется — она уходит
-    # отдельным фактом `urgency_stated`, у которого есть цитата и нет придуманной даты.
-    # Вычислимые словами сроки сюда не попадают: их забрал `deadline_days` выше.
+    # Why nothing is invented here: "срочно" carries no date. The urgency itself is not
+    # lost — it travels as the separate `urgency_stated` fact.
     return None
 
 
-# Границы предложения в свободном тексте чата: перевод строки считается концом наравне
-# с точкой — в чате пишут строками, а не абзацами.
+# Why a newline ends a sentence: in chat people write in lines, not paragraphs.
 SENTENCE_BOUNDARIES = ".!?\n;"
 MAX_QUOTE_CHARS = 160
 
 
 def _sentence_span(text: str, start: int, end: int) -> tuple[str, int, int]:
-    """Предложение вокруг найденного куска и границы, которые оно заняло в тексте.
+    """Returns the sentence around a match plus the span it occupied.
 
-    Границы возвращаются вместе с текстом, потому что по ним отсеиваются цитаты-двойники:
-    в длинном перечислении без точек несколько маркеров попадают в одно и то же место, и
-    без сравнения границ карточка показывает три почти одинаковых окна как три разных
-    доказательства.
+    The span is returned because overlapping spans identify duplicate quotes: in a long
+    listing without full stops several markers land in the same place.
     """
     left = max((text.rfind(ch, 0, start) for ch in SENTENCE_BOUNDARIES), default=-1)
     right_candidates = [pos for pos in (text.find(ch, end) for ch in SENTENCE_BOUNDARIES) if pos >= 0]
@@ -189,9 +161,7 @@ def _sentence_span(text: str, start: int, end: int) -> tuple[str, int, int]:
     if len(fragment) <= MAX_QUOTE_CHARS:
         return fragment, left + 1, right
 
-    # Длинное предложение подрезается вокруг совпадения по границам слов с обеих сторон:
-    # цитата, начатая посреди слова, читается как мусор и обесценивает остальные
-    # доказательства в карточке.
+    # Why trimmed on word boundaries: a quote starting mid-word reads as garbage.
     head = max(left + 1, start - MAX_QUOTE_CHARS // 2)
     tail = min(right, head + MAX_QUOTE_CHARS)
     cut = text[head:tail]
@@ -208,24 +178,22 @@ def _sentence_span(text: str, start: int, end: int) -> tuple[str, int, int]:
 
 
 def _sentence_around(text: str, start: int, end: int) -> str:
-    """Предложение, внутри которого лежит найденный кусок."""
+    """Returns the sentence containing the match."""
     return _sentence_span(text, start, end)[0]
 
 
-# Слово о лицензии одинаково звучит при первичной регистрации и при продлении: «нужна
-# лицензия» и «нужно продлить лицензию». Само по себе оно не доказывает регистрацию:
-# истекающую лицензию продлевают, а не оформляют заново.
+# Why separate: a licence word sounds the same for a new registration and for a renewal,
+# so on its own it does not prove registration.
 LICENCE_MARKERS = ("лицензи", "licence", "license")
 
 
 def _drop_setup_inside_renewal(
     low: str, types: list[RequestType], fired: dict[RequestType, list[str]]
 ) -> list[RequestType]:
-    """Убирает регистрацию, если она зажглась только словом о лицензии рядом с продлением.
+    """Drops SETUP when it fired only on a licence word standing next to a renewal.
 
-    Настоящая регистрация рядом с продлением остаётся: если сработал хоть один маркер,
-    кроме слова о лицензии («открыть компанию», «фризона», «mainland»), речь и правда
-    о новой компании — одно обращение может нести оба типа сразу.
+    A real registration survives: any marker other than a licence word keeps SETUP, since
+    one request may legitimately carry both types.
     """
     if RequestType.SETUP not in types or RequestType.RENEWAL not in types:
         return types
@@ -237,28 +205,26 @@ def _drop_setup_inside_renewal(
         has_licence = any(marker in sentence for marker in setup_markers)
         has_renewal = any(marker in sentence for marker in renewal_markers)
         if has_licence and not has_renewal:
-            return types  # где-то о лицензии говорят отдельно от продления — оставляем
+            return types  # a licence is discussed apart from any renewal, so SETUP stands
     return [kind for kind in types if kind is not RequestType.SETUP]
 
 
 def rules_facts(message: InboundMessage) -> LeadFacts:
-    """Факты из текста без модели: детерминированная заглушка режима `rules`.
+    """Extracts facts from text without a model.
 
-    LeadFacts возвращается всегда; ненайденное поле — None (неизвестно), а не ноль.
-    confidence вырожденная: 1.0, если сработал хоть один маркер, иначе 0.0.
+    Always returns LeadFacts; a field that was not found is None (unknown), never zero.
     """
     low = message.text.lower()
     scrubbed = extract_mod.scrub_pii(message.text)
     quotes: list[str] = []
-    # Границы уже занятых цитат: окно, пересекающееся с занятым, — тот же кусок текста
-    # под другим маркером, а не второе доказательство.
+    # Why spans are tracked: an overlapping window is the same text under another marker,
+    # not a second piece of evidence.
     spans: list[tuple[int, int]] = []
 
     def hit(marker: str) -> bool:
-        """Ищет маркер; найденный добавляет в цитаты предложением целиком.
+        """Looks a marker up and quotes the whole sentence around it.
 
-        В цитату идёт текст обращения, а не сам маркер: обрубок основы («виз», «офис»)
-        ничего не доказывает. Длинное предложение подрезается по границам слов.
+        The request text is quoted rather than the marker, since a bare stem proves nothing.
         """
         index = low.find(marker)
         if index < 0:
@@ -273,7 +239,7 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
     types: list[RequestType] = []
     fired: dict[RequestType, list[str]] = {}
     for kind, markers in TYPE_MARKERS.items():
-        # перебираем все маркеры, а не до первого: цитаты нужны все, что сработали
+        # Why every marker, not the first: all matching quotes are needed.
         matched = False
         for marker in markers:
             if marker in low:
@@ -282,11 +248,7 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
         if matched:
             types.append(kind)
     types = _drop_setup_inside_renewal(low, types, fired)
-    # Третий исход для факта: если в тексте названо несколько разных количеств людей
-    # («3 партнёрские + 2 сотрудника, потом ещё 4»), размер команды из него не следует.
-    # Первое совпадение в таком тексте — не размер команды, а одно из слагаемых, и на
-    # карточке оно противоречит тексту, который читатель видит рядом. Ничего не знаем —
-    # так и говорим, а не берём удобное число.
+    # Why several different counts yield nothing: each is an addend, not the team size.
     headcount = None
     matches = list(HEADCOUNT_RE.finditer(low))
     distinct = {int(m.group(1)) for m in matches}
@@ -294,9 +256,8 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
         found = matches[0]
         headcount = int(found.group(1))
         quotes.append(message.text[found.start(): found.end()])
-    # budget_hint — фрагмент обращения, а не пересказ: скоринг читает содержимое поля и
-    # ищет в нём сумму. Названная сумма вытесняет всё остальное — именно она отличает
-    # объявленный бюджет от разговоров о бюджете; склейка сработавших маркеров сюда не идёт.
+    # Why a fragment, not a summary: scoring reads this field looking for an amount, and a
+    # stated amount is what separates a declared budget from talk about budgets.
     money = MONEY_RE.search(low)
     if money:
         budget = message.text[money.start(): money.end()].strip()
@@ -316,8 +277,7 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
         jurisdiction_hint=None,
         headcount=headcount,
         timeline_days=timeline_days,
-        # Словесная срочность — только когда срока нет вовсе: один и тот же помощник
-        # на обоих путях извлечения, иначе признак разъедется между rules и llm.
+        # Why the shared helper: both extraction paths must compute this identically.
         urgency_stated=extract_mod.wordless_urgency(message.text, timeline_days),
         budget_hint=budget,
         language=extract_mod.detect_language(message.text),

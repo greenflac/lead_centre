@@ -1,7 +1,7 @@
 [project]
 name = "leadcentre"
 version = "0.1.0"
-description = "SORP Lead Centre — one qualification engine for inbound messages and discovered companies"
+description = "Lead Centre — one qualification engine for inbound messages and registry-discovered companies"
 requires-python = ">=3.11"
 dependencies = [
     "anthropic>=1.4",   # извлечение фактов и арабские черновики
