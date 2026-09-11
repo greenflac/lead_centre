@@ -445,8 +445,10 @@ def _with_date(text: str, received_at: date):
         ("посмотреть офис на этой неделе", date(2026, 9, 7), 6),   # Monday
         ("посмотреть офис на этой неделе", date(2026, 9, 5), 1),   # Saturday, a seed input
         ("посмотреть офис на этой неделе", date(2026, 9, 6), 0),   # Sunday
-        # "today" is zero, not "soon"
-        ("нужно сегодня", date(2026, 9, 9), 0),
+        # "today" states no deadline for the service: measured on the 70-request set it
+        # occurs once, in "who can call me today" — a call, not a deadline. It reads as
+        # worded urgency instead, and the guard for that lives in the test below.
+        ("нужно сегодня", date(2026, 9, 9), None),
         # the nearest named deadline binds the client
         ("до пятницы, край — в этом месяце", date(2026, 9, 7), 4),
         # negative control: no deadline words, so nothing is invented
@@ -546,3 +548,24 @@ def test_past_tense_number_does_not_hide_a_real_deadline_later_in_the_text():
     """Only the talk about the past is discarded; a real deadline later in the text stands."""
     text = "писали 2 недели назад, а нужно за 10 дней"
     assert rules_facts(_with_date(text, date(2026, 9, 11))).timeline_days == 10
+
+
+def test_today_is_worded_urgency_not_a_deadline():
+    """A request naming a real deadline keeps it when "today" also appears.
+
+    Live defect: "our licence expires in 21 days ... who can call me today" was scored
+    with `timeline 0 days`. The word "today" was read as a deadline for the service, and
+    zero days outranked the twenty-one the same message states.
+    """
+    text = ("our licence expires in 21 days and we must move to a bigger unit "
+            "at the same time. 14 staff. urgent, who can call me today")
+    facts = rules_facts(_message(text))
+    assert facts.timeline_days == 21, facts.timeline_days
+    assert facts.urgency_stated is False, "a named deadline cancels worded urgency"
+
+
+def test_today_alone_is_urgency_without_a_date():
+    """With no other deadline in the text, "today" says urgent and names no date."""
+    facts = rules_facts(_message("нужно сегодня, очень ждём"))
+    assert facts.timeline_days is None
+    assert facts.urgency_stated is True

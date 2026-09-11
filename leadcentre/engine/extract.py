@@ -578,11 +578,6 @@ def _days_to_next_friday(received_at: date) -> int:
     return (FRIDAY - received_at.weekday()) % 7
 
 
-def _same_day(received_at: date) -> int:
-    """Returns zero: "today" is zero days, not "soon"."""
-    return 0
-
-
 FRIDAY = 4  # index in date.weekday(), where Monday is 0
 
 #: Worded deadline -> how to count it from the REQUEST date, never from today.
@@ -595,11 +590,13 @@ DEADLINE_MARKERS: dict[str, Callable[[date], int]] = {
     "this week": _days_to_end_of_week,            # chosen, not observed in the set
     "до пятницы": _days_to_next_friday,
     "by friday": _days_to_next_friday,            # chosen, not observed in the set
-    "сегодня": _same_day,                         # chosen, not observed in the set
-    "today": _same_day,                           # chosen, not observed in the set
 }
 
+# "today" is urgency, not a deadline: in the 70-request set it occurs once, in
+# "who can call me today" -- a request for a call, not a date for the service. Read as
+# a deadline it returned 0 days and overrode the 21 days the same message states.
 VAGUE_URGENCY_MARKERS = (
+    "сегодня", "today",
     "срочно", "urgent", "asap", "как можно быстрее", "лишь бы быстро",
 )
 
