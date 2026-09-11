@@ -122,3 +122,21 @@ def test_prompt_version_points_at_a_file_that_exists():
     assert PROMPT_PATH == Path(__file__).resolve().parents[1] / "prompts" / "extract_v5.md"
     assert PROMPT_PATH.is_file()
     assert PROMPT_PATH.read_text(encoding="utf-8").strip()
+
+
+def test_a_call_today_does_not_override_the_deadline_the_model_read():
+    """Live defect, llm path: the card showed `timeline 0 days` on a 21-day message.
+
+    "our licence expires in 21 days ... who can call me today" — the word "today" was a
+    deadline marker, code counted zero days from it and overrode the model's twenty-one.
+    Guarding `rules_facts` is not enough: there `EXPIRES_RE` answers first, so the defect
+    is invisible. It only shows where code overrides the model.
+    """
+    text = ("our licence expires in 21 days and we must move to a bigger unit "
+            "at the same time. 14 staff. urgent, who can call me today")
+    assert coded_deadline_wins(text, date(2026, 9, 11), 21) == 21
+
+
+def test_code_still_wins_where_it_counts_a_date_itself():
+    """Negative control: without it the test above would pass on "never override"."""
+    assert coded_deadline_wins("нужен офис в этом месяце", date(2026, 9, 11), 5) == 19
