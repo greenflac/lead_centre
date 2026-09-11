@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Lead } from "../lib/types";
 import { ApiError } from "../lib/types";
 import { approve, disagree } from "../lib/api";
@@ -151,12 +151,24 @@ export default function LeadCard({
 
   const serving = lead.serving;
 
+  // Измеряем сам факт обрезки, а не предполагаем его по длине строки: перенос зависит от
+  // ширины колонки, языка и подсветки цитаты, и любая оценка «по символам» врёт.
+  const textRef = useRef<HTMLDivElement>(null);
+  const [textClipped, setTextClipped] = useState(false);
+  useEffect(() => {
+    const node = textRef.current;
+    setTextClipped(node ? node.scrollHeight > node.clientHeight + 1 : false);
+  }, [lead.id, lead.text, activeQuotes]);
+
   return (
     <div className="panel">
       <div className="card-head">
         <div className="card-head-row">
           <TierChip tier={lead.tier} />
-          <span className="card-id">{lead.id}</span>
+          {/* Машинный id убран из шапки: UUID/`edge-02` моноширинным на самом видном месте
+              читается как лог, а не как карточка менеджера, и выдаёт внутренние имена
+              тест-кейсов. Значение не потеряно — оно ниже, в раскрытии «How this was
+              scored» как `request id`, там же, где остальное инженерное. */}
           <Chip title="Channel the request arrived from">{CHANNEL_LABEL[lead.channel] ?? lead.channel}</Chip>
           <Chip title="Language detected in the request text">{lead.language}</Chip>
           {lead.is_synthetic ? <SyntheticTag /> : null}
@@ -172,9 +184,23 @@ export default function LeadCard({
             <div className="section-title">Request text (as received)</div>
             {/* dir="auto" — направление задаёт первый сильный символ содержимого: инбокс
                 смешанный, и глобальный dir="rtl" сломал бы русские и английские строки. */}
-            <div className={`message-text${isRtlText(lead.text) ? " rtl-block" : ""}`} dir="auto">
+            <div
+              ref={textRef}
+              className={`message-text${isRtlText(lead.text) ? " rtl-block" : ""}`}
+              dir="auto"
+            >
               {lead.text.trim() ? markQuotes(lead.text, quotes, activeQuotes) : "— empty message —"}
             </div>
+            {/* Обрезка обязана быть видна. Коробка и раньше прокручивалась, но кончалась
+                на половине строки и без единого признака, что текст продолжается: на
+                кадре 07 это читалось как ошибка вёрстки, и обрыв приходился ровно на
+                вопрос клиента. Высота теперь кратна строке, а факт обрезки — измеряется
+                и подписывается, а не подразумевается. */}
+            {textClipped ? (
+              <div className="note" style={{ marginTop: 4 }}>
+                The request is longer than the box — scroll inside it to read the rest.
+              </div>
+            ) : null}
           </div>
 
           <div className="section">
@@ -274,7 +300,7 @@ export default function LeadCard({
           <div className="section">
             <div className="section-title-row">
               <span className="section-title">Why this priority</span>
-              <span className="note">the model extracts facts, this list is code</span>
+              <span className="note">the model reads the facts; these rules are fixed, not written by it</span>
             </div>
             {links.length ? (
               <ul className="reasons">
@@ -299,7 +325,7 @@ export default function LeadCard({
                             “{quotes[item.quotes[0]]}”
                           </span>
                         ) : quotable ? null : (
-                          <span className="reason-cite">no quote — whole-text property</span>
+                          <span className="reason-cite">no quote — this reason is about the request as a whole</span>
                         )}
                       </button>
                     </li>
@@ -317,7 +343,7 @@ export default function LeadCard({
             ) : null}
             {lead.violations.length ? (
               <div className="notice notice-error" style={{ marginTop: 16 }}>
-                <div className="notice-title">Invariant violated — priority withheld</div>
+                <div className="notice-title">Failed the engine&rsquo;s own check — priority withheld</div>
                 <ul className="reasons">
                   {lead.violations.map((item, index) => (
                     <li key={index}>{item}</li>

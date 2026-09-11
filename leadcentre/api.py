@@ -347,19 +347,25 @@ def handle_lead(payload: LeadIn, today: date | None = None) -> dict[str, Any]:
         storage = {"outcome": OUTCOME_UNAVAILABLE, "store": store().name, "detail": str(exc)}
         logger.warning("хранилище недоступно: %s", exc)
 
+    # Язык черновика лежит В блоке ответа, рядом с телом письма, которое на нём
+    # написано: читателю блока (дашборд рисует чип над письмом) незачем знать, что
+    # где-то в корне есть одноимённое поле. Корневое поле остаётся для тех, кто уже
+    # его читает, и берётся из этого же словаря — знание одно, мест печати два.
+    reply_payload = {
+        "body": draft.body,
+        "language": draft.language,
+        "outcome": draft.outcome,
+        "needs_human": draft.needs_human,
+        "used_prices": list(draft.used_prices),
+    }
     return {
         "outcome": OUTCOME_OK,
         "lead_id": lead_id,
         "channel": payload.channel,
-        "language": draft.language,
+        "language": reply_payload["language"],
         "facts": _facts_payload(facts),
         "score": _score_payload(inbound_score),
-        "reply": {
-            "body": draft.body,
-            "outcome": draft.outcome,
-            "needs_human": draft.needs_human,
-            "used_prices": list(draft.used_prices),
-        },
+        "reply": reply_payload,
         "lint": {
             "status": lint_result.status,
             "checked": len(lint_result.checks_done),

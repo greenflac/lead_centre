@@ -47,6 +47,18 @@ function shortReason(reason: string): string {
  */
 const PREVIEW_SKIPPED_CODES = new Set(["target_language", "target_language_alone"]);
 
+/**
+ * Язык, на котором причины лежат на самом деле, если он не язык интерфейса. Е2: судим по
+ * тому, что записано (`reasons_language`), а не по тому, что предполагалось. Карточка
+ * помечает такие причины нотой; строка списка обязана делать это тоже — честная пометка
+ * в одном месте из двух хуже, чем её отсутствие (кадр 08-live-backend.png).
+ */
+export function storedReasonLanguage(lead: Lead): string | null {
+  const language = lead.reasons_language;
+  if (!language || language === "en") return null;
+  return language.toUpperCase();
+}
+
 /** One line of "why", so the manager decides what to open without opening it (Einstein). */
 function whyLine(lead: Lead): string {
   const links = lead.reason_links;
@@ -103,7 +115,10 @@ export default function InboxView({
     });
   }, [leads, tierFilter, query]);
 
-  const selected = leads.find((lead) => lead.id === selectedId) ?? filtered[0] ?? null;
+  // Карточка берётся из отфильтрованного списка, а не из полного: иначе выбранное
+  // обращение переживало опустевший фильтр, и экран сам себе противоречил — слева
+  // «Nothing matches this filter», справа развёрнутая карточка (кадр 07-empty-state.png).
+  const selected = filtered.find((lead) => lead.id === selectedId) ?? filtered[0] ?? null;
 
   if (error) {
     return (
@@ -112,7 +127,9 @@ export default function InboxView({
           title={error.kind === "budget" ? "Model provider unavailable" : "Cannot load the inbox"}
           message={
             error.kind === "budget"
-              ? "The language-model provider refused the request on budget or rate limits. Existing cards still open; new ones cannot be scored until the provider is topped up."
+              ? "The language-model provider refused the request on budget or rate limits. Nothing new can be scored until the "
+              + "account is topped up. Scoring already done is not lost, but this screen cannot list it while the request fails — "
+              + "which is why every counter above reads zero."
               : error.message
           }
           detail={error.detail}
@@ -211,7 +228,20 @@ export default function InboxView({
                 >
                   {preview(lead.text)}
                 </div>
-                {whyLine(lead) ? <div className="lead-row-why">{whyLine(lead)}</div> : null}
+                {whyLine(lead) ? (
+                  <div
+                    className="lead-row-why"
+                    title={lead.reasons_note || undefined}
+                    lang={storedReasonLanguage(lead) ? lead.reasons_language : undefined}
+                  >
+                    {/* Пометка идёт первой: строка режется с конца, и метка языка,
+                        поставленная в хвост, исчезала бы ровно на длинных причинах. */}
+                    {storedReasonLanguage(lead) ? (
+                      <span className="why-lang">{storedReasonLanguage(lead)}, as stored · </span>
+                    ) : null}
+                    {whyLine(lead)}
+                  </div>
+                ) : null}
               </button>
             ))
           )}
@@ -227,7 +257,14 @@ export default function InboxView({
           <LeadCard lead={selected} now={now} onChanged={onLeadChanged} />
         ) : (
           <div className="panel">
-            <EmptyState title="No request selected" hint="Pick a request on the left to open its card." />
+            <EmptyState
+              title="No request selected"
+              hint={
+                filtered.length === 0
+                  ? "The filter on the left matches no request, so there is no card to show. Clear it to pick one."
+                  : "Pick a request on the left to open its card."
+              }
+            />
           </div>
         )}
       </div>

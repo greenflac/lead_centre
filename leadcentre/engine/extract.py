@@ -32,7 +32,9 @@ import re
 import time
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import date, timedelta
 from pathlib import Path
 from typing import Protocol
 
@@ -603,8 +605,9 @@ def parse_facts(text: str, scrubbed: Scrubbed) -> tuple[LeadFacts, int]:
         headcount=headcount,
         timeline_days=timeline_days,
         # По тексту, который видела модель: маскирование контактов слов о срочности
-        # не трогает, а признак обязан считаться одинаково в обоих режимах.
-        urgency_stated=urgency_stated(scrubbed.text),
+        # не трогает, а признак обязан считаться одинаково в обоих режимах. Срок,
+        # присланный моделью, гасит словесный признак — оба сразу не выставляются.
+        urgency_stated=wordless_urgency(scrubbed.text, timeline_days),
         budget_hint=_optional_str(raw.get("budget_hint"), "budget_hint"),
         language=language,
         is_spam=bool(raw.get("is_spam")),
@@ -635,21 +638,109 @@ def _optional_str(value: object, field: str) -> str | None:
 
 
 # --- свойства текста, которые решает код, а не модель ---
+#
+# Слова о срочности бывают двух разных сортов, и смешивать их в одном списке нельзя.
+#
+# 1. «В этом месяце», «до пятницы», «на этой неделе» — это НАЗВАННЫЙ СРОК. Он не
+#    выдуман: он считается от даты обращения арифметикой календаря. Пока такие слова
+#    лежали в одном списке со словом «срочно», срок терялся, а карточка писала «даты
+#    клиент не назвал» на обращении, где дата названа (ИЗМЕРЕНО 2026-09-11 на
+#    data/inbound_seed.csv: 5 обращений из 7).
+# 2. «Срочно», «asap» — срочность БЕЗ даты. Из них даты не выводится: именно так
+#    когда-то появлялся выдуманный срок в две недели, показанный как извлечённый факт.
+#
+# Оба списка — свойство текста, а не суждение модели: их читают и режим rules, и режим
+# llm, иначе признак есть в одном пути и молча отсутствует в другом.
 
-# Слова, которыми клиент заявляет срочность, не называя даты. Это свойство текста, а не
-# суждение модели: и режим rules, и режим llm читают его отсюда, иначе признак есть в
-# одном пути и молча отсутствует в другом.
-URGENT_MARKERS = (
-    "срочно", "urgent", "asap", "в этом месяце", "this month", "до конца месяца",
-    "до пятницы", "сегодня", "today", "как можно быстрее", "лишь бы быстро",
-    "на этой неделе",
+
+def _days_to_end_of_month(received_at: date) -> int:
+    """До последнего дня месяца обращения. «В этом месяце» 31-го числа — это ноль дней."""
+    first_of_next = (received_at.replace(day=28) + timedelta(days=4)).replace(day=1)
+    return (first_of_next - timedelta(days=1) - received_at).days
+
+
+def _days_to_end_of_week(received_at: date) -> int:
+    """До конца недели обращения. Неделя ISO: понедельник-воскресенье (ВЫБРАНО)."""
+    return 6 - received_at.weekday()
+
+
+def _days_to_next_friday(received_at: date) -> int:
+    """До ближайшей пятницы, считая день обращения. Обращение в пятницу — ноль (ВЫБРАНО:
+    «до пятницы», написанное в пятницу, — это сегодня, а не через неделю)."""
+    return (FRIDAY - received_at.weekday()) % 7
+
+
+def _same_day(received_at: date) -> int:
+    """«Сегодня» — ноль дней, а не «скоро»."""
+    return 0
+
+
+FRIDAY = 4  # индекс пятницы в date.weekday(): понедельник = 0
+
+#: Срок, названный словами: маркер -> как посчитать его от даты ОБРАЩЕНИЯ.
+#: Считается именно от `received_at`, а не от сегодняшнего дня: обращение недельной
+#: давности со словами «на этой неделе» означает ту неделю, а не эту (та же ловушка
+#: описана в prompts/extract_v4.md).
+#: ИЗМЕРЕНО 2026-09-11 по data/inbound_seed.csv: сработали «в этом месяце» (2 обращения),
+#: «до конца месяца», «до пятницы», «на этой неделе». Английские двойники и «сегодня» —
+#: ВЫБРАНО автором, в наборе они не встретились.
+DEADLINE_MARKERS: dict[str, Callable[[date], int]] = {
+    "в этом месяце": _days_to_end_of_month,
+    "до конца месяца": _days_to_end_of_month,
+    "до конца этого месяца": _days_to_end_of_month,
+    "this month": _days_to_end_of_month,          # ВЫБРАНО
+    "на этой неделе": _days_to_end_of_week,
+    "this week": _days_to_end_of_week,            # ВЫБРАНО
+    "до пятницы": _days_to_next_friday,
+    "by friday": _days_to_next_friday,            # ВЫБРАНО
+    "сегодня": _same_day,                         # ВЫБРАНО
+    "today": _same_day,                           # ВЫБРАНО
+}
+
+#: Срочность без даты: из этих слов срок не выводится вовсе.
+#: ИЗМЕРЕНО 2026-09-11: сработали «срочно» и «asap» (по одному обращению на каждое).
+VAGUE_URGENCY_MARKERS = (
+    "срочно", "urgent", "asap", "как можно быстрее", "лишь бы быстро",
 )
 
 
-def urgency_stated(text: str) -> bool:
-    """Заявлена ли срочность словами. Дату отсюда не выводим: слово «срочно» — не дата."""
+def deadline_days(text: str, received_at: date) -> int | None:
+    """Срок в днях по названным словами датам. Ничего не названо — None, а не ноль.
+
+    Сработало несколько маркеров — берётся самый близкий срок: клиент, написавший
+    «до пятницы, край — в этом месяце», связан пятницей.
+    """
     low = text.lower()
-    return any(marker in low for marker in URGENT_MARKERS)
+    found = [rule(received_at) for marker, rule in DEADLINE_MARKERS.items() if marker in low]
+    return min(found) if found else None
+
+
+def urgency_stated(text: str) -> bool:
+    """Заявлена ли срочность словами БЕЗ даты. Слово «срочно» — не дата.
+
+    Вычислимая дата-фраза в том же тексте признак гасит: срок уедет в `timeline_days`.
+    Дату, названную иначе (числом, месяцем), этот помощник не видит — её отсекает
+    `wordless_urgency`, через который признак и попадает в факты.
+    """
+    low = text.lower()
+    if any(marker in low for marker in DEADLINE_MARKERS):
+        return False
+    return any(marker in low for marker in VAGUE_URGENCY_MARKERS)
+
+
+def wordless_urgency(text: str, timeline_days: int | None) -> bool:
+    """Признак «срочность заявлена словами, даты клиент не назвал» — как он попадает в факты.
+
+    Инвариант разделения: срок и словесная срочность — разные признаки, и одно
+    обращение не получает оба сразу. Поэтому любой извлечённый срок — посчитанный по
+    словам, по числу («через 3 недели»), по названию месяца или присланный моделью —
+    гасит словесный признак. Иначе карточка пишет «даты клиент не назвал» на обращении,
+    где дата названа, и признак врёт на самом видном месте.
+
+    Оба пути извлечения зовут именно эту функцию: в `rules` и в `llm` признак обязан
+    считаться одинаково, иначе он есть в одном пути и молча отсутствует в другом.
+    """
+    return timeline_days is None and urgency_stated(text)
 
 
 # --- режим OFFLINE ---
@@ -689,9 +780,13 @@ def _offline_extraction(message: InboundMessage) -> Extraction:
     facts = LeadFacts(
         request_types=(RequestType.OTHER,),
         language=detect_language(message.text),
-        urgency_stated=urgency_stated(message.text),
+        urgency_stated=wordless_urgency(message.text, None),
         has_contact=scrubbed.has_contact,
+        # Ноль здесь — метка «моделью не смотрено», а не измеренная низкая уверенность;
+        # `confidence_measured=False` говорит это явно, чтобы карточка не выдавала
+        # отсутствие измерения за измерение (третий исход не сворачивается во второй).
         confidence=0.0,
+        confidence_measured=False,
     )
     return Extraction(
         facts=facts,

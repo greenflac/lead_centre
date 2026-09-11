@@ -114,6 +114,13 @@ def _timeline_days(text: str, received_at: date) -> int | None:
     if m:
         value = int(m.group(1))
         return value * 7 if m.group(2).lower().startswith(("недел", "week")) else value
+    # Срок, названный словами («до пятницы», «в этом месяце»), — такой же названный
+    # клиентом срок, как «через 3 недели»; считается от даты обращения. Раньше эти слова
+    # лежали в списке маркеров срочности и срок из них не извлекался вовсе.
+    # Раньше названия месяца: «в этом месяце» точнее, чем случайно упомянутый месяц.
+    named = extract_mod.deadline_days(text, received_at)
+    if named is not None:
+        return named
     best: int | None = None
     for marker, month in MONTHS.items():
         if marker not in low:
@@ -128,6 +135,7 @@ def _timeline_days(text: str, received_at: date) -> int | None:
     # показывала «timeline 14 days» на тексте, где никакого числа не было: выдуманное
     # число, поданное как извлечённый факт. Сама срочность не теряется — она уходит
     # отдельным фактом `urgency_stated`, у которого есть цитата и нет придуманной даты.
+    # Вычислимые словами сроки сюда не попадают: их забрал `deadline_days` выше.
     return None
 
 
@@ -270,6 +278,7 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
             if hit(marker):
                 budget = message.text[low.find(marker): low.find(marker) + len(marker)]
                 break
+    timeline_days = _timeline_days(message.text, message.received_at)
     is_spam = False
     for marker in SPAM_MARKERS:
         is_spam = hit(marker) or is_spam
@@ -277,8 +286,10 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
         request_types=tuple(types),
         jurisdiction_hint=None,
         headcount=headcount,
-        timeline_days=_timeline_days(message.text, message.received_at),
-        urgency_stated=extract_mod.urgency_stated(message.text),
+        timeline_days=timeline_days,
+        # Словесная срочность — только когда срока нет вовсе: один и тот же помощник
+        # на обоих путях извлечения, иначе признак разъедется между rules и llm.
+        urgency_stated=extract_mod.wordless_urgency(message.text, timeline_days),
         budget_hint=budget,
         language=extract_mod.detect_language(message.text),
         is_spam=is_spam,

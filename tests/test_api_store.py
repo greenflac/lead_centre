@@ -202,6 +202,32 @@ def test_post_lead_returns_card_and_stores_it(client, memory_store):
     assert len(memory_store.list_cards()) == 1
 
 
+def test_reply_block_carries_the_language_of_the_body(client):
+    """Язык черновика доезжает до ответа API внутри блока `reply`.
+
+    Дефект, ради которого тест написан: поле лежало только в корне ответа, дашборд
+    читал его из блока `reply`, не находил и подставлял английский — над русским
+    письмом висел чип «DRAFT REPLY EN». Тот же дефект «ответ не на языке клиента»,
+    только протёкший через границу API.
+
+    Ожидаемое — литерал «ru»: текст обращения русский, значит и письмо русское.
+    """
+    body = client.post("/leads", json={"text": TEXT_RU, "channel": "whatsapp"}).json()
+    assert body["reply"]["language"] == "ru"
+    # Корневое поле осталось на месте и говорит то же самое: знание одно.
+    assert body["language"] == body["reply"]["language"]
+
+
+def test_reply_language_follows_the_text_not_the_default(client):
+    """Негативный контроль: на английском обращении язык блока — «en», а не «ru».
+
+    Без него тест выше зеленел бы и на поле, в которое зашит один язык.
+    """
+    text = "we are relocating 8 people, need an office in TECOM this month"
+    body = client.post("/leads", json={"text": text, "channel": "whatsapp"}).json()
+    assert body["reply"]["language"] == "en"
+
+
 def test_provider_budget_error_is_402_not_500(client, monkeypatch):
     """Кончились деньги у провайдера — понятный ответ, а не сбой сервера."""
     def boom(_message):

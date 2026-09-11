@@ -7,7 +7,7 @@ backend, or entirely on generated demo data with no backend at all.
 |---|---|
 | **Inbox** | Incoming requests with priority, time since arrival, channel and first words. Opening one shows the full text, the extracted facts, the reasons behind the priority with the quote behind each reason, extraction confidence, a draft reply in the customer's language, and the **Approve → CRM** / **Disagree** buttons. |
 | **New request** | Paste any text, pick a channel, submit — a card appears seconds later. This is what a reviewer drives: they invent the request themselves, it is not a prepared example. |
-| **Discovered** | Companies from the public GLEIF LEI registry: name, city, registration authority, licence number, priority, reason and evidence. **No contact details, by design** — a watchlist for a manager, not a mailing list, and the interface says so on the tab. |
+| **Discovered** | Companies from the public GLEIF LEI registry, one row each: priority, company, address type (*Registrar address* / *Business centre* / *Own office* / *Not stated*), city, the dated reason, and the evidence it rests on — *Renewal due 4 Sep 2026 · LEI 984500D91E8NC3EF6836*, with the licence number and the registration date in the cell's tooltip. Field names and codes are never shown: the row reads as English, not as a record dump. A field the registry does not carry reads *not recorded*, and a value the screen cannot name reads *not recognised (…)* — neither is silently blank. **No contact details, by design** — a watchlist for a manager, not a mailing list, and the interface says so on the tab. |
 
 Nothing is ever sent to a customer: a human presses every button.
 
@@ -151,7 +151,7 @@ against those backends by hand.
 | `02e-lead-card-long-request.png` | The `edge-03` case, the longest request in the set: seven numbered questions, five services asked about. The budget reason reads `budget named: 150 тысяч` — the customer's own words, with that same fragment quoted underneath as its evidence, and the quoted sentence highlighted in the request text on the left |
 | `03-new-request-form.png` | The form and the pipeline explainer |
 | `04-new-request-result.png` | Card produced from a request typed into the form |
-| `05-discovered.png` | Registry watchlist |
+| `05-discovered.png` | Registry watchlist: human evidence (`Renewal due 4 Sep 2026 · LEI 984500D91E8NC3EF6836`) and spelled-out address types, one line per row |
 | `06-error-provider-budget.png` | Backend answering 402: readable error, raw detail, retry |
 | `07-empty-state.png` | Search matching nothing |
 | `08-live-backend.png`, `09-live-new-request.png` | Live mode against `leadcentre/api.py` |

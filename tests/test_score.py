@@ -11,8 +11,13 @@ from datetime import timedelta
 import pytest
 
 from leadcentre.engine.reasons import ReasonCode
-from leadcentre.engine.score import classify_address, classify_event, score
-from leadcentre.models import AddressType, Event, Tier
+from leadcentre.engine.score import (
+    classify_address,
+    classify_city,
+    classify_event,
+    score,
+)
+from leadcentre.models import AddressType, CityMatch, Event, Tier
 from tests.conftest import (
     ADDR_BUSINESS_CENTRE,
     ADDR_EMPTY,
@@ -214,6 +219,118 @@ def test_high_outside_dubai_is_downgraded_to_medium():
 def test_high_stays_high_in_dubai_case_insensitive():
     company = lapsed_company(10, city="DUBAI", address_lines=ADDR_REGISTRAR)
     assert score(company, TODAY).tier is Tier.HIGH
+
+
+# --- город: реестр пишет его четырьмя способами ----------------------------------
+#
+# Все строки — литералы из выдачи GLEIF (data/gleif_ae_*_sample.json), ни один список
+# написаний из `rubric` сюда не импортируется: тест обязан покраснеть, когда список
+# поедет. Фикстуры с обоих краёв и из середины: целевой город в трёх написаниях,
+# район без слова «Дубай», адрес с запятой, нецелевой эмират в двух написаниях,
+# район чужого эмирата, пустая строка и написание, которого в списках нет.
+
+
+@pytest.mark.parametrize(
+    ("city", "expected"),
+    [
+        ("Dubai", CityMatch.TARGET),
+        ("DUBAI", CityMatch.TARGET),
+        ("دبي", CityMatch.TARGET),
+        ("Nad Al Sheba", CityMatch.TARGET),
+        ("Dubai Silicon Oasis", CityMatch.TARGET),
+        ("Jumeirah Lakes Towers, Dubai", CityMatch.TARGET),
+        ("  dubai  ", CityMatch.TARGET),
+        ("Abu Dhabi", CityMatch.OFF_TARGET),
+        ("ABU DHABI", CityMatch.OFF_TARGET),
+        ("أبو ظبي", CityMatch.OFF_TARGET),
+        ("أبوظبي", CityMatch.OFF_TARGET),
+        ("ابوظبي", CityMatch.OFF_TARGET),
+        ("Al Reem Island", CityMatch.OFF_TARGET),   # район Абу-Даби, не Дубая
+        ("جزيرة الريم", CityMatch.OFF_TARGET),
+        ("Sharjah", CityMatch.OFF_TARGET),
+        ("الشارقة", CityMatch.OFF_TARGET),
+        ("Ajman", CityMatch.OFF_TARGET),
+        ("منطقة عجمان الحرة", CityMatch.OFF_TARGET),
+        ("Ras Al Khaimah/ رأس الخيمة", CityMatch.OFF_TARGET),
+        ("RAS AL-KHAIMAH", CityMatch.OFF_TARGET),
+        ("", CityMatch.NOT_SET),
+        ("   ", CityMatch.NOT_SET),
+        ("Hatta", CityMatch.UNRECOGNISED),
+        ("Al Reem", CityMatch.UNRECOGNISED),
+    ],
+)
+def test_classify_city(city, expected):
+    assert classify_city(city) is expected
+
+
+def test_district_of_dubai_keeps_high():
+    """Дефект, ради которого правило переписано: район Дубая снижал ступень.
+
+    ИЗМЕРЕНО 2026-09-11 на data/gleif_ae_lapsed_sample.json: четыре компании с
+    region=AE-DU были снижены с HIGH до MEDIUM, две из них — с городом «Nad Al Sheba».
+    """
+    company = lapsed_company(10, city="Nad Al Sheba", address_lines=ADDR_REGISTRAR)
+    result = score(company, TODAY)
+    assert result.tier is Tier.HIGH
+    assert not has_reason(result, ReasonCode.CITY_OFF_TARGET)
+    assert not has_reason(result, ReasonCode.CITY_UNRECOGNISED)
+
+
+def test_arabic_dubai_keeps_high():
+    company = lapsed_company(10, city="دبي", address_lines=ADDR_REGISTRAR)
+    assert score(company, TODAY).tier is Tier.HIGH
+
+
+def test_address_with_a_comma_keeps_high():
+    company = lapsed_company(
+        10, city="Jumeirah Lakes Towers, Dubai", address_lines=ADDR_REGISTRAR
+    )
+    assert score(company, TODAY).tier is Tier.HIGH
+
+
+@pytest.mark.parametrize("city", ["Abu Dhabi", "أبو ظبي", "Al Reem Island", "Ajman"])
+def test_other_emirates_stay_off_target(city):
+    """Негативный контроль правила: расширение списков не должно втащить соседей.
+
+    Если бы «Дубай» стал означать «любой город ОАЭ», этот тест покраснел бы первым.
+    """
+    company = lapsed_company(10, city=city, address_lines=ADDR_REGISTRAR)
+    result = score(company, TODAY)
+    assert result.tier is Tier.MEDIUM
+    assert reason_params(result, ReasonCode.CITY_OFF_TARGET) == {"city": city}
+
+
+def test_unknown_spelling_is_its_own_outcome_not_a_silent_off_target():
+    """Третий исход: написание не узнали — это не «другой эмират».
+
+    Ступень понижается так же, но причина другая: по ней видно, что списки написаний
+    отстали от реестра, а не что компания сидит в Шардже.
+    """
+    company = lapsed_company(10, city="Hatta", address_lines=ADDR_REGISTRAR)
+    result = score(company, TODAY)
+    assert result.tier is Tier.MEDIUM
+    assert reason_params(result, ReasonCode.CITY_UNRECOGNISED) == {"city": "Hatta"}
+    assert not has_reason(result, ReasonCode.CITY_OFF_TARGET)
+    assert not has_reason(result, ReasonCode.CITY_NOT_SET)
+
+
+def test_empty_city_is_not_set_and_not_unrecognised():
+    company = lapsed_company(10, city="   ", address_lines=ADDR_REGISTRAR)
+    result = score(company, TODAY)
+    assert result.tier is Tier.MEDIUM
+    assert has_reason(result, ReasonCode.CITY_NOT_SET)
+    assert not has_reason(result, ReasonCode.CITY_UNRECOGNISED)
+    assert not has_reason(result, ReasonCode.CITY_OFF_TARGET)
+
+
+def test_city_does_not_raise_a_low_lead():
+    """Город — только понижающий модификатор: он не делает MEDIUM горячим.
+
+    Негативный контроль в другую сторону: если бы правило стало повышать, «Dubai»
+    в строке города вытаскивал бы наверх любую компанию.
+    """
+    company = lapsed_company(10, city="Dubai", address_lines=ADDR_OWN)
+    assert score(company, TODAY).tier is Tier.MEDIUM
 
 
 def test_inactive_entity_is_low():

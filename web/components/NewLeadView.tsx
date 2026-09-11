@@ -146,7 +146,7 @@ export default function NewLeadView({
                 return (
                   <li key={title} className={done ? "done" : active ? "active" : ""}>
                     <span className="pipeline-mark">
-                      {done ? "done" : active ? <span className="spinner" /> : index + 1}
+                      {done ? "\u2713" : active ? <span className="spinner" /> : index + 1}
                     </span>
                     <span>
                       <strong>{title}</strong> {body}
@@ -162,8 +162,8 @@ export default function NewLeadView({
             {isMock ? (
               <div className="note" style={{ marginTop: 8 }}>
                 <strong>Mock mode:</strong> no backend is attached, so steps 1–4 run in the browser against the same
-                rubric and the same demo price list. Point <code>NEXT_PUBLIC_API_URL</code> at the API and the Python
-                engine does the work instead.
+                rubric and the same demo price list. Connect the Python backend and it does exactly the same work
+                instead, with no change to what you see here.
               </div>
             ) : null}
           </aside>
