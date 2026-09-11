@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 from datetime import date
+from functools import cache
 
 from leadcentre.engine import rubric
 from leadcentre.engine.reasons import (
@@ -25,6 +26,7 @@ from leadcentre.engine.reasons import (
 )
 from leadcentre.models import (
     AddressType,
+    CityMatch,
     Company,
     Event,
     Evidence,
@@ -47,6 +49,79 @@ def classify_address(company: Company) -> AddressType:
     if haystack.strip():
         return AddressType.OWN
     return AddressType.UNKNOWN
+
+
+def normalize_city(value: str) -> str:
+    """Строка города, приведённая к виду, в котором её сравнивают со списками.
+
+    Нижний регистр, одна форма арабского алефа, схлопнутые пробелы. Нормализуются обе
+    стороны сравнения — и вход, и маркер из `rubric`, — иначе в списке пришлось бы
+    держать по два написания на каждую букву с хамзой («أبو ظبي» и «ابو ظبي»).
+    """
+    folded = value.strip().lower()
+    for form in rubric.CITY_ALEF_FORMS:
+        folded = folded.replace(form, rubric.CITY_ALEF_CANONICAL)
+    return " ".join(folded.split())
+
+
+def _city_parts(normalized: str) -> tuple[str, ...]:
+    """Части адресной строки города: «jumeirah lakes towers, dubai» -> две части.
+
+    Реестр пишет в поле города и адрес целиком, и город с эмиратом через косую черту.
+    Части нужны там, где сравнение идёт по названию целиком (районы): подстрокой
+    район искать нельзя, «al ain» нашёлся бы внутри чужого слова.
+    """
+    parts = [normalized]
+    for separator in rubric.CITY_PART_SEPARATORS:
+        parts = [chunk for part in parts for chunk in part.split(separator)]
+    return tuple(p for p in (" ".join(x.split()) for x in parts) if p)
+
+
+@cache
+def _normalized(markers: tuple[str, ...]) -> frozenset[str]:
+    """Маркеры из `rubric`, приведённые тем же нормализатором, что и вход.
+
+    Кэш по самому кортежу, а не заранее посчитанная константа: списки в `rubric` —
+    данные, и подмена их в тесте (мутация правила) обязана доезжать до сравнения.
+    """
+    return frozenset(normalize_city(m) for m in markers)
+
+
+def classify_city(city: str) -> CityMatch:
+    """Целевой ли город, по написанию из реестра. Исходов четыре, и это не два.
+
+    Порядок проверок — само правило, поэтому он здесь, а не размазан по условиям:
+
+    1. Пустая строка — `NOT_SET`: решать не по чему.
+    2. Район чужого эмирата (`NON_TARGET_DISTRICTS`) — `OFF_TARGET`. Первым, потому что
+       «Al Reem Island» это Абу-Даби, и попасть в «не узнали» он не должен.
+    3. Имя чужого эмирата подстрокой — `OFF_TARGET`. Раньше целевых: любой признак
+       другого эмирата важнее; поднять до HIGH по догадке дороже, чем не поднять.
+    4. Район Дубая целиком (`TARGET_DISTRICTS`) или имя Дубая подстрокой — `TARGET`.
+    5. Всё остальное — `UNRECOGNISED`: реестр написал что-то, чего в списках нет.
+    """
+    normalized = normalize_city(city)
+    if not normalized:
+        return CityMatch.NOT_SET
+    parts = _city_parts(normalized)
+    if any(part in _normalized(rubric.NON_TARGET_DISTRICTS) for part in parts):
+        return CityMatch.OFF_TARGET
+    if any(m in normalized for m in _normalized(rubric.NON_TARGET_CITY_MARKERS)):
+        return CityMatch.OFF_TARGET
+    if any(part in _normalized(rubric.TARGET_DISTRICTS) for part in parts):
+        return CityMatch.TARGET
+    if any(m in normalized for m in _normalized(rubric.TARGET_CITY_MARKERS)):
+        return CityMatch.TARGET
+    return CityMatch.UNRECOGNISED
+
+
+#: Какую причину печатать на каждый исход по городу. Словарь, а не цепочка if: исходов
+#: четыре, и «забыли ветку» здесь превратилось бы в ступень без объяснения.
+CITY_REASON: dict[CityMatch, ReasonCode] = {
+    CityMatch.OFF_TARGET: ReasonCode.CITY_OFF_TARGET,
+    CityMatch.UNRECOGNISED: ReasonCode.CITY_UNRECOGNISED,
+    CityMatch.NOT_SET: ReasonCode.CITY_NOT_SET,
+}
 
 
 def classify_event(company: Company, today: date) -> tuple[Event, tuple[Reason, ...]]:
@@ -91,13 +166,17 @@ def score(company: Company, today: date) -> Score:
     reasons: list[Reason] = list(event_reasons)
     violations: list[Violation] = []
 
-    # Модификаторы
-    if tier is Tier.HIGH and company.city.strip().lower() not in rubric.TARGET_CITIES:
+    # Модификаторы. Город из реестра приходит в четырёх видах написания, поэтому
+    # сравнение вынесено в `classify_city`, а его исход выбирает причину по словарю.
+    # Ступень понижается на всех исходах, кроме целевого, — но причина у каждого своя:
+    # «другой эмират» и «написание не узнали» читаются по-разному и считаются отдельно.
+    city_match = classify_city(company.city)
+    if tier is Tier.HIGH and city_match is not CityMatch.TARGET:
         tier = Tier.MEDIUM
+        code = CITY_REASON[city_match]
         city = company.city.strip()
         reasons.append(
-            reason(ReasonCode.CITY_OFF_TARGET, city=city) if city
-            else reason(ReasonCode.CITY_NOT_SET)
+            reason(code) if code is ReasonCode.CITY_NOT_SET else reason(code, city=city)
         )
 
     # Инварианты. Нарушение — не LOW, а INVALID. Нарушение — такой же код с

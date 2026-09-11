@@ -52,7 +52,15 @@ export function ErrorNotice({
     <div className="notice notice-error">
       <div className="notice-title">{title}</div>
       <div>{message}</div>
-      {detail ? <div className="notice-detail">{detail}</div> : null}
+      {/* Сырой ответ провайдера — под раскрытием, а не в основном потоке: человеческая
+          строка выше уже всё сказала, а дословный JSON на экране показывает постороннему
+          и имя модели, и состояние нашего счёта. Не выброшен: без него нечем чинить. */}
+      {detail ? (
+        <details className="details details-inline notice-details">
+          <summary className="details-summary">Technical detail</summary>
+          <div className="details-body notice-detail">{detail}</div>
+        </details>
+      ) : null}
       {onRetry ? (
         <div className="actions">
           <button className="btn" onClick={onRetry}>

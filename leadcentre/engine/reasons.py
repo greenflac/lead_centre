@@ -111,6 +111,7 @@ class ReasonCode(str, Enum):
     LEI_RENEWAL_SOON = "lei_renewal_soon"
     CITY_OFF_TARGET = "city_off_target"
     CITY_NOT_SET = "city_not_set"
+    CITY_UNRECOGNISED = "city_unrecognised"
     ENTITY_INACTIVE = "entity_inactive"
     # --- входящее обращение (ось C) ---
     SPAM_OR_OFF_TOPIC = "spam_or_off_topic"
@@ -123,6 +124,7 @@ class ReasonCode(str, Enum):
     TARGET_LANGUAGE = "target_language"
     TARGET_LANGUAGE_ALONE = "target_language_alone"
     LOW_CONFIDENCE = "low_confidence"
+    CONFIDENCE_NOT_MEASURED = "confidence_not_measured"
 
 
 class ViolationCode(str, Enum):
@@ -319,6 +321,17 @@ CATALOGUE: dict[ReasonCode, ReasonSpec] = {
         texts={
             Language.RU: "город вне целевых ({city}) — ступень понижена",
             Language.EN: "city outside the target list ({city}) — tier lowered",
+        },
+    ),
+    ReasonCode.CITY_UNRECOGNISED: ReasonSpec(
+        # Третий исход по городу: строка есть, но ни в целевых написаниях, ни в
+        # нецелевых её нет. Отдельный код, а не CITY_OFF_TARGET: «мы не узнали
+        # написание» и «это другой эмират» — разные новости и для менеджера, и для
+        # того, кто поддерживает списки написаний в rubric.py.
+        params=("city",),
+        texts={
+            Language.RU: "город не распознан ({city}) — ступень понижена, проверьте вручную",
+            Language.EN: "city not recognised ({city}) — tier lowered, check by hand",
         },
     ),
     ReasonCode.CITY_NOT_SET: ReasonSpec(

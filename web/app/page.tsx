@@ -171,15 +171,18 @@ export default function Page() {
             </div>
           </div>
           <div className="stat">
-            <div className="stat-label">Not scored (invariant)</div>
+            <div className="stat-label">Not scored — priority refused</div>
             <div className="stat-value">
               {counts.byTier.INVALID}
               <span className="stat-sub">
                 {" "}
                 ·{" "}
+                {/* Три исхода сохранены дословно: «не смогли узнать» не сворачивается
+                    в «ноль». Изменены только слова — имя эндпоинта и «нарушения
+                    инварианта» менеджер не читает. */}
                 {statsFailed
-                  ? "violations unavailable — /stats did not answer"
-                  : `${stats?.leads.violations ?? 0} violations`}
+                  ? "could not read how many failed the engine's own checks"
+                  : `${stats?.leads.violations ?? 0} failed the engine's own checks`}
               </span>
             </div>
           </div>

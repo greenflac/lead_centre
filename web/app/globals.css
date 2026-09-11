@@ -343,6 +343,9 @@ table.grid th {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Причины лежат не на языке интерфейса — строка списка говорит это теми же словами,
+   что и нота на карточке. */
+.why-lang { color: var(--on-surface-variant); font-style: italic; }
 .lead-row-meta {
   margin-inline-start: auto;
   font-size: 12px;
@@ -393,13 +396,6 @@ table.grid th {
 
 .card-head { padding: 16px; border-bottom: 1px solid var(--outline-variant); }
 .card-head-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.card-id {
-  font-family: var(--mono);
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--on-surface-variant);
-  font-variant-numeric: tabular-nums;
-}
 .card-body { display: grid; grid-template-columns: 1fr 1fr; }
 @media (max-width: 900px) { .card-body { grid-template-columns: 1fr; } }
 .card-col { padding: 16px; min-width: 0; }
@@ -424,7 +420,10 @@ table.grid th {
   border: 1px solid var(--outline-variant);
   border-radius: var(--r-small);
   padding: 12px;
-  max-height: 240px;
+  /* 266 = 12 строк по 20 px + 24 padding + 2 border: обрез приходится между строками,
+     а не на половину букв (кадр 07-empty-state.png). Сам факт обрезки подписывает
+     LeadCard, измерив её. */
+  max-height: 266px;
   overflow-y: auto;
 }
 /* Подсветка цитаты, на которой построена причина. */
@@ -629,14 +628,17 @@ input:focus, textarea:focus, select:focus, .btn:focus-visible, .tab:focus-visibl
 .table-wrap { overflow-x: auto; }
 table.grid { width: 100%; border-collapse: collapse; }
 /* Ширины подобраны так, чтобы содержательные колонки не резались: «why» несёт число дней
-   просрочки, «evidence» — сам идентификатор записи и дату, ради которой строка тут. */
-table.grid-fixed { table-layout: fixed; min-width: 1180px; }
+   просрочки, «evidence» — сам идентификатор записи (LEI, ровно 20 символов) и дату, ради
+   которой строка тут, «flag» — подпись типа адреса словами, а не машинную метку.
+   min-width 1180 -> 1252 (ИЗМЕРЕНО в браузере на 60 строках набора: самой широкой
+   ячейке evidence нужно 378 px, address type — 143 px). */
+table.grid-fixed { table-layout: fixed; min-width: 1252px; }
 table.grid-fixed col.c-priority { width: 88px; }
 table.grid-fixed col.c-company { width: 240px; }
-table.grid-fixed col.c-flag { width: 96px; }
-table.grid-fixed col.c-city { width: 120px; }
+table.grid-fixed col.c-flag { width: 148px; }
+table.grid-fixed col.c-city { width: 104px; }
 table.grid-fixed col.c-why { width: 280px; }
-table.grid-fixed col.c-evidence { width: 356px; }
+table.grid-fixed col.c-evidence { width: 392px; }
 table.grid th {
   text-align: start;
   padding: 16px;
@@ -657,6 +659,10 @@ table.grid tr:hover td { background: var(--surface-container-high); }
 .cell-name { font-weight: 500; }
 .cell-mono { font-family: var(--mono); font-size: 12px; line-height: 16px; color: var(--medium-text); }
 .cell-reason { color: var(--on-surface-variant); }
+/* Доказательство: подпись поля приглушена, значение — основным тоном, чтобы в одной
+   строке было видно, где имя поля, а где сам факт из записи реестра. */
+.ev-label { color: var(--on-surface-variant); }
+.ev-sep { color: var(--on-surface-variant); padding: 0 4px; }
 
 /* --- notices --- */
 
@@ -676,6 +682,10 @@ table.grid tr:hover td { background: var(--surface-container-high); }
   color: var(--on-error-container);
 }
 .notice-error .notice-title { color: var(--on-error-container); }
+/* Раскрытие внутри плашки ошибки наследует её цвет: сводка не должна выпадать из
+   пары «on-error-container на error-container», которую считает contrast.py. */
+.notice-details { margin-top: 8px; }
+.notice-error .details-summary { color: inherit; }
 .notice-detail {
   font-family: var(--mono);
   font-size: 12px;
@@ -834,4 +844,4 @@ table.grid tr:hover td { background: var(--surface-container-high); }
 }
 /* Латинские острова внутри арабского блока: идентификаторы, суммы и коды не
    переворачиваются и изолируются от окружения (§2.1). */
-bdi, .card-id, .cell-mono, .served dd { unicode-bidi: isolate; }
+bdi, .cell-mono, .served dd { unicode-bidi: isolate; }
