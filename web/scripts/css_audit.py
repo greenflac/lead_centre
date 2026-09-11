@@ -1,11 +1,7 @@
-"""Ревизия системности CSS: сколько размеров шрифта, начертаний, отступов и радиусов.
+"""Counts how many font sizes, weights, spacings and radii the stylesheet actually uses.
 
-Мерит ровно то, что §5.2 руководства 01_material.md измерил на прошлой версии
-(10 размеров, 5 начертаний, 17 отступов из них 10 не кратны 4, 4 радиуса), чтобы
-«стало лучше» было числом, а не словом.
-
-Три исхода: ГОДНО / НЕ ГОДНО / НЕ СМОГЛИ ПРОВЕРИТЬ (файл не прочитан).
-Запуск: python3 web/scripts/css_audit.py [css]
+Three outcomes: pass / fail / could not check (stylesheet unreadable).
+Usage: python3 web/scripts/css_audit.py [css]
 """
 from __future__ import annotations
 
@@ -15,7 +11,7 @@ from pathlib import Path
 
 CSS = Path(__file__).resolve().parents[1] / "app" / "globals.css"
 
-ALLOWED_SIZES = {12, 14, 15, 16}      # 15px — только арабский блок (03_arabic_rtl §3.2)
+ALLOWED_SIZES = {12, 14, 15, 16}      # 15px is the Arabic block only
 ALLOWED_WEIGHTS = {400, 500}
 GRID = {0, 4, 8, 12, 16, 20, 24, 32, 48}
 ALLOWED_RADII = {"4px", "8px", "50%"}
@@ -24,7 +20,7 @@ SPACING_PROPS = ("padding", "margin", "gap", "row-gap", "column-gap")
 
 
 def numbers(text: str, prop: str) -> list[tuple[str, str]]:
-    """(значение, целая строка) для каждого объявления свойства prop и его вариантов."""
+    """Returns (value, whole line) for every declaration of prop and its variants."""
     pattern = re.compile(rf"(?<![-a-z]){prop}(?:-(?:top|right|bottom|left|inline|block)"
                          rf"(?:-(?:start|end))?)?\s*:\s*([^;{{}}]+);")
     return [(m.group(1).strip(), m.group(0)) for m in pattern.finditer(text)]
@@ -46,7 +42,7 @@ def main() -> int:
     except OSError as exc:
         print(f"НЕ СМОГЛИ ПРОВЕРИТЬ: {exc}")
         return 2
-    # Комментарии выкидываем: числа в пояснениях — не объявления.
+    # Comments are dropped: a number inside prose is not a declaration.
     text = re.sub(r"/\*.*?\*/", "", text, flags=re.DOTALL)
 
     sizes = sorted({float(v[:-2]) for v, _ in numbers(text, "font-size")

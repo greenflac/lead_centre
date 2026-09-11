@@ -1,12 +1,11 @@
 name: ci
 on: [push, pull_request]
 
-# Сборка только читает код и гоняет проверки: ничего не публикует, не пишет в репозиторий
-# и не трогает issue. Токену по умолчанию GitHub даёт больше — сужаем до чтения (А1).
+# The build only reads code and runs checks, so the token is narrowed to read.
 permissions:
   contents: read
 
-# Два пуша подряд в одну ветку не гоняются наперегонки: свежий отменяет предыдущий (А4).
+# A newer push to the same branch cancels the run still in flight.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -20,17 +19,16 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -e ".[dev]"
-      # Сеть в тестах запрещена машиной: ci/sitecustomize.py подхватывается через PYTHONPATH.
+      # The network ban is enforced by ci/sitecustomize.py, loaded via PYTHONPATH.
       - run: make test-ci-selfcheck
       - run: make test-ci
       - run: make lint
-      # Сквозная проверка обещания из первого абзаца README: четыре обращения, 32 проверки.
+      # End-to-end check of the promise the README opens with.
       - run: make demo
 
   web:
-    # Приборы дашборда — такой же гейт, как тесты: контраст, свойства дизайн-системы и
-    # сверка порта на TypeScript с движком на Python. Без этой работы копия правил в порте
-    # расходится с оригиналом молча — так уже было.
+    # Dashboard instruments gate the build like tests do; without the crosscheck the
+    # TypeScript port drifts from the Python engine silently.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0

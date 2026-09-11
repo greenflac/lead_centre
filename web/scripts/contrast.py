@@ -1,14 +1,10 @@
-"""Контраст пар цветов по формуле WCAG. Прибор для проверки палитры дашборда.
+"""WCAG contrast for the dashboard palette: (L1+0.05)/(L2+0.05) over sRGB luminance.
 
-Считает по sRGB relative luminance, (L1+0.05)/(L2+0.05) — та же формула, что в §3.4
-нормативы Material Design, но числа здесь считаются заново, а не переписываются.
+Known pairs act as the negative control -- white on white must give 1.00 and black on
+white 21.00; if they do not, the numbers below mean nothing and the run exits with 2.
 
-Негативный контроль прибора: белое на белом обязано дать 1.00, чёрное на белом —
-21.00, эталон M3 (#1d1b20 на #fef7ff) — 16.23. Если контроли не сошлись, прибор врёт
-и остальным числам верить нельзя — прогон завершается кодом 2.
-
-Три исхода: ГОДНО / НЕ ГОДНО / НЕ СМОГЛИ ПРОВЕРИТЬ (пара без порога).
-Запуск: python3 web/scripts/contrast.py [путь_к_globals.css]
+Three outcomes: pass / fail / could not check (a pair with no threshold).
+Usage: python3 web/scripts/contrast.py [path to globals.css]
 """
 from __future__ import annotations
 
@@ -18,7 +14,7 @@ from pathlib import Path
 
 CSS = Path(__file__).resolve().parents[1] / "app" / "globals.css"
 
-# Порог обычного текста (SC 1.4.3 AA) и порог нетекстовых носителей смысла (SC 1.4.11 AA).
+# Thresholds: body text (SC 1.4.3 AA) and non-text carriers of meaning (SC 1.4.11 AA).
 TEXT = 4.5
 NON_TEXT = 3.0
 
@@ -42,7 +38,7 @@ def ratio(fg: str, bg: str) -> float:
 
 
 def tokens(css_text: str, block: str) -> dict[str, str]:
-    """Значения --токенов из одного блока объявлений."""
+    """Returns the --token values declared in one block."""
     start = css_text.find(block)
     if start < 0:
         raise SystemExit(f"НЕ СМОГЛИ ПРОВЕРИТЬ: в CSS нет блока {block!r}")
@@ -50,7 +46,7 @@ def tokens(css_text: str, block: str) -> dict[str, str]:
     return dict(re.findall(r"(--[a-z0-9-]+)\s*:\s*(#[0-9A-Fa-f]{3,8})\s*;", body))
 
 
-# Пары: (что, на чём, порог). Порог None — пара без норматива (третий исход).
+# Pairs: (foreground, background, threshold). None means no norm applies.
 PAIRS: tuple[tuple[str, str, float | None], ...] = (
     ("--on-surface", "--surface", TEXT),
     ("--on-surface", "--surface-container", TEXT),
@@ -60,9 +56,9 @@ PAIRS: tuple[tuple[str, str, float | None], ...] = (
     ("--medium-text", "--surface", TEXT),
     ("--medium-text", "--surface-container", TEXT),
     ("--inverse-on-surface", "--inverse-surface", TEXT),
-    ("--inverse-surface", "--surface", NON_TEXT),      # чип HIGH и линейка HIGH как объекты
+    ("--inverse-surface", "--surface", NON_TEXT),      # HIGH chip and HIGH rule
     ("--inverse-surface", "--surface-container", NON_TEXT),
-    ("--outline", "--surface", NON_TEXT),              # контур чипа MEDIUM
+    ("--outline", "--surface", NON_TEXT),              # MEDIUM chip outline
     ("--outline", "--surface-container", NON_TEXT),
     ("--primary", "--surface", TEXT),
     ("--on-primary", "--primary", TEXT),
@@ -71,14 +67,13 @@ PAIRS: tuple[tuple[str, str, float | None], ...] = (
     ("--error", "--surface", TEXT),
     ("--on-error-container", "--error-container", TEXT),
     ("--error", "--error-container", NON_TEXT),
-    ("--outline-variant", "--surface", None),          # разделитель, смысла не несёт
+    ("--outline-variant", "--surface", None),          # a divider, carries no meaning
 )
 
 
 def check(name: str, block: str, css_text: str, prefix: str = "") -> tuple[int, int, int]:
-    """prefix — префикс имени токена в блоке: тёмная палитра объявлена как --dk-* внутри
-    :root, потому что роли ей назначаются двумя селекторами, а значение обязано быть
-    записано один раз."""
+    """Reads one palette; prefix selects it, since the dark tokens live as --dk-* in
+    :root so their values are written exactly once."""
     raw = tokens(css_text, block)
     table = {("--" + key[len(prefix):]) if prefix and key.startswith(prefix) else key: value
              for key, value in raw.items()}
