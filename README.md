@@ -160,7 +160,7 @@ Every number below came out of this repository. The command that produced it is 
 | Priority distribution on the 70-request seed | 13 HIGH / 41 MEDIUM / 16 LOW, 0 invariant violations | the engine over `data/inbound_seed.csv` |
 | Cost per lead over the seed | $0.0033 cold cache, $0.0030 warm | token counts of the whole set, Haiku/Opus prices |
 | Extraction latency | ~5 s per lead (8 edge-case requests, 35.1 s total, Haiku 4.5) | measured 2026-09-09 on live Haiku 4.5; not reproducible without an API key |
-| Registry volume, UAE | 9 362 legal entities with an LEI, of which 3 937 have a lapsed LEI registration | `docs/data/gleif_schema.md` |
+| Registry volume, UAE | 9 369 legal entities with an LEI, of which 3 940 have a lapsed LEI registration (golden copy of 2026-09-10; the registry is live and these move daily) | `docs/data/gleif_schema.md` — one curl re-checks them |
 
 Reading of the agreement number, in the bench's own words (`eval/README.md`): it is
 **agreement between the author's labels and the engine on synthetic requests**, not accuracy.
@@ -194,7 +194,7 @@ itself: a silent ban is indistinguishable from a missing one.
   distribution is our hypothesis about the channel mix, not a measurement of SORP's traffic;
   phone numbers and e-mail addresses in the seed are reserved fictional patterns only.
 - **GLEIF is a real public registry, but only companies that hold an LEI.** That is roughly
-  9 362 UAE entities, a slice skewed towards financial, trading and fund structures — not the
+  9 369 UAE entities, a slice skewed towards financial, trading and fund structures — not the
   whole Dubai licence base, and the flow of new entries is dozens per month, not thousands.
   Registry rows in the dashboard are tagged **public registry record**: the fields are the
   registry's, the priority and the reason are ours.
