@@ -24,6 +24,7 @@
 from __future__ import annotations
 
 import json
+from datetime import date
 
 import pytest
 
@@ -371,15 +372,17 @@ def _answer(**overrides) -> str:
 def test_has_contact_is_true_although_the_model_answered_false():
     """Модель контактов не видит: она отвечает по вычищенному тексту и врёт по определению."""
     scrubbed = scrub_pii(TEXT_WITH_PII)
-    facts, _dropped = parse_facts(_answer(has_contact=False), scrubbed)
+    facts, _dropped, _model_timeline = parse_facts(
+        _answer(has_contact=False), scrubbed, date(2026, 9, 9)
+    )
     assert facts.has_contact is True
 
 
 def test_has_contact_is_false_although_the_model_answered_true():
     """Обратная сторона той же мутации: слово модели не должно перевешивать факт."""
     scrubbed = scrub_pii(TEXT_CLEAN)
-    facts, _dropped = parse_facts(
-        _answer(has_contact=True, quotes=["нужен офис"]), scrubbed
+    facts, _dropped, _model_timeline = parse_facts(
+        _answer(has_contact=True, quotes=["нужен офис"]), scrubbed, date(2026, 9, 9)
     )
     assert facts.has_contact is False
 

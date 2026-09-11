@@ -385,6 +385,9 @@ def handle_lead(payload: LeadIn, today: date | None = None) -> dict[str, Any]:
             "output_tokens": extraction.output_tokens,
             "pii_scrubbed": extraction.scrubbed.summary(),
             "dropped_quotes": extraction.dropped_quotes,
+            # Что модель сказала про срок до пересчёта кодом: расхождение режимов
+            # видно числом, а не на слово (None — модель срока не назвала).
+            "timeline_from_model": extraction.timeline_from_model,
         },
         "storage": storage,
         "run_id": run_id,

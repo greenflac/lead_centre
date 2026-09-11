@@ -82,7 +82,7 @@ MIN_PHONE_DIGITS = 9                     # короче — не телефон,
 MIXED_SHARE = 0.2
 
 # Версия в имени файла: прежние промпты лежат рядом и остаются доступны для сравнения.
-PROMPT_VERSION = "extract_v4"
+PROMPT_VERSION = "extract_v5"
 PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / f"{PROMPT_VERSION}.md"
 
 PHONE_MASK = "[phone]"
@@ -150,6 +150,10 @@ class Extraction:
     scrubbed: Scrubbed
     dropped_quotes: int      # цитат, которых в обращении нет: модель их придумала
     route_reason: str = ""   # почему выбрана эта модель — в карточку, для демонстрации
+    #: Что модель сказала про `timeline_days` до того, как срок пересчитал код. Поле
+    #: приборное: без него «код заменил число модели» неотличимо от «модель так и
+    #: ответила», и замер расхождения режимов делать нечем (П1 — счётчик раньше ручки).
+    timeline_from_model: int | None = None
 
     def route_reason_in(self, language: Language = DEFAULT_LANGUAGE) -> str:
         """Причина маршрута на нужном языке — это берёт интерфейс.
@@ -550,12 +554,21 @@ def build_request_body(
     return body, scrubbed
 
 
-def parse_facts(text: str, scrubbed: Scrubbed) -> tuple[LeadFacts, int]:
-    """Текст ответа любого провайдера → `LeadFacts` плюс число отброшенных цитат.
+def parse_facts(
+    text: str, scrubbed: Scrubbed, received_at: date
+) -> tuple[LeadFacts, int, int | None]:
+    """Текст ответа любого провайдера → `LeadFacts`, число отброшенных цитат и срок модели.
 
     Валидация одна на всех провайдеров. Невалидный ответ — `ExtractionError`, а не пустой
     `LeadFacts`. Цитаты сличаются с текстом, который уходил в модель: чего в нём нет,
     то модель придумала, и такая цитата отбрасывается.
+
+    `received_at` обязателен и не имеет значения по умолчанию: срок, названный словами,
+    считается от даты ОБРАЩЕНИЯ, и подставить сюда «сегодня» — значит тихо получить
+    другое число на обращении недельной давности.
+
+    Третьим элементом возвращается срок, названный самой моделью, — до того, как его
+    заменил код (см. `coded_deadline_wins`).
     """
     stripped = FENCE_RE.sub("", text.strip())
     try:
@@ -587,7 +600,10 @@ def parse_facts(text: str, scrubbed: Scrubbed) -> tuple[LeadFacts, int]:
     # Границы, которых нет в схеме (API их не принимает), проверяем здесь — чтобы
     # ограничение не потерялось вместе с ключом схемы.
     headcount = _optional_int(raw.get("headcount"), "headcount", HEADCOUNT_MIN)
-    timeline_days = _optional_int(raw.get("timeline_days"), "timeline_days", TIMELINE_MIN)
+    timeline_from_model = _optional_int(
+        raw.get("timeline_days"), "timeline_days", TIMELINE_MIN
+    )
+    timeline_days = coded_deadline_wins(scrubbed.text, received_at, timeline_from_model)
 
     quotes = [q for q in (raw.get("quotes") or []) if q and q in scrubbed.text]
     dropped = len(raw.get("quotes") or []) - len(quotes)
@@ -616,7 +632,7 @@ def parse_facts(text: str, scrubbed: Scrubbed) -> tuple[LeadFacts, int]:
         confidence=confidence,
         quotes=tuple(quotes),
     )
-    return facts, dropped
+    return facts, dropped, timeline_from_model
 
 
 def _optional_int(value: object, field: str, minimum: int) -> int | None:
@@ -728,6 +744,28 @@ def urgency_stated(text: str) -> bool:
     return any(marker in low for marker in VAGUE_URGENCY_MARKERS)
 
 
+def coded_deadline_wins(
+    text: str, received_at: date, from_model: int | None
+) -> int | None:
+    """Срок по названным словами датам считает код, а не модель. Исхода три.
+
+    * код посчитал (`deadline_days` дал число) — берётся его число, даже если модель
+      назвала своё: арифметика календаря у кода детерминированная и провабельно верная,
+      а модель на ней ошибается. ИЗМЕРЕНО координатором 2026-09-11 живым Haiku 4.5:
+      на «до пятницы» от субботы (urg-05) модель дважды подряд ответила 4 вместо 6 —
+      при том, что ровно этот случай разобран примером в prompts/extract_v5.md.
+      Промптом это не лечится, и сверять два ответа на один текст бессмысленно:
+      один из них выводится, второй угадывается.
+    * код не посчитал, модель назвала число («через 3 недели», «до конца октября») —
+      остаётся число модели: таких формулировок код не разбирает.
+    * не назвал никто — None, и это не ноль.
+
+    Правило проекта здесь ровно то же, что и везде: модель предлагает факты, решает код.
+    """
+    named = deadline_days(text, received_at)
+    return named if named is not None else from_model
+
+
 def wordless_urgency(text: str, timeline_days: int | None) -> bool:
     """Признак «срочность заявлена словами, даты клиент не назвал» — как он попадает в факты.
 
@@ -830,9 +868,12 @@ def extract_detailed(message: InboundMessage, provider: Provider | None = None) 
     completion = provider.complete(body)
     elapsed = time.monotonic() - started
 
-    facts, dropped = parse_facts(completion.text, scrubbed)
+    facts, dropped, timeline_from_model = parse_facts(
+        completion.text, scrubbed, message.received_at
+    )
     return Extraction(
         facts=facts,
+        timeline_from_model=timeline_from_model,
         provider=provider.name,
         model=completion.model,
         elapsed_s=elapsed,
