@@ -1,14 +1,7 @@
-"""Тесты детерминированного извлечения фактов (`leadcentre/engine/facts_rules.py`).
+"""Deterministic fact extraction: request types, headcount, quotes, budget and deadlines.
 
-Правило, ради которого файл заведён: слово «лицензия» звучит одинаково в «открыть
-компанию и получить лицензию» и в «продлить лицензию», поэтому маркер регистрации
-зажигался внутри фразы о продлении. Дефект найден сверкой стенда с ответом модели на
-urg-13: маркеры давали `[office, renewal, setup]`, модель — `[office, renewal]`, и права
-модель — компанию не регистрируют, лицензию продлевают.
-
-Ожидаемое — литералы: наборы типов перечислены значениями `RequestType`, слова
-о лицензии выписаны строками. Из `facts_rules` не импортируется ни `TYPE_MARKERS`,
-ни `LICENCE_MARKERS`. Сети и модели не требуется: правила детерминированные.
+Expected values are literals; no marker list is imported from the module under test, so
+narrowing one reddens these tests instead of moving them along.
 """
 from __future__ import annotations
 
@@ -24,8 +17,7 @@ from leadcentre.models import InboundMessage, RequestType
 
 SEED_CSV = Path(__file__).resolve().parents[1] / "data" / "inbound_seed.csv"
 
-# Слова, из-за которых регистрация зажигалась в фразе о продлении. Литералы, а не
-# импорт: тест обязан краснеть, если список в модуле изменится.
+# Literals, not an import: this test must redden if the module's list changes.
 LICENCE_WORDS = ("лицензи", "licence", "license")
 
 
@@ -54,20 +46,20 @@ def _seed_message(external_id: str) -> InboundMessage:
     )
 
 
-# --- регистрация снимается: слово о лицензии стоит рядом с продлением -------------
+# Registration is dropped: a licence word stands next to a renewal.
 
 
 def test_pure_renewal_probe_has_no_setup():
-    """Зонд: «продлить лицензию компании» — это продление и только оно."""
+    """A pure renewal probe yields renewal and nothing else."""
     assert _types("нужно продлить лицензию компании, что требуется и сколько стоит?") == {
         RequestType.RENEWAL
     }
 
 
 def test_urg_13_is_office_and_renewal_without_setup():
-    """Живой случай дефекта: «our licence expires in 21 days … move to a bigger unit»."""
+    """A live request about an expiring licence plus a bigger unit stays office and renewal."""
     message = _seed_message("urg-13")
-    assert "licence" in message.text.lower()  # предпосылка, а не вывод теста
+    assert "licence" in message.text.lower()  # a precondition, not the conclusion
     assert set(rules_facts(message).request_types) == {
         RequestType.OFFICE,
         RequestType.RENEWAL,
@@ -88,18 +80,14 @@ def test_licence_next_to_renewal_never_yields_setup(text):
     assert RequestType.RENEWAL in _types(text)
 
 
-# --- регистрация остаётся: живой негативный контроль и раздельные предложения -----
+# Registration stands: live negative control and separate sentences.
 
 
 def test_urg_08_keeps_setup_because_freezone_fired():
-    """Негативный контроль правила: жадное правило съело бы здесь setup.
-
-    В urg-08 просят и продление лицензии, и «fastest freezone for a fintech
-    consultancy» — регистрация настоящая, её снимать нельзя.
-    """
+    """Negative control: a greedy rule would drop a genuine registration here."""
     message = _seed_message("urg-08")
     low = message.text.lower()
-    assert "licence" in low and "freezone" in low  # предпосылки из текста обращения
+    assert "licence" in low and "freezone" in low  # preconditions taken from the request text
     assert set(rules_facts(message).request_types) == {
         RequestType.OFFICE,
         RequestType.SETUP,
@@ -110,21 +98,20 @@ def test_urg_08_keeps_setup_because_freezone_fired():
 @pytest.mark.parametrize(
     "text",
     [
-        # ЕДИНСТВЕННЫЙ маркер регистрации — слово о лицензии, и стоит оно в предложении
-        # без продления. Проверку по предложениям сторожат именно эти входы: если в
-        # тексте есть ещё «открыть компанию», правило выходит раньше, до неё.
+        # These inputs guard the per-sentence check: the only registration marker is
+        # a licence word, and it sits in a sentence that says nothing about renewal.
         "нужна лицензия. а когда продлевать её потом?",
         "лицензия нужна; продление тоже интересует",
         "сколько стоит лицензия? и продление сколько?",
     ],
 )
 def test_licence_in_a_separate_sentence_keeps_setup(text):
-    """Слово о лицензии в предложении без продления — речь всё-таки о регистрации."""
+    """A licence word in a sentence without a renewal still means registration."""
     assert _types(text) == {RequestType.SETUP, RequestType.RENEWAL}
 
 
 def test_licence_and_setup_word_together_keep_setup():
-    """Тот же случай, но с явным «открыть компанию»: правило выходит на шаг раньше."""
+    """With an explicit setup word the rule exits a step earlier."""
     text = "хотим открыть компанию, лицензия нужна. и ещё, когда продлевать?"
     assert _types(text) == {RequestType.SETUP, RequestType.RENEWAL}
 
@@ -145,8 +132,8 @@ def test_another_setup_marker_keeps_setup_next_to_renewal(text):
 @pytest.mark.parametrize(
     ("external_id", "expected"),
     [
-        ("prc-01", {RequestType.SETUP}),        # «скок стоит фриз зона?» — правило не трогает
-        ("gen-20", {RequestType.RENEWAL}),      # продление без слова о лицензии
+        ("prc-01", {RequestType.SETUP}),        # a bare price question: the rule does not touch it
+        ("gen-20", {RequestType.RENEWAL}),      # a renewal with no licence word
     ],
 )
 def test_unrelated_messages_are_unchanged(external_id, expected):
@@ -156,7 +143,7 @@ def test_unrelated_messages_are_unchanged(external_id, expected):
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        # Словоформы, ради которых маркеры продления переписаны основами.
+        # Word forms the renewal stems were introduced for.
         ("продлеваем лицензию, что нужно?", {RequestType.RENEWAL}),
         ("продлеваете ли вы визы?", {RequestType.VISA, RequestType.RENEWAL}),
         ("надо продлевать?", {RequestType.RENEWAL}),
@@ -166,41 +153,34 @@ def test_unrelated_messages_are_unchanged(external_id, expected):
         ("licence renewals", {RequestType.RENEWAL}),
         ("licence expiring soon", {RequestType.RENEWAL}),
         ("лицензия истекла в июле", {RequestType.RENEWAL}),
-        # Негативный контроль основ: регистрация от них не зажигается.
+        # Negative control: these stems do not light registration.
         ("хотим открыть компанию во фризоне", {RequestType.SETUP}),
     ],
 )
 def test_renewal_word_forms_are_covered_by_stems(text, expected):
-    """Маркеры продления — основы, а не целые слова: «продлева», «продли», «renew».
-
-    Дыра на «продлеваем» была заперта отдельным тестом с пометкой ИЗМЕРЕНО и закрыта;
-    здесь заперты уже покрытые словоформы, чтобы возврат к целым словам был заметен.
-    """
+    """Renewal markers are stems, so a return to whole words would be visible here."""
     assert _types(text) == expected
 
 
 def test_setup_without_renewal_is_untouched():
-    """Правило включается только при паре setup+renewal, иначе оно вообще не при делах."""
+    """The rule engages only on a setup and renewal pair."""
     assert _types("хотим лицензию и открыть компанию") == {RequestType.SETUP}
     assert _types("нужна licence для новой компании") == {RequestType.SETUP}
 
 
-# --- инвариант по всему набору: ловим беду, а не её случай ------------------------
+# Invariant over the whole seed: the fault itself, not one instance of it.
 
 
 def _without_licence_words(text: str) -> str:
-    """Тот же текст без слов о лицензии: чем ещё держится регистрация, видно сразу."""
+    """Returns the same text without licence words, showing what else holds registration."""
     pattern = "|".join(re.escape(word) for word in LICENCE_WORDS)
     return re.sub(pattern, " ", text, flags=re.IGNORECASE)
 
 
 def test_no_seed_message_gets_setup_only_from_a_licence_word_next_to_renewal():
-    """По всем 70 обращениям: если регистрация держится ТОЛЬКО на слове о лицензии,
+    """Across the whole seed: registration never rests on a licence word beside a renewal.
 
-    а рядом просят продление — такой пары быть не должно. Тест написан про саму беду:
-    он переживёт изменение списков маркеров, а перечень «urg-13, urg-08» — не пережил бы.
-    ИЗМЕРЕНО 2026-09-09: нарушений 0, при этом пар setup+renewal в наборе 1 (urg-08),
-    то есть проверять было что.
+    Written about the fault itself, so it survives a change to the marker lists.
     """
     rows = _seed_rows()
     assert len(rows) == 70
@@ -223,9 +203,7 @@ def test_no_seed_message_gets_setup_only_from_a_licence_word_next_to_renewal():
     )
 
 
-# --- закрытые дыры: словоформы, которые теперь ловятся ---------------------------
-#
-# ИЗМЕРЕНО 2026-09-09 после правки маркеров. Заперты, чтобы откат был заметен.
+# Closed gaps, locked in so a regression is visible.
 
 
 @pytest.mark.parametrize(
@@ -237,9 +215,9 @@ def test_no_seed_message_gets_setup_only_from_a_licence_word_next_to_renewal():
         ("рабочее место одно", {RequestType.OFFICE}),
         ("переговорная", {RequestType.OFFICE}),
         ("ведём бухучёт", {RequestType.ACCOUNTING}),
-        ("ведем бухучет", {RequestType.ACCOUNTING}),   # и без ё
+        ("ведем бухучет", {RequestType.ACCOUNTING}),   # and the same spelled without yo
         ("открыть счёт", {RequestType.BANK}),
-        ("открыть счет", {RequestType.BANK}),          # и без ё
+        ("открыть счет", {RequestType.BANK}),          # and the same spelled without yo
         ("открытие счёта", {RequestType.BANK}),
         ("open an account", {RequestType.BANK}),
         ("current account", {RequestType.BANK}),
@@ -248,76 +226,59 @@ def test_no_seed_message_gets_setup_only_from_a_licence_word_next_to_renewal():
     ],
 )
 def test_closed_marker_gaps_are_covered(text, expected):
-    """Формы, которых маркеры раньше не ловили, теперь дают верный тип."""
+    """Word forms the markers used to miss now yield the right type."""
     assert _types(text) == expected
 
 
-# --- шум вокруг закрытых дыр: цена, заплаченная за покрытие ----------------------
+# The noise around those closed gaps: the price paid for the coverage.
 
 
 @pytest.mark.parametrize(
     ("text", "wrong"),
     [
-        # «счёт» без банка ловится и там, где речь не о банковском счёте.
+        # an account stem also fires where no bank account is meant
         ("открыть счёт в ресторане", RequestType.BANK),
         ("open an account on your website", RequestType.BANK),
-        # «переговорн» и «рабочее место» — там, где речь не об аренде.
+        # meeting-room and desk stems fire outside renting
         ("переговорная комната в отеле", RequestType.OFFICE),
         ("рабочее место дома", RequestType.OFFICE),
-        # «зарегистр» ловит любую регистрацию, не только компании.
+        # the registration stem catches any registration, not only a company
         ("зарегистрироваться на вебинар", RequestType.SETUP),
         ("зарегистрировать домен", RequestType.SETUP),
     ],
 )
 def test_noise_introduced_by_closing_the_gaps_is_recorded(text, wrong):
-    """Негативный контроль закрытых дыр со стороны шума: ИЗМЕРЕНО 2026-09-09.
-
-    Шесть фраз, которых в клиентском канале почти не бывает, теперь получают лишний тип.
-    На наборе из 70 обращений это не изменило ни одного приоритета — распределение
-    осталось 13 HIGH / 41 MEDIUM / 16 LOW. Заниматься этим не стоит: сузить «счёт»
-    до «счёт в банке» значит вернуть исходную дыру, ради которой правка и делалась,
-    а лишний тип в карточке менеджер поправит за секунду — пропущенный запрос дороже.
-    """
+    """The noise the closed gaps introduced, locked in deliberately: an extra type costs
+    a manager a second, while a missed request costs a lead."""
     assert wrong in _types(text)
 
 
 def test_words_around_the_closed_gaps_that_stay_silent():
-    """Не всякое «счёт» зажигает банк — и это тоже измерено, а не предположено."""
     assert _types("закройте счёт, пожалуйста") == set()
     assert _types("счёт на оплату пришлите") == set()
     assert _types("инвойс и счёт-фактура") == set()
 
 
-# --- известные дыры в маркерах: заперты, а не замолчаны --------------------------
-#
-# ИЗМЕРЕНО 2026-09-09 прогоном словоформ по всем TYPE_MARKERS. Тесты фиксируют
-# ТЕКУЩЕЕ поведение, а не желаемое: пока владелец `facts_rules.py` не решил, что
-# чинить, дыра должна быть видна в тестах, а её закрытие — краснить сборку.
-# Это тот же приём, что сработал с «продлеваем»: заперто → починено → тест покраснел.
+# Known marker gaps, locked in rather than left unsaid: these tests fix CURRENT
+# behaviour, so closing a gap reddens the build and the decision is retaken.
 
 
 @pytest.mark.parametrize(
     ("text", "missing", "current"),
     [
-        # НЕ ЧИНИМ ОСОЗНАННО, причина у каждой строки своя:
-        # основа "set up" поймала бы «set up a meeting» и «settings» — шума больше,
-        # чем пользы, а по-английски о регистрации чаще пишут «company formation».
+        # left open on purpose, each line for its own reason:
+        # a "set up" stem would catch "set up a meeting" and "settings"
         ("company set up", RequestType.SETUP, set()),
         ("setting up a company", RequestType.SETUP, set()),
-        # «продлёнка» — это школьная продлёнка, а не продление лицензии.
+        # this word is an after-school club, not a licence renewal
         ("продлёнка", RequestType.RENEWAL, set()),
-        # «открыл бы компанию» — сослагательная форма; основа "открыл" зажигалась бы
-        # на «открыл счёт», «открыл дверь», а сам оборот в канале почти не встречается.
+        # a subjunctive form; the stem would fire on unrelated phrases
         ("открыл бы компанию в оаэ", RequestType.SETUP, set()),
     ],
 )
 def test_known_marker_gaps_are_recorded(text, missing, current):
-    """Словоформа не ловится маркерами — и это решение, а не забывчивость.
-
-    Причина по каждой строке — в комментарии рядом с ней. Тест фиксирует ТЕКУЩЕЕ
-    поведение: если кто-то решит дыру закрыть, сборка покраснеет и решение придётся
-    принять заново, а не молча.
-    """
+    """Marker gaps left open on purpose; closing one reddens the build so the decision
+    is taken again rather than silently."""
     assert _types(text) == current
     assert missing not in _types(text)
 
@@ -325,8 +286,7 @@ def test_known_marker_gaps_are_recorded(text, missing, current):
 @pytest.mark.parametrize(
     ("text", "wrong"),
     [
-        # Короткие основы ловят чужие слова. Решение владельца от 2026-09-09: оставить,
-        # причина — в докстроке теста.
+        # short stems catch unrelated words; kept on purpose, see the docstring
         ("купите телевизор недорого", RequestType.VISA),
         ("приходил ваш визит-менеджер", RequestType.VISA),
         ("процедура банкротства компании", RequestType.BANK),
@@ -336,26 +296,18 @@ def test_known_marker_gaps_are_recorded(text, missing, current):
     ],
 )
 def test_known_false_positives_are_recorded(text, wrong):
-    """Ложные срабатывания коротких основ — ОСОЗНАННОЕ решение, а не недосмотр.
-
-    Сужать основу не будем: «виз» → «виза» убирает телевизор ценой «визами» и «визы».
-    Здесь ложное срабатывание дешевле пропуска — лишний тип в карточке менеджер
-    поправит за секунду, а пропущенный запрос про визы стоит лида. То же и с «банк»
-    в «банкротстве», «аудит» в «аудитории», «desk» в «desktop».
-    Тест фиксирует текущее поведение: сужение основы покраснит сборку и решение
-    придётся принять заново.
-    """
+    """False positives of short stems, accepted on purpose: narrowing a stem would cost
+    more real matches than the noise it removes."""
     assert wrong in _types(text)
 
 
-# --- размер команды: одно число или «не знаем», но никогда чужое число -------------
+# Team size: one number or "unknown", but never somebody else's number.
 
 
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        # Обе стороны диапазона и середина: одно число, разные единицы и разное число
-        # слов между числом и единицей.
+        # both ends of the range and the middle: units and spacing vary
         ("переезжаем командой 8 человек, нужен офис", 8),
         ("нужно 12 рабочих мест с 1 октября", 12),
         ("Нужно оформить 3 рабочие визы для сотрудников", 3),
@@ -366,51 +318,34 @@ def test_known_false_positives_are_recorded(text, wrong):
     ],
 )
 def test_headcount_is_read_when_the_text_names_exactly_one(text, expected):
-    """Одно названное количество людей — берём его; ни одного — «не знаем».
-
-    Единицы перечислены литералами в самих текстах: «человек», «мест», «визы»,
-    «visas», «people». Список единиц из модуля не импортируется — сузят его,
-    и тест покраснеет, а не поедет следом.
-    """
+    """One stated count is taken; units are literals here, never imported from the module."""
     assert rules_facts(_message(text)).headcount == expected
 
 
 def test_several_different_counts_give_no_headcount_at_all():
-    """Третий исход факта: несколько разных количеств — размер команды неизвестен.
-
-    Живой дефект: на обращении edge-03 («визы: нужно 3 партнёрские + 2 сотрудника,
-    потом ещё 4») в карточке стояло `people 2` — первое совпадение, то есть одно из
-    слагаемых. Читатель видит рядом текст и ловит расхождение, после чего перестаёт
-    верить и остальным фактам. Удобное число хуже честного «не знаем».
-    """
+    """Several different counts leave the team size unknown: an addend is not a total."""
     text = "визы: нужно 3 партнёрские + 2 сотрудника, потом ещё 4"
     assert rules_facts(_message(text)).headcount is None
 
 
 def test_the_same_count_repeated_is_still_one_count():
-    """Повтор одного и того же числа — не разногласие, факт остаётся."""
     text = "нужно 5 человек посадить, и визы на тех же 5 сотрудников"
     assert rules_facts(_message(text)).headcount == 5
 
 
 def test_seed_edge_03_shows_no_headcount():
-    """Тот самый вход из репозитория, а не только выдуманная строка."""
+    """The real seed input, not only a synthetic string."""
     assert rules_facts(_seed_message("edge-03")).headcount is None
 
 
 def test_headcount_quote_is_absent_when_the_count_is_unknown():
-    """Нет числа — нет и цитаты под него: доказательство не выдумывается.
-
-    Проверяется отсутствие именно обрывка под размер команды («2 сотрудника»), а не
-    вообще любого упоминания: предложение целиком остаётся законной цитатой под тип
-    запроса «визы», и вот оно на карточке уместно.
-    """
+    """No count means no quote under it; the surrounding sentence still quotes its own type."""
     facts = rules_facts(_message("визы: нужно 3 партнёрские + 2 сотрудника, потом ещё 4"))
     assert "2 сотрудника" not in facts.quotes
     assert any("визы" in q for q in facts.quotes), "цитата под тип запроса обязана остаться"
 
 
-# --- цитаты не повторяют друг друга --------------------------------------------------
+# Quotes do not repeat one another.
 
 
 LONG_ENUMERATION = (
@@ -421,30 +356,20 @@ LONG_ENUMERATION = (
 
 
 def test_markers_inside_one_sentence_give_one_quote():
-    """Несколько маркеров в одном перечислении — одно доказательство, а не четыре.
-
-    Живой дефект: на обращении edge-03 карточка показывала 12 цитат, из которых первые
-    три были окнами вокруг одного и того же места и отличались сдвигом на пару слов.
-    Читатель видит три почти одинаковых абзаца и решает, что система пересказывает саму
-    себя. Перекрывающееся окно — тот же кусок текста под другим маркером.
-    """
+    """Several markers in one listing are one piece of evidence, not four."""
     quotes = rules_facts(_message(LONG_ENUMERATION)).quotes
     assert len(quotes) == 1, quotes
 
 
 def test_markers_in_different_sentences_give_different_quotes():
-    """Негативный контроль правила: непересекающиеся места обязаны дать разные цитаты.
-
-    Без этой половины проверка зеленела бы и на правиле «оставлять ровно одну цитату
-    всегда», то есть измеряла бы не то.
-    """
+    """Negative control: without it the check would also pass on "always keep one quote"."""
     text = "нужен офис в Дубае. Отдельным вопросом: визы на сотрудников."
     quotes = rules_facts(_message(text)).quotes
     assert len(quotes) == 2, quotes
 
 
 def test_seed_edge_03_quotes_do_not_repeat_each_other():
-    """Тот самый вход из репозитория: цитат немного и ни одна не повторяет соседнюю."""
+    """On the real seed input no quote repeats its neighbour."""
     quotes = rules_facts(_seed_message("edge-03")).quotes
     assert len(quotes) <= 5, quotes
     stripped = [q.strip("…").strip() for q in quotes]
@@ -454,18 +379,18 @@ def test_seed_edge_03_quotes_do_not_repeat_each_other():
 
 
 def test_hot_requests_keep_at_least_one_quote():
-    """Схлопывание цитат не имеет права оставить горячее обращение без доказательства."""
+    """Collapsing quotes may never leave a hot request without evidence."""
     for external_id in ("urg-01", "urg-13", "edge-03"):
         assert rules_facts(_seed_message(external_id)).quotes, external_id
 
 
-# --- бюджет цитируется целиком, а не последним числом --------------------------------
+# A budget is quoted whole, not by its last number.
 
 
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        # Оба края и середина: одиночная сумма, диапазон, потолок, нижняя граница.
+        # both ends and the middle: single amount, range, ceiling, floor
         ("бюджет 95 тысяч в год", "95 тысяч"),
         ("ориентируемся на 120-150 тысяч дирхам", "120-150 тысяч дирхам"),
         ("бюджет до 180k AED в год", "до 180k AED"),
@@ -475,37 +400,24 @@ def test_hot_requests_keep_at_least_one_quote():
     ],
 )
 def test_budget_is_quoted_whole(text, expected):
-    """Цитата бюджета — обещание дословности, а не последнее число из фразы.
+    """A budget quote is verbatim, not the last number in the phrase.
 
-    Живой дефект: «120-150 тысяч дирхам» показывалось на карточке как «150 тысяч».
-    Диапазон превращался в точку, потолок — в ориентир, валюта пропадала. Читатель
-    видит текст рядом и ловит расхождение.
-
-    Ожидаемое — литералы; ни `MONEY_RE`, ни `MONEY_UNITS` не импортируются.
+    Expected values are literals; no money pattern is imported from the module.
     """
     assert rules_facts(_message(text)).budget_hint == expected
 
 
 def test_budget_of_a_price_question_is_still_not_a_budget():
-    """Негативный контроль: вопрос о цене без числа бюджетом не становится."""
     assert rules_facts(_message("скок стоит открыть компанию?")).budget_hint is None
 
 
 def test_seed_edge_03_budget_keeps_both_ends_of_the_range():
-    """Тот самый вход из репозитория."""
+    """The real seed input keeps both ends of the range."""
     assert rules_facts(_seed_message("edge-03")).budget_hint == "120-150 тысяч дирхам"
 
 
-# --- срок, названный словами -----------------------------------------------------
-#
-# Дефект, ради которого раздел заведён: слова «в этом месяце», «до пятницы», «на этой
-# неделе» лежали в одном списке со словом «срочно», и срок из них не извлекался вовсе.
-# Карточка писала «срочность заявлена словами, даты клиент не назвал» на обращении,
-# где дата названа (ИЗМЕРЕНО 2026-09-11 на data/inbound_seed.csv: 5 обращений из 7).
-#
-# Ожидаемое — литералы: числа дней посчитаны по календарю руками, ни `DEADLINE_MARKERS`,
-# ни функции правил из `extract` не импортируются. Фикстуры берутся с обоих краёв
-# недели (понедельник и пятница) и месяца (первое и последнее число) и из середины.
+# Deadlines named in words. Expected day counts are literals worked out by calendar,
+# with no marker table imported. Fixtures take both ends of the week and month, plus the middle.
 
 
 def _with_date(text: str, received_at: date):
@@ -517,27 +429,27 @@ def _with_date(text: str, received_at: date):
 @pytest.mark.parametrize(
     ("text", "received_at", "expected"),
     [
-        # «в этом месяце» — до последнего дня месяца обращения.
-        ("нужен офис в этом месяце", date(2026, 9, 1), 29),    # начало месяца
-        ("нужен офис в этом месяце", date(2026, 9, 9), 21),    # середина
-        ("нужен офис в этом месяце", date(2026, 9, 30), 0),    # последний день
+        # "this month" runs to the last day of the request month
+        ("нужен офис в этом месяце", date(2026, 9, 1), 29),    # start of the month
+        ("нужен офис в этом месяце", date(2026, 9, 9), 21),    # middle
+        ("нужен офис в этом месяце", date(2026, 9, 30), 0),    # last day
         ("лицензия нужна до конца месяца", date(2026, 8, 31), 0),
-        ("лицензия нужна до конца месяца", date(2026, 2, 1), 27),  # февраль 2026: 28 дней
+        ("лицензия нужна до конца месяца", date(2026, 2, 1), 27),  # a short month
         ("we need it this month", date(2026, 9, 9), 21),
-        # «до пятницы» — ближайшая пятница, считая день обращения.
-        ("ответ нужен до пятницы", date(2026, 8, 10), 4),      # понедельник
-        ("ответ нужен до пятницы", date(2026, 8, 14), 0),      # сама пятница
-        ("ответ нужен до пятницы", date(2026, 8, 15), 6),      # суббота: следующая
-        ("ответ нужен до пятницы", date(2026, 8, 8), 6),       # вход urg-05
-        # «на этой неделе» — до воскресенья недели обращения.
-        ("посмотреть офис на этой неделе", date(2026, 9, 7), 6),   # понедельник
-        ("посмотреть офис на этой неделе", date(2026, 9, 5), 1),   # суббота (urg-09)
-        ("посмотреть офис на этой неделе", date(2026, 9, 6), 0),   # воскресенье
-        # «сегодня» — ноль, а не «скоро».
+        # "by friday" is the next Friday, counting the request day
+        ("ответ нужен до пятницы", date(2026, 8, 10), 4),      # Monday
+        ("ответ нужен до пятницы", date(2026, 8, 14), 0),      # Friday itself
+        ("ответ нужен до пятницы", date(2026, 8, 15), 6),      # Saturday: the next one
+        ("ответ нужен до пятницы", date(2026, 8, 8), 6),       # a seed input
+        # "this week" runs to the Sunday of the request week
+        ("посмотреть офис на этой неделе", date(2026, 9, 7), 6),   # Monday
+        ("посмотреть офис на этой неделе", date(2026, 9, 5), 1),   # Saturday, a seed input
+        ("посмотреть офис на этой неделе", date(2026, 9, 6), 0),   # Sunday
+        # "today" is zero, not "soon"
         ("нужно сегодня", date(2026, 9, 9), 0),
-        # Ближайший из названных сроков связывает клиента.
+        # the nearest named deadline binds the client
         ("до пятницы, край — в этом месяце", date(2026, 9, 7), 4),
-        # Негативный контроль: слов о сроке нет — ничего не выдумываем.
+        # negative control: no deadline words, so nothing is invented
         ("нужен офис на 8 человек", date(2026, 9, 9), None),
         ("срочно нужен офис", date(2026, 9, 9), None),
     ],
@@ -547,11 +459,7 @@ def test_named_deadline_is_counted_from_the_message_date(text, received_at, expe
 
 
 def test_deadline_is_counted_from_the_message_not_from_today():
-    """Ловушка из prompts/extract_v4.md: срок считается от даты ОБРАЩЕНИЯ.
-
-    Один и тот же текст, полученный в разные дни, обязан давать разные сроки —
-    иначе «на этой неделе» из письма недельной давности означало бы эту неделю.
-    """
+    """A worded deadline counts from the request date: the same text on two days differs."""
     text = "нужен офис на этой неделе"
     assert rules_facts(_with_date(text, date(2026, 9, 7))).timeline_days == 6
     assert rules_facts(_with_date(text, date(2026, 9, 9))).timeline_days == 4
@@ -560,37 +468,28 @@ def test_deadline_is_counted_from_the_message_not_from_today():
 @pytest.mark.parametrize(
     ("text", "expected_timeline", "expected_urgency"),
     [
-        # Вычислимая дата: срок есть, словесного признака нет.
+        # computable date: a deadline, and no worded signal
         ("лицензия нужна до конца месяца", 0, False),
-        # Срочность без даты: признак есть, срок не выдуман.
+        # urgency without a date: the signal, and no invented deadline
         ("срочно нужен офис", None, True),
         ("we need it asap", None, True),
         ("как можно быстрее", None, True),
-        # Оба слова в одном тексте: побеждает названная дата (вход urg-04).
+        # both in one text: the named date wins
         ("срочно, лицензия нужна до конца месяца, лишь бы быстро", 0, False),
-        # Ни того, ни другого.
+        # neither
         ("нужен офис на 8 человек", None, False),
     ],
 )
 def test_a_message_never_gets_both_a_named_deadline_and_wordless_urgency(
     text, expected_timeline, expected_urgency
 ):
-    """Инвариант разделения: дата и «просто срочно» — разные признаки, не оба сразу."""
     facts = rules_facts(_with_date(text, date(2026, 8, 31)))
     assert facts.timeline_days == expected_timeline
     assert facts.urgency_stated is expected_urgency
 
 
 def test_the_demo_text_matches_the_live_llm_extraction():
-    """Эталон — живое извлечение моделью на том же тексте (координатор, 2026-09-11).
-
-    claude-haiku-4-5 на этом обращении от 2026-09-11 дал `timeline_days: 19` («в этом
-    месяце» = до конца сентября). Режим rules обязан давать то же число: расходятся
-    здесь не два мнения, а два пути одного продукта.
-
-    Модель при этом поставила и `urgency_stated: True` — это и есть тот дефект, ради
-    которого признаки разделены: дата названа, значит словесной срочности нет.
-    """
+    """Rules mode must match the live model on this text: two paths of one product."""
     text = (
         "Переезжаем командой 9 человек в Дубай, нужен офис и визы на всех, лицензию "
         "тоже оформляем. Срочно, хотим закрыть в этом месяце. Бюджет есть."
@@ -603,8 +502,7 @@ def test_the_demo_text_matches_the_live_llm_extraction():
 @pytest.mark.parametrize(
     ("text", "received_at", "expected_timeline"),
     [
-        # Дата названа не словами-маркерами, а числом и месяцем: словесный признак
-        # обязан молчать и здесь — иначе «даты клиент не назвал» врёт (вход urg-11).
+        # a date named by number and month must also silence the worded signal
         ("срочно, инвестор просит адрес до конца октября", date(2026, 7, 21), 72),
         ("срочно, нужен офис через 10 дней", date(2026, 9, 9), 10),
     ],
@@ -615,32 +513,27 @@ def test_any_extracted_deadline_silences_wordless_urgency(text, received_at, exp
     assert facts.urgency_stated is False
 
 
-# --- срок, названный числом без предлога ------------------------------------------
-#
-# Дефект: `NUM_DAYS_RE`/`NUM_WEEKS_RE` требовали предлога «через/in/within», и текст
-# «срок - 3 недели» (обращение urg-06 из data/inbound_seed.csv) не давал срока вовсе —
-# клиент срок назвал, движок его потерял. ИЗМЕРЕНО 2026-09-11: на 70 обращениях набора
-# задето 1 обращение, ложных срабатываний при снятии предлога — 0.
+# Deadlines named by a bare number, with no preposition in front of it.
 
 
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        # Ровно тот вход, на котором дефект наблюдался (И2).
+        # the exact input the defect was observed on
         ("нам нужен office space asap, 10 seats, + 10 residence visa. срок - 3 недели.", 21),
-        # Предлог на месте — поведение прежнее (положительный контроль).
+        # positive control: with the preposition the behaviour is unchanged
         ("нужен офис через 3 недели", 21),
         ("we need the office in 3 weeks", 21),
-        # Края диапазона и середина: один день, три недели, три месяца.
+        # both ends and the middle: one day, three weeks, three months
         ("срок - 1 день", 1),
         ("нужно за 10 дней", 10),
         ("срок 90 дней", 90),
         ("timeline 2 weeks", 14),
         ("нужно за 1 неделю", 7),
-        # Негативный контроль: число о прошлом сроком не становится.
+        # negative control: a number about the past is not a deadline
         ("2 недели назад отправляли заявку, ответа нет", None),
         ("we wrote 10 days ago and got no reply", None),
-        # Негативный контроль: числа не о времени срока не дают.
+        # negative control: numbers that are not about time give no deadline
         ("нужен офис на 8 человек", None),
         ("12 рабочих мест, барша хайтс", None),
     ],
@@ -650,9 +543,6 @@ def test_deadline_in_days_or_weeks_does_not_require_a_preposition(text, expected
 
 
 def test_past_tense_number_does_not_hide_a_real_deadline_later_in_the_text():
-    """Отброшен должен быть только рассказ о прошлом, а не весь текст.
-
-    «писали 2 недели назад, а нужно за 10 дней» — срок здесь есть, и он второй.
-    """
+    """Only the talk about the past is discarded; a real deadline later in the text stands."""
     text = "писали 2 недели назад, а нужно за 10 дней"
     assert rules_facts(_with_date(text, date(2026, 9, 11))).timeline_days == 10

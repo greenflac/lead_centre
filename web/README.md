@@ -155,7 +155,7 @@ against those backends by hand.
 | `05-discovered.png` | Registry watchlist: human evidence (`Renewal due 4 Sep 2026 · LEI 984500D91E8NC3EF6836`) and spelled-out address types, one line per row |
 | `06-error-provider-budget.png` | Backend answering 402: readable error, raw detail, retry |
 | `07-empty-state.png` | Search matching nothing |
-| `08-live-backend.png`, `09-live-new-request.png` | Live mode against `leadcentre/api.py` |
+| live mode | Not committed: `make shots-live` brings up the API without `OFFLINE`, builds the dashboard against it and shoots the screens. It needs a funded model key, so the frames are produced on demand rather than stored. |
 
 ## Language and right-to-left text
 

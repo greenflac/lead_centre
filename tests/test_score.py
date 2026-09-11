@@ -1,8 +1,7 @@
-"""Тесты рубрики и скоринга.
+"""Company scoring: the A x B matrix, thresholds, city, statuses and invariants.
 
-Ожидаемое — литералами: пороги записаны числами (90 / 60 / 90), ступени —
-членами `Tier`, ни одного обращения к `rubric.MATRIX` или `rubric.*_DAYS`.
-Фикстуры берутся с обоих краёв диапазона и из середины.
+Expected values are literals; no marker list or threshold is imported from the rubric,
+so a changed list reddens these tests instead of moving along with the code.
 """
 from __future__ import annotations
 
@@ -33,21 +32,19 @@ from tests.conftest import (
     renewal_company,
 )
 
-# --- ось A: классификатор адреса -------------------------------------------------
-
 
 @pytest.mark.parametrize(
     ("address_lines", "registrar_id", "expected"),
     [
         (ADDR_REGISTRAR, "RA999999", AddressType.REGISTRAR),
         (("Business Centre,Sharjah Publishing City Free Zone",), "RA888888", AddressType.REGISTRAR),
-        (ADDR_OWN, "RA000752", AddressType.REGISTRAR),  # по RA-коду органа регистрации
+        (ADDR_OWN, "RA000752", AddressType.REGISTRAR),  # by the registration authority code
         (ADDR_BUSINESS_CENTRE, "RA999999", AddressType.BUSINESS_CENTRE),
         (("Regus, Level 3, Boulevard Plaza",), "RA999999", AddressType.BUSINESS_CENTRE),
         (ADDR_OWN, "RA999999", AddressType.OWN),
         (ADDR_EMPTY, "RA999999", AddressType.UNKNOWN),
-        (("", "   "), "RA999999", AddressType.UNKNOWN),  # негативный контроль: пустой адрес
-        (("MEYDAN GRANDSTAND, 6TH FLOOR",), "RA999999", AddressType.REGISTRAR),  # регистр
+        (("", "   "), "RA999999", AddressType.UNKNOWN),  # negative control: an empty address
+        (("MEYDAN GRANDSTAND, 6TH FLOOR",), "RA999999", AddressType.REGISTRAR),  # case
     ],
 )
 def test_classify_address(address_lines, registrar_id, expected):
@@ -56,36 +53,29 @@ def test_classify_address(address_lines, registrar_id, expected):
 
 
 def test_registrar_marker_wins_over_business_centre():
-    """Приоритет осей A1 > A2: адрес зоны сильнее слова «business centre» в той же строке."""
     company = make_company(
         address_lines=("Business Centre, Meydan Grandstand, 6th floor",), registrar_id="RA999999"
     )
     assert classify_address(company) is AddressType.REGISTRAR
 
 
-# --- ось B: пороги. Края и середина каждого диапазона ------------------------
+# Axis B thresholds, at both edges of each range and in the middle.
 
 
 @pytest.mark.parametrize(
     ("overdue_days", "expected", "expected_code"),
     [
-        (0, Event.LAPSED, ReasonCode.LEI_LAPSED_FRESH),    # ровно сегодня истёк
+        (0, Event.LAPSED, ReasonCode.LEI_LAPSED_FRESH),    # lapsed exactly today
         (1, Event.LAPSED, ReasonCode.LEI_LAPSED_FRESH),
-        (45, Event.LAPSED, ReasonCode.LEI_LAPSED_FRESH),   # середина
-        # ровно порог LAPSED_FRESH_DAYS — ещё повод
+        (45, Event.LAPSED, ReasonCode.LEI_LAPSED_FRESH),   # middle
+        # exactly at the threshold: still an event
         (90, Event.LAPSED, ReasonCode.LEI_LAPSED_FRESH),
-        # на день дальше — повода нет, и причина уже другая
+        # one day past it: no event, and a different reason
         (91, Event.NONE, ReasonCode.LEI_LAPSED_LONG_AGO),
         (400, Event.NONE, ReasonCode.LEI_LAPSED_LONG_AGO),
     ],
 )
 def test_lapsed_threshold_is_90_days(overdue_days, expected, expected_code):
-    """Порог 90 наблюдаем и в поводе, и в коде причины.
-
-    Причина сверяется кодом и параметром, а не текстом: формулировка «просрочена на N
-    дней» — дело каталога (tests/test_reasons.py), а здесь проверяется, какое правило
-    сработало и с каким числом.
-    """
     event, reasons = classify_event(lapsed_company(overdue_days), TODAY)
     assert event is expected
     assert reason_codes(reasons) == [expected_code], (
@@ -95,7 +85,7 @@ def test_lapsed_threshold_is_90_days(overdue_days, expected, expected_code):
 
 
 def test_lapsed_in_future_is_not_an_event():
-    """Негативный контроль: дата продления в будущем при статусе LAPSED — не повод B1."""
+    """A renewal date in the future is not a lapse."""
     company = make_company(
         registration_status="LAPSED", next_renewal_on=TODAY + timedelta(days=10)
     )
@@ -106,10 +96,10 @@ def test_lapsed_in_future_is_not_an_event():
 @pytest.mark.parametrize(
     ("age_days", "expected"),
     [
-        (0, Event.NEW_ENTITY),   # создана сегодня
+        (0, Event.NEW_ENTITY),   # created today
         (1, Event.NEW_ENTITY),
-        (45, Event.NEW_ENTITY),  # середина
-        (90, Event.NEW_ENTITY),  # ровно порог NEW_ENTITY_DAYS
+        (45, Event.NEW_ENTITY),  # middle
+        (90, Event.NEW_ENTITY),  # exactly at the new-entity threshold
         (91, Event.NONE),
         (1000, Event.NONE),
     ],
@@ -122,10 +112,10 @@ def test_new_entity_threshold_is_90_days(age_days, expected):
 @pytest.mark.parametrize(
     ("days_left", "expected"),
     [
-        (0, Event.RENEWAL_SOON),   # продление сегодня
+        (0, Event.RENEWAL_SOON),   # renewal today
         (1, Event.RENEWAL_SOON),
-        (30, Event.RENEWAL_SOON),  # середина
-        (60, Event.RENEWAL_SOON),  # ровно порог RENEWAL_SOON_DAYS
+        (30, Event.RENEWAL_SOON),  # middle
+        (60, Event.RENEWAL_SOON),  # exactly at the renewal-soon threshold
         (61, Event.NONE),
         (300, Event.NONE),
     ],
@@ -136,14 +126,14 @@ def test_renewal_soon_threshold_is_60_days(days_left, expected):
 
 
 def test_lapsed_wins_over_new_entity():
-    """Приоритет поводов: свежая просрочка сильнее свежего юрлица."""
+    """A lapse outranks a recent creation."""
     company = lapsed_company(10, created_on=TODAY - timedelta(days=10))
     event, _ = classify_event(company, TODAY)
     assert event is Event.LAPSED
 
 
 def test_renewal_soon_requires_issued_status():
-    """Негативный контроль: у не-ISSUED регистрации повода «продление» нет."""
+    """An approaching renewal counts only on an issued registration."""
     company = make_company(
         registration_status="RETIRED",
         created_on=TODAY - timedelta(days=1000),
@@ -153,7 +143,7 @@ def test_renewal_soon_requires_issued_status():
     assert event is Event.NONE
 
 
-# --- матрица A x B: все 16 ячеек литералами --------------------------------------
+# The A x B matrix: every cell as a literal.
 
 _ADDRESS_INPUT = {
     AddressType.REGISTRAR: {"address_lines": ADDR_REGISTRAR, "registrar_id": "RA999999"},
@@ -205,7 +195,6 @@ def test_matrix_cell(address, event, expected_tier):
     assert result.violations == ()
 
 
-# --- модификаторы и инварианты ---------------------------------------------------
 
 
 def test_high_outside_dubai_is_downgraded_to_medium():
@@ -221,13 +210,8 @@ def test_high_stays_high_in_dubai_case_insensitive():
     assert score(company, TODAY).tier is Tier.HIGH
 
 
-# --- город: реестр пишет его четырьмя способами ----------------------------------
-#
-# Все строки — литералы из выдачи GLEIF (data/gleif_ae_*_sample.json), ни один список
-# написаний из `rubric` сюда не импортируется: тест обязан покраснеть, когда список
-# поедет. Фикстуры с обоих краёв и из середины: целевой город в трёх написаниях,
-# район без слова «Дубай», адрес с запятой, нецелевой эмират в двух написаниях,
-# район чужого эмирата, пустая строка и написание, которого в списках нет.
+# City: the registry writes it several ways. Every string is a literal from live output,
+# with no spelling list imported, so a changed list reddens these tests.
 
 
 @pytest.mark.parametrize(
@@ -245,7 +229,7 @@ def test_high_stays_high_in_dubai_case_insensitive():
         ("أبو ظبي", CityMatch.OFF_TARGET),
         ("أبوظبي", CityMatch.OFF_TARGET),
         ("ابوظبي", CityMatch.OFF_TARGET),
-        ("Al Reem Island", CityMatch.OFF_TARGET),   # район Абу-Даби, не Дубая
+        ("Al Reem Island", CityMatch.OFF_TARGET),   # a district of another emirate
         ("جزيرة الريم", CityMatch.OFF_TARGET),
         ("Sharjah", CityMatch.OFF_TARGET),
         ("الشارقة", CityMatch.OFF_TARGET),
@@ -264,11 +248,6 @@ def test_classify_city(city, expected):
 
 
 def test_district_of_dubai_keeps_high():
-    """Дефект, ради которого правило переписано: район Дубая снижал ступень.
-
-    ИЗМЕРЕНО 2026-09-11 на data/gleif_ae_lapsed_sample.json: четыре компании с
-    region=AE-DU были снижены с HIGH до MEDIUM, две из них — с городом «Nad Al Sheba».
-    """
     company = lapsed_company(10, city="Nad Al Sheba", address_lines=ADDR_REGISTRAR)
     result = score(company, TODAY)
     assert result.tier is Tier.HIGH
@@ -290,10 +269,6 @@ def test_address_with_a_comma_keeps_high():
 
 @pytest.mark.parametrize("city", ["Abu Dhabi", "أبو ظبي", "Al Reem Island", "Ajman"])
 def test_other_emirates_stay_off_target(city):
-    """Негативный контроль правила: расширение списков не должно втащить соседей.
-
-    Если бы «Дубай» стал означать «любой город ОАЭ», этот тест покраснел бы первым.
-    """
     company = lapsed_company(10, city=city, address_lines=ADDR_REGISTRAR)
     result = score(company, TODAY)
     assert result.tier is Tier.MEDIUM
@@ -301,11 +276,6 @@ def test_other_emirates_stay_off_target(city):
 
 
 def test_unknown_spelling_is_its_own_outcome_not_a_silent_off_target():
-    """Третий исход: написание не узнали — это не «другой эмират».
-
-    Ступень понижается так же, но причина другая: по ней видно, что списки написаний
-    отстали от реестра, а не что компания сидит в Шардже.
-    """
     company = lapsed_company(10, city="Hatta", address_lines=ADDR_REGISTRAR)
     result = score(company, TODAY)
     assert result.tier is Tier.MEDIUM
@@ -324,17 +294,12 @@ def test_empty_city_is_not_set_and_not_unrecognised():
 
 
 def test_city_does_not_raise_a_low_lead():
-    """Город — только понижающий модификатор: он не делает MEDIUM горячим.
-
-    Негативный контроль в другую сторону: если бы правило стало повышать, «Dubai»
-    в строке города вытаскивал бы наверх любую компанию.
-    """
+    """The city modifier lowers but never raises."""
     company = lapsed_company(10, city="Dubai", address_lines=ADDR_OWN)
     assert score(company, TODAY).tier is Tier.MEDIUM
 
 
 def test_inactive_entity_is_low():
-    """Негативный контроль: неактивное юрлицо — LOW, даже если ячейка матрицы HIGH."""
     company = lapsed_company(10, address_lines=ADDR_REGISTRAR, entity_status=EntityStatus.INACTIVE)
     result = score(company, TODAY)
     assert result.tier is Tier.LOW
@@ -343,7 +308,7 @@ def test_inactive_entity_is_low():
 
 
 def test_non_ae_country_is_invalid_with_violation():
-    """Негативный контроль: компания не из ОАЭ — INVALID и непустые violations."""
+    """A company outside the target country is invalid with a violation."""
     company = lapsed_company(10, country="SA", address_lines=ADDR_REGISTRAR)
     result = score(company, TODAY)
     assert result.tier is Tier.INVALID
@@ -351,7 +316,7 @@ def test_non_ae_country_is_invalid_with_violation():
 
 
 def test_invalid_wins_over_inactive_low():
-    """INVALID не сворачивается в LOW: «не смогли оценить» ≠ «оценили низко»."""
+    """A violation outranks a lowered tier."""
     company = lapsed_company(10, country="SA", entity_status=EntityStatus.INACTIVE)
     result = score(company, TODAY)
     assert result.tier is Tier.INVALID
@@ -381,32 +346,27 @@ def test_evidence_without_optional_fields():
     assert [e.kind for e in result.evidence] == ["lei"]
 
 
-# --- статус регистрации: «повода нет» и «статуса не знаем» — разные исходы ---------
-#
-# Дефект: сравнение с двумя литералами («LAPSED», «ISSUED»), и любое третье слово
-# реестра молча означало «повода для разговора нет». Перечисление статусов отдал сам
-# API GLEIF (ИЗМЕРЕНО 2026-09-11: ISSUED, LAPSED, ANNULLED, PENDING_TRANSFER,
-# PENDING_ARCHIVAL, DUPLICATE, RETIRED, MERGED; по ОАЭ 132 записи из 9369 — не ISSUED
-# и не LAPSED). Ожидаемое ниже — литералы кодов, а не импорт списка из rubric.
+# Registration status: "no event" and "status unknown" are different outcomes.
+# Expected values are literal codes, not an import of the rubric's list.
 
 
 @pytest.mark.parametrize(
     ("status", "expected_code"),
     [
-        # Оба статуса, по которым ось B считает повод: отдельной причины про статус нет.
+        # the two statuses axis B counts events for: no separate status reason
         ("ISSUED", None),
         ("LAPSED", None),
-        # Известные реестру статусы, по которым повода нет: решение названо вслух.
+        # known statuses with no event: the decision is said out loud
         ("RETIRED", ReasonCode.REGISTRATION_STATUS_NO_EVENT),
         ("DUPLICATE", ReasonCode.REGISTRATION_STATUS_NO_EVENT),
         ("ANNULLED", ReasonCode.REGISTRATION_STATUS_NO_EVENT),
         ("MERGED", ReasonCode.REGISTRATION_STATUS_NO_EVENT),
         ("PENDING_TRANSFER", ReasonCode.REGISTRATION_STATUS_NO_EVENT),
         ("PENDING_ARCHIVAL", ReasonCode.REGISTRATION_STATUS_NO_EVENT),
-        # Слово не из перечня реестра: «не смогли определить», третий исход.
+        # a word outside the registry vocabulary: the third outcome
         ("SUSPENDED", ReasonCode.REGISTRATION_STATUS_UNKNOWN),
         ("ISSUED_AND_THEN_SOME", ReasonCode.REGISTRATION_STATUS_UNKNOWN),
-        # Поля нет вовсе.
+        # the field is absent altogether
         ("", ReasonCode.REGISTRATION_STATUS_NOT_SET),
         ("   ", ReasonCode.REGISTRATION_STATUS_NOT_SET),
     ],
@@ -430,7 +390,6 @@ def test_registration_status_outcome_is_named_on_the_card(status, expected_code)
 
 
 def test_unknown_registration_status_prints_the_word_the_registry_sent():
-    """Слово реестра едет в причину: без него «не смогли» нечем проверить руками."""
     company = make_company(registration_status="SUSPENDED")
     result = score(company, TODAY)
     assert "SUSPENDED" in " ".join(result.reasons)
@@ -438,7 +397,6 @@ def test_unknown_registration_status_prints_the_word_the_registry_sent():
 
 @pytest.mark.parametrize("status", ["lapsed", " LAPSED ", "Lapsed"])
 def test_lapsed_status_is_recognised_whatever_the_case(status):
-    """Регистр слова статуса — не новость о компании: повод обязан сработать."""
     company = make_company(
         registration_status=status,
         next_renewal_on=TODAY - timedelta(days=10),
@@ -460,25 +418,15 @@ def test_issued_status_is_recognised_whatever_the_case(status):
 
 
 def test_registration_status_reason_does_not_move_the_tier():
-    """Причина про статус объясняет молчание оси B, а не наказывает за него.
-
-    Та же компания с RETIRED и с выдуманным SUSPENDED обязана получить одну ступень:
-    двигает ступень повод, а не то, знаем ли мы слово.
-    """
     retired = make_company(registration_status="RETIRED", address_lines=ADDR_REGISTRAR)
     unknown = make_company(registration_status="SUSPENDED", address_lines=ADDR_REGISTRAR)
     assert score(retired, TODAY).tier is score(unknown, TODAY).tier
 
 
-# --- статус юрлица: «неактивно» и «реестр промолчал» — разные исходы ---------------
+# Entity status: "inactive" and "the registry said nothing" are different outcomes.
 
 
 def test_unknown_entity_status_is_capped_at_medium_not_dropped_to_low():
-    """Слово NULL реестра — не приговор: ступень ограничена средней, а не LOW.
-
-    Ячейка матрицы у этой компании HIGH (адрес регистратора плюс свежая просрочка);
-    при INACTIVE она даёт LOW (тест выше), при UNKNOWN обязана дать MEDIUM.
-    """
     company = lapsed_company(
         10, address_lines=ADDR_REGISTRAR, entity_status=EntityStatus.UNKNOWN,
         entity_status_raw="NULL",
@@ -491,7 +439,6 @@ def test_unknown_entity_status_is_capped_at_medium_not_dropped_to_low():
 
 
 def test_missing_entity_status_has_its_own_reason():
-    """Поля нет вовсе — отдельный код, а не слово-заглушка внутри score.py."""
     company = lapsed_company(
         10, address_lines=ADDR_REGISTRAR, entity_status=EntityStatus.UNKNOWN,
         entity_status_raw="",
@@ -503,10 +450,7 @@ def test_missing_entity_status_has_its_own_reason():
 
 
 def test_unknown_entity_status_does_not_raise_a_low_card():
-    """Ограничение работает в одну сторону: MEDIUM — потолок, а не пол.
-
-    Компания без повода (ячейка LOW) с несообщённым статусом остаётся LOW.
-    """
+    """An unknown entity status caps but never raises."""
     company = make_company(
         entity_status=EntityStatus.UNKNOWN, entity_status_raw="NULL",
         address_lines=ADDR_OWN, registration_status="RETIRED",
@@ -517,7 +461,6 @@ def test_unknown_entity_status_does_not_raise_a_low_card():
 
 
 def test_active_entity_gets_no_status_reason_at_all():
-    """Положительный контроль: у обычной активной компании ни одной причины про статус."""
     company = lapsed_company(10, address_lines=ADDR_REGISTRAR)
     result = score(company, TODAY)
     assert not has_reason(result, ReasonCode.ENTITY_INACTIVE)

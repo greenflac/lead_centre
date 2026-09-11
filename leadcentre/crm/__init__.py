@@ -1,8 +1,5 @@
-"""Выбор CRM-приёмника. По умолчанию — NullSink: чужая CRM не наполняется демо-прогонами.
-
-`CRM_SINK=hubspot` включает HubSpot; неизвестное имя — ошибка, а не тихий откат на Null
-(тихий откат неотличим от «отправили, но не дошло»).
-"""
+"""Single place that chooses a CRM sink; the default sends nothing, and an unknown name
+raises, since a silent fallback looks exactly like "sent, but never arrived"."""
 from __future__ import annotations
 
 import os
@@ -39,7 +36,7 @@ SINKS = {"null": NullSink, "hubspot": HubspotSink}
 
 
 class CrmConfigError(RuntimeError):
-    """Приёмник настроен неизвестным именем — работать вслепую нельзя."""
+    """The sink was configured with an unknown name."""
 
 
 def get_sink(name: str | None = None) -> CrmSink:

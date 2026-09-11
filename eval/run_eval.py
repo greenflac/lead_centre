@@ -1,19 +1,11 @@
-"""Измерительный стенд: каппа, матрица ошибок, стабильность, негативные контроли.
+"""Measurement harness: kappa, confusion matrix, stability and negative controls.
 
-Стенд принимает готовый движок и не знает, как он устроен: он читает разметку,
-гоняет скоринг и печатает числа. Всё, что он умеет сказать, — это три исхода на каждый
-блок: `годно`, `не годно`, `не смогли проверить`; третий не сворачивается в первые два.
+The harness takes a finished engine and knows nothing of its internals: it reads the
+labels, runs scoring and prints numbers. Each block reports one of three outcomes, and
+"could not measure" never collapses into the other two.
 
-Два режима по деньгам (бюджет Anthropic ограничен, ответ Opus — десятки секунд):
-  * `--engine=rules` (по умолчанию) — факты добываются детерминированно из текста CSV,
-    модель не вызывается вообще; этим гоняем весь набор сколько угодно раз;
-  * `--engine=llm` — факты извлекает модель через `leadcentre.engine.extract`, ответы
-    кэшируются в `data/extract_cache.json` по хэшу текста, так что повторный прогон
-    денег не стоит.
-
-Что стенд НЕ измеряет: качество на реальном потоке обращений. Разметка — синтетика, движок
-и разметка сделаны в одном доме, поэтому каппа здесь называется «согласие с разметкой
-автора на синтетике», а не «точность». Подробности — в eval/README.md.
+What it does NOT measure is quality on a real stream: the labels are synthetic and made
+in the same house as the engine, so this is agreement, not accuracy. See eval/README.md.
 """
 from __future__ import annotations
 
@@ -35,12 +27,10 @@ if str(ROOT) not in sys.path:
 from leadcentre.engine import extract as extract_mod
 from leadcentre.models import InboundMessage, LeadFacts, RequestType, Tier
 
-# --- пороги приёмки ---
-
-# Человек размечает лид одним из трёх уровней; INVALID сюда не входит — это исход движка,
-# а не суждение человека (docs/data/inbound_seed.md, «Правила разметки для владельца»).
+# A human labels a lead with one of three tiers; INVALID is an engine outcome, not a
+# human judgement, so it is not among them.
 TIERS = ("HIGH", "MEDIUM", "LOW")
-# Пороги приёмки — ВЫБРАНО автором до первого прогона, чтобы число не подгонялось под результат.
+# Acceptance thresholds, chosen before the first run so they cannot be fitted to it.
 STABILITY_RUNS = 3
 KAPPA_TARGET = 0.6
 STABILITY_TARGET = 0.9
@@ -51,13 +41,13 @@ LABELS_PATH = ROOT / "eval" / "labels.csv"
 CONTROLS_PATH = ROOT / "eval" / "negative_controls.csv"
 CACHE_PATH = ROOT / "data" / "extract_cache.json"
 
-EXIT_OK = 0            # годно
-EXIT_FAILED = 1        # не годно: измерили и не сошлось
-EXIT_UNMEASURABLE = 2  # не смогли проверить: мерить было нечем
+EXIT_OK = 0            # good
+EXIT_FAILED = 1        # not good: measured and did not agree
+EXIT_UNMEASURABLE = 2  # could not check: there was nothing to measure
 
 
 class CannotMeasure(RuntimeError):
-    """Третий исход на одном обращении: приоритет получить не смогли."""
+    """The third outcome for one message: the tier could not be obtained."""
 
 
 def load_messages(path: Path) -> list[InboundMessage]:
@@ -77,7 +67,7 @@ def load_messages(path: Path) -> list[InboundMessage]:
 
 
 def load_labels(path: Path) -> tuple[dict[str, str], list[str]]:
-    """Разметка человека: external_id -> tier. Второй элемент — брак разметки числами."""
+    """Reads the human labels; the second element counts malformed rows."""
     labels: dict[str, str] = {}
     bad: list[str] = []
     with path.open(encoding="utf-8", newline="") as fh:
@@ -98,21 +88,17 @@ def load_controls(path: Path) -> list[dict[str, str]]:
         return [row for row in csv.DictReader(fh) if (row.get("external_id") or "").strip()]
 
 
-# --- факты без модели: общий модуль движка ---
-# Импорт, а не своя копия: стенд обязан мерить ровно тот режим `rules`, который работает
-# в продукте, иначе замер и продукт расходятся незаметно.
+# Imported, not copied: the harness must measure the same rules mode the product runs.
 from leadcentre.engine.facts_rules import rules_facts
-
-# --- приоритет: сперва движок, и только если его нет — заглушка стенда ---
 
 LEAD_SCORER_NAMES = ("score_lead", "score_inbound", "lead_tier", "score_facts")
 
 
 def resolve_scorer():
-    """Кто считает приоритет — выводится из того, что действительно нашлось.
+    """Resolves the scorer from what is actually present in the engine.
 
-    Своей копии рубрики у стенда нет и быть не должно: прибор, считающий приоритет
-    сам, меряет себя. Нет функции в движке — третий исход, а не подмена.
+    The harness keeps no copy of the rubric: an instrument that scores on its own would
+    be measuring itself.
     """
     from leadcentre.engine import score as score_mod
 
@@ -129,7 +115,7 @@ def resolve_scorer():
 
 
 def call_scorer(fn, facts: LeadFacts, message: InboundMessage) -> Tier:
-    """Порядок аргументов выводится из подписи движка, а не из предположения о ней."""
+    """Calls the scorer, reading the argument order from its signature."""
     names = [
         p.name
         for p in inspect.signature(fn).parameters.values()
@@ -203,7 +189,7 @@ def facts_from_dict(raw: dict) -> LeadFacts:
 
 @dataclass
 class Engine:
-    """Движок глазами стенда: обращение -> приоритет либо «не смогли»."""
+    """The engine as the harness sees it: a message in, a tier or "could not" out."""
 
     mode: str
     scorer: object
@@ -243,14 +229,12 @@ class Engine:
         return call_scorer(self.scorer, self.facts(message), message)
 
 
-# --- каппа Коэна: своя реализация, сторонних библиотек нет ---
 
 
 def cohen_kappa(pairs: list[tuple[str, str]]) -> tuple[float | None, str]:
-    """Каппа по парам (разметка человека, приоритет движка). Вырождение — третий исход.
+    """Cohen's kappa over label/engine pairs; degeneracy is the third outcome.
 
-    Возвращает (значение или None, пояснение). None означает «не смогли измерить», а не 0.0:
-    ноль — это «согласия не больше случайного», вырождение — «мерить нечем».
+    None means "could not measure", which is not 0.0: zero means "no better than chance".
     """
     n = len(pairs)
     if n == 0:
@@ -269,7 +253,7 @@ def cohen_kappa(pairs: list[tuple[str, str]]) -> tuple[float | None, str]:
 
 
 def degeneracy_notes(pairs: list[tuple[str, str]]) -> list[str]:
-    """Негативный контроль самого прибора: одноклассовая сторона — не «отличный результат»."""
+    """Negative control on the instrument: a single-class side is not a perfect score."""
     notes: list[str] = []
     sides = (("разметка", [a for a, _ in pairs]), ("движок", [b for _, b in pairs]))
     for who, values in sides:
@@ -303,7 +287,7 @@ def print_confusion(matrix: dict[tuple[str, str], int]) -> None:
 
 @dataclass
 class Block:
-    """Итог блока числами и одним из трёх исходов."""
+    """One measurement block: its counts and one of three outcomes."""
 
     name: str
     checked: int = 0
@@ -424,8 +408,7 @@ def measure_controls(engine: Engine, messages: dict[str, InboundMessage], path: 
         f"итог контролей: {block.matched} из {total} "
         f"(ожидается {CONTROLS_EXPECTED} из {CONTROLS_EXPECTED})"
     )
-    # Три исхода и здесь: провал контроля — «не годно», а недоехавший контроль
-    # (обращения нет в выборке, извлечение упало) — «не смогли», а не провал.
+    # Three outcomes here too: a control that could not run is not a failed control.
     if block.mismatched:
         block.verdict = "не годно"
     elif block.unmeasured or block.checked < CONTROLS_EXPECTED:

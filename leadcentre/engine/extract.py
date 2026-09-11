@@ -1,10 +1,8 @@
-"""Fact extraction from request text by a language model: the model proposes, code decides.
+"""Fact extraction by a language model: the model proposes, code decides.
 
-The provider is swappable (`LLM_PROVIDER`); everything shared — PII scrubbing, response
-validation and LeadFacts assembly — lives in the pipeline, not in the provider.
-Three outcomes, and the third never collapses into the first two: extracted facts,
-the deterministic OFFLINE stub, or an exception. An empty LeadFacts is never returned
-in place of an error. Reason wording lives in engine/reasons.py.
+The provider is swappable; PII scrubbing, validation and LeadFacts assembly live in the
+pipeline, not the provider. Three outcomes: extracted facts, the offline stub, or an
+exception — an empty LeadFacts is never returned in place of an error.
 """
 from __future__ import annotations
 
@@ -32,13 +30,11 @@ from leadcentre.engine.reasons import (
 from leadcentre.models import InboundMessage, LeadFacts, RequestType
 
 DEFAULT_PROVIDER = "anthropic"
-# Why the small model by default: extraction from a short message is simple work and the
-# chat channel promises an answer in seconds.
+# Why the small model: short-message extraction is simple and the channel promises speed.
 ANTHROPIC_MODEL = "claude-haiku-4-5-20251001"
 ANTHROPIC_EFFORT = "low"
 ANTHROPIC_THINKING = "off"
-# Why 600: the small model loses relative dates ("с 20 числа") on long walls of text,
-# which start well past the median request length. Exactly 600 still counts as short.
+# Why 600: the small model loses relative dates on long texts; exactly 600 is still short.
 LONG_MESSAGE_CHARS = 600
 LONG_MODEL = "claude-opus-5"
 # Why a list: other models answer 400 to `output_config.effort` and adaptive thinking.
@@ -53,11 +49,9 @@ MAX_RETRIES = 2
 HEADCOUNT_MIN = 1                        # Why 1: "zero people" is noise, not a fact.
 TIMELINE_MIN = 0                         # Why 0: a deadline in the past was invented.
 MIN_PHONE_DIGITS = 9                     # Why 9: shorter runs are counts or dates.
-# Why a share, not any occurrence: below this it is a Latin proper noun inside a Russian
-# phrase (TECOM, IFZA), not a mixed-language request.
+# Why a share: below this it is a Latin proper noun, not a mixed-language request.
 MIXED_SHARE = 0.2
 
-# Why versioned by filename: earlier prompts stay alongside for comparison.
 PROMPT_VERSION = "extract_v5"
 PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / f"{PROMPT_VERSION}.md"
 
@@ -124,8 +118,7 @@ class Extraction:
     scrubbed: Scrubbed
     dropped_quotes: int      # quotes absent from the request: the model invented them
     route_reason: str = ""
-    #: What the model said about `timeline_days` before code recomputed it. Without this
-    #: "code replaced the model number" is indistinguishable from "the model said so".
+    #: What the model said about `timeline_days` before code recomputed it.
     timeline_from_model: int | None = None
 
     def route_reason_in(self, language: Language = DEFAULT_LANGUAGE) -> str:
@@ -181,8 +174,7 @@ def _schema() -> dict:
                 "items": {"type": "string", "enum": [t.value for t in RequestType]},
             },
             "jurisdiction_hint": {"type": ["string", "null"]},
-            # Why no bounds here: structured outputs answers 400 to minimum/maximum, so
-            # parse_facts enforces HEADCOUNT_MIN / TIMELINE_MIN after parsing.
+            # Why no bounds: the API answers 400 to them, so parse_facts enforces them.
             "headcount": {"type": ["integer", "null"]},
             "timeline_days": {"type": ["integer", "null"]},
             "budget_hint": {"type": ["string", "null"]},
@@ -218,8 +210,7 @@ def load_prompt() -> str:
 
 def user_content(message: InboundMessage, scrubbed: Scrubbed) -> str:
     """Builds the user half of the request; the text arrives here only after scrub_pii."""
-    # Why the date is spelled out: without an anchor the model counts "с 20 числа" from an
-    # arbitrary day and timeline_days stops being reproducible.
+    # Why the date is spelled out: without an anchor relative dates stop being reproducible.
     return (
         f"Обращение получено: {message.received_at.isoformat()}\n"
         f"Канал: {message.channel}\n"
@@ -244,10 +235,7 @@ def _route(model: str, effort: str, thinking: str, item: RouteReason) -> Route:
 
 
 def route(message: InboundMessage) -> Route:
-    """Routes short requests to the cheap model, long ones to the stable model.
-
-    `LLM_MODEL` disables routing so a whole set can be run on one model.
-    """
+    """Routes short requests to the cheap model; `LLM_MODEL` disables routing entirely."""
     forced = os.environ.get("LLM_MODEL")
     if forced:
         return _route(forced, os.environ.get("LLM_EFFORT", ""),
@@ -274,10 +262,7 @@ class Provider(Protocol):
 
 
 def anthropic_client():
-    """Returns an Anthropic client; the key is read here and only here.
-
-    Public because translit.py shares it: two ways to obtain the key would drift apart.
-    """
+    """Returns an Anthropic client; the key is read here and only here."""
     api_key = os.environ.get("CLAUDE_KEY") or os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise ExtractionError("нет ключа: ни CLAUDE_KEY, ни ANTHROPIC_API_KEY не заданы")
@@ -291,8 +276,7 @@ def anthropic_client():
 def anthropic_error(exc: Exception) -> ExtractionError:
     """Converts an API error into our type, keeping billing limits apart from network."""
     text = str(exc)
-    # Why matched on text: a low credit balance arrives as an ordinary BadRequestError,
-    # indistinguishable by status code from a typo in the body.
+    # Why matched on text: a low balance arrives as an ordinary 400, like a typo would.
     if "credit balance" in text or "billing" in text.lower():
         return ProviderBudgetError(
             "anthropic: кончились деньги на аккаунте — API отвечает 400 "
@@ -330,14 +314,11 @@ class AnthropicProvider:
             "max_tokens": MAX_TOKENS,
             "system": system,
             "messages": [{"role": "user", "content": content}],
-            # Why cached: system prompt and schema are identical per lead, while the
-            # volatile parts follow in messages. Whether it engaged is visible in the
-            # cache_read/cache_write counters on Extraction.
+            # Why cached: the prefix is identical per lead; the counters show if it engaged.
             "cache_control": {"type": "ephemeral"},
             "output_config": {"format": {"type": "json_schema", "schema": _schema()}},
         }
-        # Why the empty value is dropped rather than sent: models that reject the
-        # parameter must not see it in the body at all.
+        # Why dropped, not sent empty: models that reject it must not see it at all.
         effort = self.route.effort.strip().lower()
         if effort not in ("", "none") and supports_effort:
             body["output_config"]["effort"] = effort
@@ -414,8 +395,7 @@ class OpenAICompatibleProvider:
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
-                # Why required: the gateway sits behind Cloudflare and answers 403 to
-                # the default python-urllib agent.
+                # Why required: the gateway answers 403 to the default urllib agent.
                 "User-Agent": USER_AGENT,
             },
             method="POST",
@@ -485,10 +465,7 @@ def get_provider(name: str | None = None) -> Provider:
 def build_request_body(
     message: InboundMessage, provider: Provider | None = None
 ) -> tuple[dict, Scrubbed]:
-    """Builds the request body and returns it with the Scrubbed text.
-
-    Scrubbing happens here, so unscrubbed text physically cannot reach a provider.
-    """
+    """Builds the request body; scrubbing here means unscrubbed text cannot reach a provider."""
     provider = provider or get_provider()
     scrubbed = scrub_pii(message.text)
     body = provider.build_body(load_prompt(), user_content(message, scrubbed))
@@ -498,10 +475,9 @@ def build_request_body(
 def parse_facts(
     text: str, scrubbed: Scrubbed, received_at: date
 ) -> tuple[LeadFacts, int, int | None]:
-    """Converts any provider response into facts, dropped-quote count and model deadline.
+    """Converts a provider response into facts, dropped-quote count and model deadline.
 
-    Quotes absent from the sent text were invented and are dropped. `received_at` has no
-    default: worded deadlines count from the request date. An invalid response raises.
+    Quotes absent from the sent text were invented and dropped; an invalid response raises.
     """
     stripped = FENCE_RE.sub("", text.strip())
     try:
@@ -530,8 +506,7 @@ def parse_facts(
     if language not in ("ru", "en", "ar", "mixed"):
         raise ExtractionError(f"неизвестный language: {language!r}")
 
-    # Why here: the API rejects these bounds in the schema, and the limit must not be
-    # lost along with the schema key.
+    # Why here: the API rejects these bounds in the schema, and they must not be lost.
     headcount = _optional_int(raw.get("headcount"), "headcount", HEADCOUNT_MIN)
     timeline_from_model = _optional_int(
         raw.get("timeline_days"), "timeline_days", TIMELINE_MIN
@@ -553,8 +528,7 @@ def parse_facts(
         jurisdiction_hint=_optional_str(raw.get("jurisdiction_hint"), "jurisdiction_hint"),
         headcount=headcount,
         timeline_days=timeline_days,
-        # Why the scrubbed text: masking contacts leaves urgency words untouched, and
-        # both extraction modes must compute this identically.
+        # Why the scrubbed text: masking leaves urgency words, and both modes must agree.
         urgency_stated=wordless_urgency(scrubbed.text, timeline_days),
         budget_hint=_optional_str(raw.get("budget_hint"), "budget_hint"),
         language=language,
@@ -585,9 +559,7 @@ def _optional_str(value: object, field: str) -> str | None:
     return value.strip() or None
 
 
-# Why two separate marker lists: "в этом месяце" states a deadline computable from the
-# request date, while "срочно" states urgency with no date at all. Mixing them either
-# loses a stated deadline or invents one.
+# Why two lists: mixing a computable deadline with dateless urgency loses one or invents one.
 
 
 def _days_to_end_of_month(received_at: date) -> int:
@@ -613,8 +585,7 @@ def _same_day(received_at: date) -> int:
 
 FRIDAY = 4  # index in date.weekday(), where Monday is 0
 
-#: Worded deadline -> how to count it from the REQUEST date, never from today: a week-old
-#: request saying "на этой неделе" means that week, not this one.
+#: Worded deadline -> how to count it from the REQUEST date, never from today.
 DEADLINE_MARKERS: dict[str, Callable[[date], int]] = {
     "в этом месяце": _days_to_end_of_month,
     "до конца месяца": _days_to_end_of_month,
@@ -628,7 +599,6 @@ DEADLINE_MARKERS: dict[str, Callable[[date], int]] = {
     "today": _same_day,                           # chosen, not observed in the set
 }
 
-#: Urgency without a date: no deadline is ever derived from these.
 VAGUE_URGENCY_MARKERS = (
     "срочно", "urgent", "asap", "как можно быстрее", "лишь бы быстро",
 )
@@ -652,20 +622,13 @@ def urgency_stated(text: str) -> bool:
 def coded_deadline_wins(
     text: str, received_at: date, from_model: int | None
 ) -> int | None:
-    """Lets code own the deadlines it can compute; elsewhere the model number stands.
-
-    Calendar arithmetic in code is deterministic, and the model gets it wrong even when
-    the prompt spells the case out.
-    """
+    """Lets code own deadlines it can compute; elsewhere the model number stands."""
     named = deadline_days(text, received_at)
     return named if named is not None else from_model
 
 
 def wordless_urgency(text: str, timeline_days: int | None) -> bool:
-    """Reports worded urgency with no date; any extracted deadline cancels it.
-
-    Both extraction modes call this, so the signal cannot drift between them.
-    """
+    """Reports worded urgency with no date; any extracted deadline cancels it."""
     return timeline_days is None and urgency_stated(text)
 
 
@@ -675,8 +638,7 @@ def detect_language(text: str) -> str:
     if not letters:
         return "en"
     cyrillic = sum(1 for c in letters if "Ѐ" <= c <= "ӿ") / len(letters)
-    # Why Arabic is counted alongside Cyrillic: without this branch an Arabic request is
-    # declared English and the draft goes out in the wrong language.
+    # Why Arabic counts too: without it an Arabic request is answered in English.
     arabic = sum(1 for c in letters if "\u0600" <= c <= "\u06ff" or "\ufb50" <= c <= "\ufeff")
     arabic /= len(letters)
     if arabic >= 1.0 - MIXED_SHARE:
@@ -696,8 +658,7 @@ def _offline_extraction(message: InboundMessage) -> Extraction:
         language=detect_language(message.text),
         urgency_stated=wordless_urgency(message.text, None),
         has_contact=scrubbed.has_contact,
-        # Why the flag next to the zero: an unmeasured zero and a measured zero look the
-        # same in JSON and mean different things.
+        # Why the flag: a measured and an unmeasured zero look identical in JSON.
         confidence=0.0,
         confidence_measured=False,
     )

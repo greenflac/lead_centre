@@ -1,22 +1,8 @@
-"""HTTP-слой: FastAPI поверх того же движка, что и CLI. Логика — в функциях, не в
-обработчиках: `handle_lead`, `handle_discover`, `handle_stats` вызываются тестом
-напрямую, без сети и без сервера.
+"""HTTP layer: FastAPI over the same engine the CLI uses.
 
-Исходов три, и это сквозной принцип файла:
-  * `POST /leads` возвращает `outcome`: `ok` (карточка построена) либо ошибку с кодом,
-    по которому видно, что чинить: `provider_budget` (кончились деньги у провайдера
-    модели — 503, а не 500 со стектрейсом), `extraction_failed` (модель ответила не тем),
-    `empty_text` (извлекать нечего). Пустая карточка вместо ошибки не отдаётся никогда.
-  * запись в хранилище — отдельный блок `storage` с исходом `ok`/`rejected`/`unavailable`.
-    Карточка при неудачной записи всё равно возвращается: считать её заново дороже, чем
-    показать со словами «не сохранено». Но выдавать несохранённое за сохранённое нельзя.
-  * `GET /stats` печатает три числа рядом — проверено / нарушений / не смогли.
-  * причины карточки отдаются блоком `reasons_by_language` плюс `reasons_outcome`:
-    язык выбирает интерфейс, а «причины не восстановились» — отдельный исход, а не
-    русский текст в поле английского (см. `_reasons_block`).
-
-Ключи и режимы берутся из среды и нигде не дублируются: `OFFLINE=1` выключает сеть
-и для модели (extract), и для источника (GLEIF), и для хранилища (LocalStore).
+The work lives in `handle_*` functions, so tests call them without a server. Every
+response carries an explicit outcome, storage failure has its own block, and a card is
+never returned empty in place of an error.
 """
 from __future__ import annotations
 
@@ -65,8 +51,8 @@ from leadcentre.store import (
 
 logger = logging.getLogger("leadcentre.api")
 
-DEFAULT_DISCOVER_LIMIT = 30   # столько же, сколько у CLI по умолчанию
-MAX_DISCOVER_LIMIT = 200      # предел страницы GLEIF
+DEFAULT_DISCOVER_LIMIT = 30   # same default as the CLI
+MAX_DISCOVER_LIMIT = 200      # the GLEIF page limit
 DEFAULT_LIST_LIMIT = 50
 
 OUTCOME_OK = "ok"
@@ -79,18 +65,13 @@ app = FastAPI(
     description="Квалификация входящих обращений и компаний из внешних реестров",
 )
 
-# Хранилище и CRM создаются один раз: у LocalStore внутри файл и замок, а у Supabase —
-# ключи, читать их на каждый запрос незачем.
+# Why built once: LocalStore holds a file and a lock, Supabase holds keys.
 _store = None
 _sink = None
 
 
 def store():
-    """Хранилище процесса; создаётся при первом обращении.
-
-    Returns:
-        Реализацию `Store`, выбранную `get_store()` по среде.
-    """
+    """Returns the process store, built on first use."""
     global _store
     if _store is None:
         _store = get_store()
@@ -98,11 +79,7 @@ def store():
 
 
 def sink():
-    """Приёмник CRM процесса; создаётся при первом обращении.
-
-    Returns:
-        Реализацию `CrmSink`, выбранную `get_sink()` по среде.
-    """
+    """Returns the process CRM sink, built on first use."""
     global _sink
     if _sink is None:
         _sink = get_sink()
@@ -110,7 +87,7 @@ def sink():
 
 
 class LeadIn(BaseModel):
-    """Тело `POST /leads`: одно входящее обращение как пришло из канала."""
+    """Body of `POST /leads`: one inbound request as it arrived from the channel."""
 
     text: str = Field(..., description="Текст обращения как пришёл из канала")
     channel: str = Field("form", description="jivo | whatsapp | telegram | form")
@@ -122,20 +99,17 @@ class LeadIn(BaseModel):
 
 
 class DisagreeIn(BaseModel):
-    """Тело `POST /leads/{id}/disagree`: почему менеджер не согласен с оценкой."""
+    """Body of the disagree endpoint: why the manager rejects the score."""
 
     reason: str = Field(..., min_length=1, description="Почему оценка неверна — вход для eval")
     author: str = ""
 
 
 class DiscoverIn(BaseModel):
-    """Тело `POST /discover/run`: режим обхода реестра и размер страницы."""
+    """Body of `POST /discover/run`: registry sweep mode and page size."""
 
     mode: str = Field("lapsed", description="lapsed | fresh")
     limit: int = Field(DEFAULT_DISCOVER_LIMIT, ge=1, le=MAX_DISCOVER_LIMIT)
-
-
-# --- ошибки движка → понятный ответ, а не 500 ---
 
 
 def _error(status: int, code: str, message: str, **extra: Any) -> JSONResponse:
@@ -145,14 +119,7 @@ def _error(status: int, code: str, message: str, **extra: Any) -> JSONResponse:
 
 @app.exception_handler(ProviderBudgetError)
 async def _budget_handler(_: Request, exc: ProviderBudgetError) -> JSONResponse:
-    """Кончились деньги у провайдера модели — это «не смогли», а не сбой сервера.
-
-    Код 402 (Payment Required), а не 500: чинится кошельком, повторять запрос
-    бессмысленно, и стектрейс заставил бы клиента искать баг в коде, которого там нет.
-    402 выбран ещё и потому, что ровно его ждёт дашборд (`web/lib/api.ts`: 402/429 →
-    «провайдер без бюджета»); один и тот же смысл в двух местах должен читаться
-    одинаково. Машиночитаемый признак — поле `code`, а не только номер.
-    """
+    """Reports an exhausted provider budget as 402; the `code` field is the real signal."""
     return _error(
         402, "provider_budget", str(exc),
         hint="пополните баланс провайдера модели или поставьте OFFLINE=1 для демо",
@@ -177,26 +144,10 @@ async def _store_rejected_handler(_: Request, exc: StoreRejected) -> JSONRespons
     )
 
 
-# --- конвейер: вся работа здесь, обработчики только разбирают запрос ---
-
-
 def _reasons_block(restored: RestoredReasons) -> dict[str, Any]:
-    """Причины в ответе API: коды, тексты по языкам и исход восстановления.
+    """Builds the reasons block: codes, texts per language and a restore outcome.
 
-    Форма выбрана так, а не «строка на выбранном сервером языке», по трём причинам.
-
-    1. Язык выбирает интерфейс, а не сервер. Дашборд переключает RU/EN на клиенте, без
-       похода на бэкенд; попросить `?lang=en` значило бы перерисовывать карточку
-       запросом и держать язык ещё и в состоянии сервера — вторым местом знания.
-    2. `reasons_by_language` содержит ровно те языки, которые ДЕЙСТВИТЕЛЬНО собраны.
-       Для старой записи без кодов там только `ru`, и отсутствие ключа `en` — машинный
-       признак: подставить русский текст в английскую карточку клиент уже не может
-       случайно, как и не может показать пустоту молча (есть `reasons_outcome`).
-    3. `reason_items` (код плюс параметры) отдаются рядом: интерфейсу они нужны для
-       привязки цитат и иконок к коду, а не к подстроке русского текста.
-
-    Поле `reasons` (готовые русские строки) осталось на месте — на него смотрят web-мок
-    и CRM; ломать их ради переезда нельзя, а источником истины оно уже не является.
+    Only languages actually assembled are listed, so a missing key is a signal.
     """
     return {
         "reasons": list(restored.texts.get(DEFAULT_LANGUAGE.value, restored.stored_texts)),
@@ -208,12 +159,8 @@ def _reasons_block(restored: RestoredReasons) -> dict[str, Any]:
 
 
 def _live_reasons(score_obj) -> RestoredReasons:
-    """Причины только что посчитанной оценки — тем же кодом, что и поднятые из базы.
-
-    Прогон через сериализацию и разбор нарочно: то, что API показывает сейчас, обязано
-    совпадать с тем, что поднимется из хранилища потом. Иначе живой и демонстрационный
-    режимы разъедутся ровно там, где их никто не сравнивает.
-    """
+    """Builds the reasons block for a fresh score, through the same serialise-and-restore
+    path as a stored one, so live and restored cards cannot drift apart."""
     return restore_reasons(
         {
             "reasons": list(score_obj.reasons),
@@ -234,12 +181,7 @@ def _score_payload(company_score) -> dict[str, Any]:
 
 
 def _card_payload(card: LeadCard) -> dict[str, Any]:
-    """Карточка из хранилища → ответ API: причины восстанавливаются в оба языка.
-
-    Строка оценки отдаётся как лежит в базе, но обогащается блоком причин — иначе
-    интерфейс на английском получил бы русские строки из колонки `reasons` и показал
-    бы их как перевод.
-    """
+    """Converts a stored card into an API payload, re-rendering reasons in both languages."""
     payload = card.as_dict()
     if payload.get("score") is not None:
         payload["score"] = {**payload["score"], **_reasons_block(card.reasons())}
@@ -258,15 +200,14 @@ def _facts_payload(facts) -> dict[str, Any]:
         "is_spam": facts.is_spam,
         "has_contact": facts.has_contact,
         "confidence": facts.confidence,
-        # Рядом с числом — мерили ли его вообще: ноль «моделью не смотрено»
-        # и измеренный ноль в JSON выглядят одинаково, а значат разное.
+        # Why the flag ships beside the number: both zeros look identical in JSON.
         "confidence_measured": facts.confidence_measured,
         "quotes": list(facts.quotes),
     }
 
 
 def _lint_ok(status: str) -> bool | None:
-    """Три исхода линтера → колонка. UNVERIFIABLE — это `None`, а не `False`."""
+    """Maps the three linter outcomes onto a column; unverifiable is None, not False."""
     if status == lint_module.STATUS_OK:
         return True
     if status == lint_module.STATUS_VIOLATIONS:
@@ -275,11 +216,7 @@ def _lint_ok(status: str) -> bool | None:
 
 
 def handle_lead(payload: LeadIn, today: date | None = None) -> dict[str, Any]:
-    """Текст обращения → карточка. Извлечение, оценка, черновик, линтер, запись.
-
-    Исключения движка наружу не глушатся: их превращают в понятный ответ обработчики
-    выше. Тихий `except` здесь вернул бы пустую карточку, неотличимую от настоящей.
-    """
+    """Turns request text into a card: extract, score, draft, lint, store."""
     received_at = today or datetime.now(UTC).date()
     message = InboundMessage(
         external_id=payload.external_id or str(uuid.uuid4()),
@@ -289,7 +226,7 @@ def handle_lead(payload: LeadIn, today: date | None = None) -> dict[str, Any]:
         is_synthetic=payload.is_synthetic,
     )
 
-    extraction = extract_detailed(message)           # может бросить ProviderBudgetError
+    extraction = extract_detailed(message)           # may raise ProviderBudgetError
     facts = extraction.facts
     inbound_score = score_inbound(message, facts)
     draft = reply_module.draft(message, facts, inbound_score.tier)
@@ -297,8 +234,7 @@ def handle_lead(payload: LeadIn, today: date | None = None) -> dict[str, Any]:
     try:
         lint_result = lint_module.lint(draft)
     except reply_module.PriceListError as exc:
-        # Прайс не прочитан — проверка цифр не отработала. Это «не смогли», и оно
-        # обязано доехать до отчёта, а не превратиться в «нарушений нет».
+        # Why reported: an unread price list means the number check never ran.
         lint_result = lint_module.LintResult(
             status=lint_module.STATUS_UNVERIFIABLE,
             checks_failed=(f"прайс не прочитан: {exc}",),
@@ -306,15 +242,14 @@ def handle_lead(payload: LeadIn, today: date | None = None) -> dict[str, Any]:
 
     run_id = str(uuid.uuid4())
     storage = {"outcome": OUTCOME_OK, "store": store().name, "detail": ""}
-    # `None`, а не пустая строка: пустую строку клиент подставит в URL и получит 404
-    # вместо ответа «эта карточка не сохранена».
+    # Why None, not "": an empty string would be pasted into a URL and yield a 404.
     lead_id: str | None = None
     try:
         lead_id = store().save_lead(
             LeadRow(
                 source=payload.source or payload.channel,
                 channel=payload.channel,
-                raw_text=extraction.scrubbed.text,   # в базу — уже без ПД
+                raw_text=extraction.scrubbed.text,   # stored already scrubbed of personal data
                 facts=_facts_payload(facts),
                 language=draft.language,
                 is_synthetic=payload.is_synthetic,
@@ -337,8 +272,7 @@ def handle_lead(payload: LeadIn, today: date | None = None) -> dict[str, Any]:
                 tier=inbound_score.tier.value,
                 address_type=inbound_score.address_type.value,
                 event=inbound_score.event.value,
-                # Коды, а не строки: строки соберёт отрисовка, и английский
-                # у карточки, поднятой из базы, останется восстановимым.
+                # Why codes, not strings: rendering stays possible in both languages.
                 reason_items=inbound_score.reason_items,
                 evidence=tuple(
                     {"kind": e.kind, "value": e.value} for e in inbound_score.evidence
@@ -363,10 +297,7 @@ def handle_lead(payload: LeadIn, today: date | None = None) -> dict[str, Any]:
         storage = {"outcome": OUTCOME_UNAVAILABLE, "store": store().name, "detail": str(exc)}
         logger.warning("хранилище недоступно: %s", exc)
 
-    # Язык черновика лежит В блоке ответа, рядом с телом письма, которое на нём
-    # написано: читателю блока (дашборд рисует чип над письмом) незачем знать, что
-    # где-то в корне есть одноимённое поле. Корневое поле остаётся для тех, кто уже
-    # его читает, и берётся из этого же словаря — знание одно, мест печати два.
+    # Why in both places: the root field stays for existing readers, from this same dict.
     reply_payload = {
         "body": draft.body,
         "language": draft.language,
@@ -398,8 +329,7 @@ def handle_lead(payload: LeadIn, today: date | None = None) -> dict[str, Any]:
             "output_tokens": extraction.output_tokens,
             "pii_scrubbed": extraction.scrubbed.summary(),
             "dropped_quotes": extraction.dropped_quotes,
-            # Что модель сказала про срок до пересчёта кодом: расхождение режимов
-            # видно числом, а не на слово (None — модель срока не назвала).
+            # Why exposed: the divergence between model and code is then a number.
             "timeline_from_model": extraction.timeline_from_model,
         },
         "storage": storage,
@@ -408,7 +338,7 @@ def handle_lead(payload: LeadIn, today: date | None = None) -> dict[str, Any]:
 
 
 def handle_discover(payload: DiscoverIn, today: date | None = None) -> dict[str, Any]:
-    """GLEIF → скоринг → хранилище. При `OFFLINE=1` источник читает кэш из `data/`."""
+    """Runs the registry sweep: source, scoring, store; offline reads the cache."""
     today = today or datetime.now(UTC).date()
     adapter = GleifAdapter(mode=payload.mode)
     result = adapter.fetch(payload.limit)
@@ -428,16 +358,13 @@ def handle_discover(payload: DiscoverIn, today: date | None = None) -> dict[str,
             next_renewal_on=company.next_renewal_on,
             facts={
                 "country": company.country,
-                # Булево поле оставлено ради потребителей, которые его уже читают
-                # (`web/lib/live.ts`); третий исход в нём не виден, поэтому рядом едет
-                # сам статус — «не сообщён» и «неактивно» в хранилище различимы.
+                # Why both: a boolean cannot show the third outcome, so the status rides along.
                 "entity_active": company.entity_active,
                 "entity_status": company.entity_status.value,
                 "address_lines": list(company.address_lines),
                 "tier": company_score.tier.value,
                 "reasons": list(company_score.reasons),
-                # Коды рядом со строками: карточку компании тоже показывают
-                # на двух языках, а `facts` — jsonb, отдельной колонки не нужно.
+                # Why inside facts: it is jsonb, so no extra column is needed.
                 "reason_items": reason_items_payload(company_score.reason_items),
                 "violations": list(company_score.violations),
             },
@@ -476,7 +403,7 @@ def handle_discover(payload: DiscoverIn, today: date | None = None) -> dict[str,
 
 
 def handle_stats() -> dict[str, Any]:
-    """Числа для отчёта. Хранилище недоступно — это «не смогли», а не нули."""
+    """Returns report counters; an unavailable store is "could not", not zeros."""
     health = store().health()
     base = {
         "store": store().name,
@@ -496,11 +423,7 @@ def handle_stats() -> dict[str, Any]:
 
 @app.get("/health")
 def health() -> dict[str, Any]:
-    """Живость сервиса и его зависимостей.
-
-    Returns:
-        Исход хранилища, режим сети (`offline`) и имя приёмника CRM.
-    """
+    """Returns service health: store outcome, network mode and CRM sink name."""
     health = store().health()
     return {
         "outcome": health.outcome,
@@ -513,13 +436,13 @@ def health() -> dict[str, Any]:
 
 @app.post("/leads")
 def post_lead(payload: LeadIn) -> dict[str, Any]:
-    """Принимает обращение и возвращает карточку; вся работа — в `handle_lead`."""
+    """Accepts a request and returns a card; the work is in `handle_lead`."""
     return handle_lead(payload)
 
 
 @app.get("/leads")
 def get_leads(limit: int = DEFAULT_LIST_LIMIT) -> dict[str, Any]:
-    """Список карточек, HIGH сверху: инбокс менеджера читается сверху вниз."""
+    """Returns cards with HIGH first: the inbox is read top down."""
     try:
         cards = store().list_cards(limit)
     except StoreError as exc:
@@ -532,14 +455,7 @@ def get_leads(limit: int = DEFAULT_LIST_LIMIT) -> dict[str, Any]:
 
 @app.get("/leads/{lead_id}", response_model=None)
 def get_lead(lead_id: str) -> JSONResponse | dict[str, Any]:
-    """Одна карточка по идентификатору.
-
-    Args:
-        lead_id: Идентификатор обращения, выданный при записи.
-
-    Returns:
-        Карточку с исходом `ok` либо 404 с исходом `rejected`, если её нет.
-    """
+    """Returns one card by id, or 404 when it does not exist."""
     card = store().get_card(lead_id)
     if card is None:
         return JSONResponse(
@@ -551,11 +467,7 @@ def get_lead(lead_id: str) -> JSONResponse | dict[str, Any]:
 
 @app.post("/leads/{lead_id}/approve", response_model=None)
 def approve(lead_id: str) -> JSONResponse | dict[str, Any]:
-    """Одобрение: черновик получает статус, лид уходит в CRM через `CrmSink`.
-
-    Исход CRM возвращается как есть (`sent` / `skipped` / `rejected` / `unavailable`) —
-    NullSink не выдаёт «записал в лог» за «создал лид».
-    """
+    """Approves a draft and sends the lead to CRM, returning the sink outcome as is."""
     card = store().get_card(lead_id)
     if card is None:
         return JSONResponse(
@@ -594,7 +506,7 @@ def approve(lead_id: str) -> JSONResponse | dict[str, Any]:
 
 @app.post("/leads/{lead_id}/disagree", response_model=None)
 def disagree(lead_id: str, payload: DisagreeIn) -> JSONResponse | dict[str, Any]:
-    """Несогласие менеджера: черновик отклоняется, причина пишется для eval."""
+    """Records a manager disagreement and rejects the draft."""
     card = store().get_card(lead_id)
     if card is None:
         return JSONResponse(
@@ -624,20 +536,13 @@ def disagree(lead_id: str, payload: DisagreeIn) -> JSONResponse | dict[str, Any]
 
 @app.post("/discover/run")
 def discover_run(payload: DiscoverIn | None = None) -> dict[str, Any]:
-    """Запускает обход реестра; вся работа — в `handle_discover`."""
+    """Runs the registry sweep; the work is in `handle_discover`."""
     return handle_discover(payload or DiscoverIn())
 
 
 @app.get("/companies")
 def companies(limit: int = DEFAULT_LIST_LIMIT) -> dict[str, Any]:
-    """Компании, найденные обходом реестра.
-
-    Args:
-        limit: Сколько строк вернуть.
-
-    Returns:
-        Список компаний либо исход `unavailable`, если хранилище не ответило.
-    """
+    """Returns companies found by the registry sweep."""
     try:
         rows = store().list_companies(limit)
     except StoreError as exc:
@@ -647,12 +552,12 @@ def companies(limit: int = DEFAULT_LIST_LIMIT) -> dict[str, Any]:
 
 @app.get("/stats")
 def stats() -> dict[str, Any]:
-    """Счётчики прогона: проверено, нарушений, не смогли; работа — в `handle_stats`."""
+    """Returns run counters; the work is in `handle_stats`."""
     return handle_stats()
 
 
 def main() -> int:
-    """Локальный запуск: `python -m leadcentre.api`. Порт — из среды, как у Vercel/Render."""
+    """Runs the API locally; the port comes from the environment."""
     import uvicorn
 
     uvicorn.run(

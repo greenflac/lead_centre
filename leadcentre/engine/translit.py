@@ -1,20 +1,8 @@
-"""Латинское написание арабских названий компаний. Машинная догадка помечена как догадка.
+"""Latin spellings for Arabic company names, with machine guesses marked as guesses.
 
-Зачем: в карточке менеджер видит название, которое не может ни прочитать, ни найти.
-Транслитерация делает его читаемым — и ничем больше не является: для юридических
-документов она не годится, носителем языка не проверена.
-
-Исходов три:
-  * `FROM_SOURCE` — латиница есть в самой записи реестра, модель не вызывалась;
-  * `MACHINE` — машинная транслитерация (или её же значение из кэша);
-  * `FAILED` — не смогли (сеть, лимиты, пустой/невалидный ответ, нечего транслитерировать).
-`FAILED` НЕ подменяется исходным арабским молча: вызывающий получает `text=None` и
-причину в `error`, а не строку, которую можно случайно показать как имя.
-
-Почему возвращается объект, а не строка: строка теряет происхождение. Официальное имя
-из реестра и машинная догадка — разные вещи, и разница обязана дожить до карточки,
-а не потеряться в первой же переменной `name`. Поэтому у результата есть `is_official`,
-`status` и `display()`, который сам дописывает пометку к машинному варианту.
+Three outcomes: from the registry, machine transliterated, or failed — and a failure is
+never silently replaced by the original. An object is returned because a string would
+lose its provenance.
 """
 from __future__ import annotations
 
@@ -34,11 +22,9 @@ from leadcentre.engine.extract import (
     is_offline,
 )
 
-# --- константы-решения ---
-
-TRANSLIT_MODEL = ANTHROPIC_MODEL          # та же младшая модель, что и для коротких обращений
-MAX_TOKENS = 200                          # ответ — одна строка названия
-MAX_NAME_CHARS = 300                      # длиннее — это не название, а мусор
+TRANSLIT_MODEL = ANTHROPIC_MODEL          # the same small model used for short requests
+MAX_TOKENS = 200                          # the answer is a single name line
+MAX_NAME_CHARS = 300                      # Why 300: longer is not a name but noise
 PROMPT_VERSION = "translit_v1"
 PROMPT_PATH = Path(__file__).resolve().parents[2] / "prompts" / f"{PROMPT_VERSION}.md"
 CACHE_PATH = Path(__file__).resolve().parents[2] / "data" / "translit_cache.json"
@@ -54,25 +40,25 @@ LATIN_RE = re.compile(r"[A-Za-z]")
 
 
 class TranslitStatus(str, Enum):
-    FROM_SOURCE = "from_source"   # латиница пришла из реестра — это факт, а не догадка
-    MACHINE = "machine"           # получено от модели
-    FAILED = "failed"             # не смогли; арабским молча не подменяем
+    FROM_SOURCE = "from_source"   # Latin from the registry: a fact, not a guess
+    MACHINE = "machine"           # produced by the model
+    FAILED = "failed"             # could not; never silently replaced
 
 
 @dataclass(frozen=True)
 class TranslitName:
-    """Имя вместе с его происхождением. Происхождение — часть значения, а не комментарий."""
+    """A name together with its provenance, which is part of the value."""
 
     status: TranslitStatus
-    text: str | None                  # латиница; None, если не смогли
-    original: str                     # исходное название как в реестре
-    source: str                       # откуда взято: поле реестра, модель, кэш
+    text: str | None                  # Latin text, or None on failure
+    original: str                     # the original name from the registry
+    source: str                       # provenance: registry, model or cache
     error: str | None = None
     cached: bool = False
 
     @property
     def is_official(self) -> bool:
-        """True только для написания из реестра. Машинная догадка официальной не бывает."""
+        """True only for a registry spelling; a machine guess is never official."""
         return self.status is TranslitStatus.FROM_SOURCE
 
     @property
@@ -80,8 +66,7 @@ class TranslitName:
         return self.text is not None
 
     def display(self) -> str:
-        """Что показать менеджеру. Машинный вариант всегда несёт пометку — забыть её
-        нельзя, потому что дописывает её не вызывающий, а само значение."""
+        """Returns the text to show; the value itself appends the machine-guess mark."""
         if self.status is TranslitStatus.FAILED:
             return f"{self.original} (латиницы нет: {self.error})"
         if self.status is TranslitStatus.FROM_SOURCE:
@@ -89,15 +74,8 @@ class TranslitName:
         return f"{self.text} ({MACHINE_MARK})"
 
 
-# --- что уже есть в записи реестра ---
-
-
 def source_latin_name(entity: dict) -> tuple[str, str] | None:
-    """Латинское название из самой записи GLEIF: (название, каким полем дано).
-
-    Просматриваются и `otherNames`, и `transliteratedOtherNames`: во втором лежит
-    ASCII-написание из реестра, и оно ближе к истине, чем машинная догадка.
-    """
+    """Returns a Latin name found in the record itself, with the field it came from."""
     for field in ("otherNames", "transliteratedOtherNames"):
         for other in entity.get(field) or []:
             name = (other.get("name") or "").strip()
@@ -107,27 +85,19 @@ def source_latin_name(entity: dict) -> tuple[str, str] | None:
 
 
 def english_name(entity: dict) -> TranslitName:
-    """Латинское название записи: из реестра, если оно там есть; иначе — транслитерация."""
+    """Returns the record's Latin name, falling back to transliteration."""
     legal = ((entity.get("legalName") or {}).get("name") or "").strip()
     found = source_latin_name(entity)
     if found:
         name, field = found
         return TranslitName(TranslitStatus.FROM_SOURCE, name, legal, field)
     if not ARABIC_RE.search(legal):
-        # Название и так латиницей — это тоже «из источника», модель не нужна.
         return TranslitName(TranslitStatus.FROM_SOURCE, legal or None, legal, "legalName")
     return transliterate(legal)
 
 
-# --- кэш на диске ---
-
-
 def cache_key(name: str) -> str:
-    """Ключ — хэш нормализованного названия плюс версия промпта.
-
-    Версия входит в ключ, потому что со сменой промпта меняются и ответы: закэшированное
-    от прежнего промпта не должно выдаваться за новое.
-    """
+    """Builds the cache key; the prompt version is included because answers change with it."""
     payload = f"{PROMPT_VERSION}\x1f{TRANSLIT_MODEL}\x1f{' '.join(name.split())}"
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:32]
 
@@ -138,13 +108,12 @@ def load_cache() -> dict[str, dict]:
     except FileNotFoundError:
         return {}
     except (OSError, json.JSONDecodeError):
-        # Битый кэш — это «не смогли прочитать», а не «пусто»: пустой словарь молча
-        # отправил бы всё в сеть. Поэтому шумим.
+        # Why noisy: an empty dict here would silently send everything to the network.
         raise ExtractionError(f"кэш транслитераций не читается: {CACHE_PATH}") from None
 
 
 def save_cache(cache: dict[str, dict]) -> None:
-    """Пишем отсортированно и с отступами: файл лежит в репозитории, дифф должен читаться."""
+    """Writes the cache sorted and indented, since the file lives in the repository."""
     CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
     CACHE_PATH.write_text(
         json.dumps(cache, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
@@ -160,7 +129,7 @@ def load_prompt() -> str:
 
 
 def _junk_reason(name: str) -> str | None:
-    """Мусор отсеиваем до сети: пустое, слишком длинное, без арабских букв."""
+    """Rejects input before any network call: empty, over-long, or with no Arabic letters."""
     cleaned = name.strip()
     if not cleaned:
         return "пустая строка"
@@ -172,7 +141,7 @@ def _junk_reason(name: str) -> str | None:
 
 
 def transliterate(name: str, *, cache: dict[str, dict] | None = None) -> TranslitName:
-    """Арабское название → латиница. Кэш на диске, в OFFLINE — только кэш."""
+    """Transliterates an Arabic name; offline mode uses the on-disk cache only."""
     reason = _junk_reason(name)
     if reason:
         return TranslitName(TranslitStatus.FAILED, None, name, "проверка входа",
@@ -203,7 +172,7 @@ def transliterate(name: str, *, cache: dict[str, dict] | None = None) -> Transli
 
 
 def _ask_model(name: str) -> str:
-    """Один запрос к модели. Ответ обязан быть латиницей — иначе это «не смогли»."""
+    """Makes one model call; a non-Latin answer counts as a failure."""
     client = anthropic_client()
     try:
         response = client.with_options(max_retries=MAX_RETRIES).messages.create(
@@ -232,8 +201,7 @@ def _ask_model(name: str) -> str:
 
 
 def warm_cache(names: list[str]) -> tuple[int, int, list[TranslitName]]:
-    """Прогреть кэш списком названий. Числами, а не флагом: сколько получили,
-    сколько не смогли. Кэш читается и пишется один раз, а не на каждое имя."""
+    """Warms the cache for a list of names, returning counts rather than a flag."""
     store = load_cache()
     results = []
     done = failed = 0

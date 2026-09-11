@@ -1,22 +1,4 @@
-"""Умолчание CRM: без явной переменной приёмник — заглушка, и она честно говорит «пропущено».
-
-Почему файл существует. Проверка перед релизом подменила умолчание с `NullSink` на живой
-`HubspotSink` — сюита осталась зелёной (576 из 576). То есть «по умолчанию ничего никуда
-не отправляется» было обещанием, которое ничем не держалось: чужая CRM наполнилась бы
-демо-прогонами, а узнали бы мы об этом от владельца портала.
-
-Проверяется четыре утверждения, и каждое — отдельная мутация:
-  1. переменной нет — приёмник заглушка (`null`), а не HubSpot;
-  2. заглушка возвращает исход «пропущено», а не «отправлено» (вердикт — из того,
-     что исполнилось, а `SKIPPED` не сворачивается в успех);
-  3. живой приёмник включается только явным значением `CRM_SINK=hubspot`;
-  4. неизвестное значение — ошибка, а не тихий откат на заглушку (тихий откат
-     неотличим от «отправили, но не дошло»).
-
-Ожидаемое — литералы: имена приёмников и исходы записаны строками, из
-`leadcentre.crm` не импортируются ни `SINKS`, ни `SKIPPED`, ни `SENT`.
-Сети нет: ни один тест не вызывает `send` у HubSpot с настоящим токеном.
-"""
+"""The CRM sink is a stub unless explicitly configured, so demo runs cannot fill a real CRM."""
 from __future__ import annotations
 
 import pytest
@@ -31,12 +13,12 @@ TEXT = "переезжаем командой 8 человек, нужен оф�
 
 @pytest.fixture
 def _no_crm_env(monkeypatch):
-    """Среда без единого слова о CRM: ровно то состояние, в котором приезжает релиз."""
+    """Clears the CRM environment for one test."""
     monkeypatch.delenv("CRM_SINK", raising=False)
     monkeypatch.delenv("HUBSPOT_PERSONAL_KEY", raising=False)
 
 
-# --- 1. умолчание ---------------------------------------------------------------------
+# 1. The default.
 
 
 def test_default_sink_without_env_is_the_stub(_no_crm_env):
@@ -47,25 +29,17 @@ def test_default_sink_without_env_is_the_stub(_no_crm_env):
 
 
 def test_empty_env_value_is_still_the_stub(_no_crm_env, monkeypatch):
-    """Пустая переменная — это «не задано», а не «задано что-то живое»."""
     monkeypatch.setenv("CRM_SINK", "")
     assert get_sink().name == "null"
 
 
 def test_whitespace_env_value_is_an_error_not_a_live_sink(_no_crm_env, monkeypatch):
-    """ИЗМЕРЕНО 2026-09-10: `CRM_SINK="   "` — не «не задано», а неизвестное имя.
-
-    Пустая строка отсекается `or` до `strip()`, пробельная — уже нет, и падает в ветку
-    неизвестного имени. Асимметрия зафиксирована как есть: обе стороны безопасны (никуда
-    ничего не уходит), и ни одна из них не даёт живого приёмника. Меняется поведение —
-    красит этот тест, а не проезжает молча.
-    """
     monkeypatch.setenv("CRM_SINK", "   ")
     with pytest.raises(CrmConfigError):
         get_sink()
 
 
-# --- 2. заглушка не выдаёт себя за отправку -------------------------------------------
+# 2. The stub does not pass itself off as a send.
 
 
 def test_default_sink_reports_skipped_not_sent(_no_crm_env):
@@ -78,11 +52,6 @@ def test_default_sink_reports_skipped_not_sent(_no_crm_env):
 
 
 def test_default_pipeline_creates_nothing_in_a_foreign_crm(_no_crm_env, monkeypatch):
-    """Сквозь HTTP, с настоящим `get_sink()`: одобрение лида не создаёт объектов в CRM.
-
-    `api._sink` сброшен в None намеренно — приёмник выбирается тем же кодом, что и в проде,
-    а не подставляется тестом.
-    """
     monkeypatch.setenv("OFFLINE", "1")
     monkeypatch.setattr(api, "_store", LocalStore(path=None))
     monkeypatch.setattr(api, "_sink", None)
@@ -96,7 +65,7 @@ def test_default_pipeline_creates_nothing_in_a_foreign_crm(_no_crm_env, monkeypa
     assert crm["objects"] == {}
 
 
-# --- 3. живой приёмник — только по явному значению -------------------------------------
+# 3. A live sink only on an explicit value.
 
 
 def test_live_sink_requires_an_explicit_env_value(_no_crm_env, monkeypatch):
@@ -113,19 +82,17 @@ def test_explicit_value_is_read_case_and_space_insensitively(_no_crm_env, monkey
 
 
 def test_name_argument_wins_over_the_env(_no_crm_env, monkeypatch):
-    """Явный аргумент сильнее переменной: иначе прогон под чужой средой уехал бы в HubSpot."""
     monkeypatch.setenv("CRM_SINK", "hubspot")
     assert get_sink("null").name == "null"
 
 
-# --- 4. неизвестное значение — ошибка, а не тихий откат --------------------------------
+# 4. An unknown value raises rather than falling back.
 
 
 @pytest.mark.parametrize("value", ["битрикс", "amocrm", "hubspot2", "nul"])
 def test_unknown_value_raises_instead_of_falling_back_to_the_stub(
     _no_crm_env, monkeypatch, value
 ):
-    """Тихий откат неотличим от «отправили, но не дошло», поэтому исход тут — исключение."""
     monkeypatch.setenv("CRM_SINK", value)
     with pytest.raises(CrmConfigError) as exc:
         get_sink()

@@ -1,13 +1,8 @@
-"""Customer reply drafts: templates plus a price range, with no LLM in the loop.
+"""Customer reply drafts: deterministic templates plus a price range from the price list.
 
-ru and en are deterministic templates, so the linter checks exactly the text that will
-reach the customer. Arabic is the exception: a model writes it inside frames set by code,
-because a template written by a non-native reads as disrespect from the first line.
-Numbers never pass through a model — code substitutes them from data/pricelist_demo.yaml.
-
-Outcomes: DRAFT, QUESTIONS (too few facts to quote a price), SPAM_SKIPPED, and NO_DRAFT
-when the Arabic model is unavailable or its text fails the linter. There is no empty
-string and no silent fallback to another language.
+Arabic is the exception: a model writes it inside frames set by code and passes the same
+linter. Numbers never go through a model. Outcomes are DRAFT, QUESTIONS, SPAM_SKIPPED and
+NO_DRAFT; there is no empty string and no silent fallback to another language.
 """
 from __future__ import annotations
 
@@ -19,27 +14,22 @@ from pathlib import Path
 
 from leadcentre.models import InboundMessage, LeadFacts, RequestType, Tier
 
-# Why 0.5: below half the scale the model doubts at least as much as it is sure, and a
-# price must not be quoted on that.
+# Why 0.5: below half the model doubts as much as it is sure, and a price needs better.
 MIN_CONFIDENCE_FOR_PRICE = 0.5
 
-# Why 7: inside a week a templated exchange no longer keeps up, so a human takes over.
 URGENT_TIMELINE_DAYS = 7
 
 DEFAULT_PRICELIST = Path(__file__).resolve().parents[2] / "data" / "pricelist_demo.yaml"
 
-#: Reply languages; anything unrecognised falls back to en.
 SUPPORTED_LANGUAGES: tuple[str, ...] = ("ru", "en", "ar")
 FALLBACK_LANGUAGE = "en"
 RTL_LANGUAGES: tuple[str, ...] = ("ar",)
 
-# Why these marks: an Arabic line runs right to left, and a Latin/digit run inside it
-# visually falls apart without an isolate around it.
-RLM = "\u200f"   # RIGHT-TO-LEFT MARK: задаёт направление строки
-LRI = "\u2066"   # LEFT-TO-RIGHT ISOLATE: начало латинско-цифровой вставки
-PDI = "\u2069"   # POP DIRECTIONAL ISOLATE: конец вставки
+# Why these marks: a Latin run inside a right-to-left line falls apart without an isolate.
+RLM = "\u200f"   # RIGHT-TO-LEFT MARK: sets paragraph direction
+LRI = "\u2066"   # LEFT-TO-RIGHT ISOLATE: start of a Latin run
+PDI = "\u2069"   # POP DIRECTIONAL ISOLATE: end of the run
 
-#: Script ranges as evidence of the request language; order is priority.
 SCRIPT_RANGES: tuple[tuple[str, tuple[tuple[str, str], ...]], ...] = (
     ("ar", (
         ("\u0600", "\u06ff"), ("\u0750", "\u077f"),
@@ -48,7 +38,6 @@ SCRIPT_RANGES: tuple[tuple[str, tuple[tuple[str, str], ...]], ...] = (
     ("ru", (("\u0400", "\u04ff"),)),
 )
 
-#: Price item per request type; the order is also the line order in the letter.
 PRICE_KEY_BY_REQUEST: dict[RequestType, tuple[str, ...]] = {
     RequestType.OFFICE: ("office_mini_year", "flexi_desk_year"),
     RequestType.SETUP: ("setup_mainland_package", "setup_freezone_package"),
@@ -59,8 +48,7 @@ PRICE_KEY_BY_REQUEST: dict[RequestType, tuple[str, ...]] = {
     RequestType.OTHER: (),
 }
 
-# Why derived from the templates: a hand-kept second list, forgotten when a RequestType
-# is added, would silently disable generation for it.
+# Why derived from the templates: a hand-kept second list would silently fall behind.
 SUBSTANCE: dict[RequestType, dict[str, str]] = {
     RequestType.OFFICE: {
         "ru": "По офису: у нас собственный бизнес-центр в Дубае, есть мини-офисы "
@@ -83,8 +71,7 @@ SUBSTANCE: dict[RequestType, dict[str, str]] = {
         "en": "On accounting: we cover bookkeeping, VAT and corporate tax; "
               "the scope depends on your monthly transaction volume.",    },
     RequestType.RENEWAL: {
-        # Why no "in N days": the linter rightly reads that as promising a government
-        # timeline, and "apply early" says the same without a number.
+        # Why no "in N days": that promises a government timeline; "apply early" does not.
         "ru": "По продлению: собираем пакетом лицензию, Ejari и визовую квоту — "
               "документы лучше подавать заранее, просрочка добавляет штрафы.",
         "en": "On renewals: we bundle the licence, Ejari and the visa quota — "
@@ -120,7 +107,6 @@ CLOSER_MEETING = {
 }
 
 # Why order is data: asking about something already stated shows the request was not read.
-# Mutating this order must change the closing line of the draft.
 CLOSER_QUESTION_ORDER: tuple[str, ...] = (
     "headcount",
     "timeline_days",
@@ -128,7 +114,6 @@ CLOSER_QUESTION_ORDER: tuple[str, ...] = (
     "has_contact",
 )
 
-#: How "this fact is known" is tested; keys match LeadFacts.
 FACT_IS_KNOWN = {
     "headcount": lambda f: f.headcount is not None,
     "timeline_days": lambda f: f.timeline_days is not None,
@@ -155,7 +140,6 @@ CLOSER_QUESTION = {
     },
 }
 
-#: Fallback to what the client already said, when there is nothing left to ask.
 GROUNDING = {
     "headcount": {
         "ru": "вас {value} человек",
@@ -174,10 +158,8 @@ GROUNDED_MEETING_TAIL = {
     "ru": "предлагаю созвон сегодня или встречу в нашем офисе в Дубае.",
     "en": "let us do a call today or meet at our Dubai office.",
 }
-#: Joiner for two such references in the meeting line.
 GROUNDING_JOINER = {"ru": " и ", "en": " and "}
 
-#: Clarifying questions used when facts are scarce, most important first.
 QUESTIONS = {
     "ru": (
         "Что именно нужно в первую очередь — регистрация компании, офис, визы или бухгалтерия?",
@@ -240,8 +222,7 @@ class Reply:
     llm_usage: tuple[tuple[str, int], ...] = ()
 
 
-#: Arabic writer, swapped in tests so an offline run is possible and "model unavailable"
-#: is reproducible.
+#: Arabic writer, swapped in tests so "model unavailable" is reproducible offline.
 ArabicWriter = Callable[[str], tuple[str, dict[str, int]]]
 
 
@@ -270,11 +251,7 @@ def _parse_scalar(raw: str) -> str | int | float:
 
 
 def _parse_simple_yaml(text: str) -> dict[str, object]:
-    """Parses the two-level YAML subset the price list is written in.
-
-    Lists and multi-line scalars are deliberately unsupported: on meeting one the parser
-    must fail rather than guess.
-    """
+    """Parses the two-level YAML subset used by the price list; lists raise rather than guess."""
     root: dict[str, object] = {}
     stack: list[tuple[int, dict[str, object]]] = [(-1, root)]
     for lineno, line in enumerate(text.splitlines(), start=1):
@@ -338,9 +315,7 @@ def load_prices(path: Path | str = DEFAULT_PRICELIST) -> dict[str, PriceItem]:
     return result
 
 
-#: Share of script-identified letters a language needs to count as the request language.
-#: Chosen well above half: one polite phrase in another language is not a language switch,
-#: and "almost even" must fall into the third outcome rather than be guessed.
+#: Script share a language needs; well above half, so "almost even" is not guessed.
 DOMINANT_SCRIPT_SHARE = 0.8
 
 
@@ -356,11 +331,7 @@ def script_letter_counts(text: str) -> dict[str, int]:
 
 
 def detect_script_language(text: str) -> str | None:
-    """Returns the language of the dominant script, or None when script settles nothing.
-
-    None covers both "no script letters at all" and "two scripts, neither dominant";
-    in both cases the decision moves up to the language flag.
-    """
+    """Returns the language of the dominant script, or None when script settles nothing."""
     counts = script_letter_counts(text)
     total = sum(counts.values())
     if total == 0:
@@ -370,11 +341,7 @@ def detect_script_language(text: str) -> str | None:
 
 
 def resolve_language(message: InboundMessage, facts: LeadFacts) -> str:
-    """Picks the reply language; when the flag and the text disagree, the text wins.
-
-    The script is evidence, the model-filled flag is intent. Latin script proves no
-    language, so there the flag decides, and unknown values fall back to English.
-    """
+    """Picks the reply language; the script is evidence and beats the model-filled flag."""
     by_script = detect_script_language(message.text)
     if by_script is not None:
         return by_script
@@ -394,11 +361,8 @@ def ltr_run(text: str) -> str:
 
 
 def price_fragment(item: PriceItem) -> str:
-    """Renders a money range, the one form a price takes in every language.
-
-    Every space and the range dash are non-breaking: a line break inside the run splits
-    currency from amount, and a range broken in half reads as a single price.
-    """
+    """Renders a money range; every space and the dash are non-breaking, since a range
+    broken across lines reads as a single price."""
     low, high = format_amount(item.min), format_amount(item.max)
     return ltr_run(f"AED\u00a0{low}\u2060–\u2060{high}")
 
@@ -449,7 +413,7 @@ def _grounded_meeting(facts: LeadFacts, language: str) -> str:
         if template is None or not FACT_IS_KNOWN[key](facts):
             continue
         parts.append(template[language].format(value=ltr_run(str(getattr(facts, key)))))
-        if len(parts) == 2:  # две опоры — предел: строка должна остаться читаемой
+        if len(parts) == 2:  # Why two: more would break readability
             break
     if not parts:
         return CLOSER_MEETING[language]
@@ -487,8 +451,7 @@ ARABIC_MAX_TOKENS = 1200
 ARABIC_EFFORT = "low"
 ARABIC_KEY_ENV = "CLAUDE_KEY"
 
-#: Card notice: the generated Arabic has not been read by a native speaker. Addressed to
-#: the manager, not the customer, so it is in the interface language.
+#: Card notice for the manager: the generated Arabic was not read by a native speaker.
 NATIVE_REVIEW_NOTICE = (
     "Not proofread: this Arabic text was written by the model and has not been read by a "
     "native speaker. Someone who reads Arabic must review it before it goes to the customer."
@@ -542,11 +505,7 @@ def _facts_for_prompt(facts: LeadFacts) -> str:
 
 
 def price_token(item: PriceItem) -> str:
-    """Returns the placeholder the model writes instead of an amount.
-
-    Amounts never pass through the model: it would rewrite the currency, drop the bidi
-    marks and show a range reversed.
-    """
+    """Returns the placeholder the model writes instead of an amount, which it would corrupt."""
     return f"[[PRICE:{item.key}]]"
 
 
@@ -581,11 +540,7 @@ def build_arabic_prompt(
 
 
 def call_claude_arabic(prompt: str) -> tuple[str, dict[str, int]]:
-    """Calls the model for the Arabic draft; the only place this module touches the network.
-
-    The key has one explicit name and no fallbacks: "no key found" must not look like
-    "the model refused".
-    """
+    """Calls the model for the Arabic draft; the only place this module touches the network."""
     api_key = os.environ.get(ARABIC_KEY_ENV)
     if not api_key:
         raise ArabicDraftUnavailable(f"нет ключа в переменной {ARABIC_KEY_ENV}")
@@ -618,9 +573,7 @@ def call_claude_arabic(prompt: str) -> tuple[str, dict[str, int]]:
     return text, usage
 
 
-#: Markdown the model adds out of habit; a business letter has no headings or quotes and
-#: the customer sees the asterisks as garbage. A space after the marker is required,
-#: since "#hashtag" is a word, not a heading.
+#: Markdown the model adds out of habit; a space after the marker keeps "#hashtag" a word.
 MARKUP_PREFIX_RE = re.compile(r"^(?:#{1,6}|>+)(?:\s+|$)")
 MARKUP_WRAP_RE = re.compile(r"^(\*{1,3}|_{1,3})(.+?)\1$")
 
@@ -668,21 +621,19 @@ def _arabic_draft(
         return _no_draft("ar", f"модель недоступна: {exc}. Нужен человек.")
 
     body = _clean_model_lines(raw, "ar")
-    # Why a leftover placeholder is fatal: it means the model corrupted the marker, and
-    # such a text must not be shown.
+    # Why a leftover placeholder is fatal: the model corrupted it, so the text is unusable.
     body, unresolved = substitute_price_tokens(body, items)
     if unresolved:
         return _no_draft("ar", f"модель испортила метки цены {unresolved}. Нужен человек.")
 
-    # Why imported here: lint.py imports this module at top level, and this is the only
-    # place that keeps unchecked text from escaping.
+    # Why imported here: lint.py imports this module, and nothing else gates the text.
     from leadcentre.engine import lint as lint_module
 
     candidate = Reply(
         body=body,
         language="ar",
         used_prices=keys,
-        needs_human=True,  # даже прошедший линтер арабский смотрит человек
+        needs_human=True,  # even linted Arabic is reviewed by a human
         outcome=OUTCOME_DRAFT,
         notice=NATIVE_REVIEW_NOTICE,
         llm_usage=tuple(usage.items()),
@@ -728,17 +679,14 @@ def draft(
 
     skipped = unsupported_request_types(facts)
     if skipped and len(skipped) == len(facts.request_types):
-        # Every request type is unknown: there is nothing to answer.
         names = ", ".join(request.value for request in skipped)
         return _no_draft(language, f"нет шаблонов для типов запроса: {names}. Нужен человек.")
 
     keys = _pick_price_keys(facts, prices)
     if not keys:
-        # The type is known but the price list has no entry: invent nothing.
         return _questions_draft(language, needs_human)
 
-    # Why skipping beats NO_DRAFT: a request usually carries several types, so one unknown
-    # should cost a notice, not the whole draft. If nothing is left, NO_DRAFT still wins.
+    # Why skipping beats NO_DRAFT: one unknown type should cost a notice, not the draft.
     lines = [GREETING[language]]
     known = [request for request in facts.request_types if request in SUBSTANCE]
     for request in known[:2]:
@@ -747,8 +695,7 @@ def draft(
     lines.append(DISCLAIMER[language])
     lines.append(_closer(facts, tier, language))
 
-    # Why the middle is cut, not the end: the substantive answer and the closing question
-    # matter more than a second price range.
+    # Why the middle is cut: the answer and the closing question beat a second range.
     while len(lines) > 6:
         del lines[2]
 

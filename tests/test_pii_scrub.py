@@ -1,25 +1,7 @@
-"""Вырезание персональных данных: функция, конвейер и тело запроса, уходящее провайдеру.
+"""Personal data never reaches a provider, a store or a CRM.
 
-Почему файл существует. Проверка перед релизом подменила `scrub_pii` на возврат входа
-как есть — сюита осталась зелёной (576 из 576). То есть маскирование работало, но его
-никто не сторожил: сломайся оно молча, телефон и почта клиента уехали бы в модель,
-в базу и в карточку CRM.
-
-Что здесь проверяется и почему именно так:
-  * сама `scrub_pii` — телефоны в разных форматах, почта, несколько ПД в одном тексте,
-    арабский текст, текст без ПД (обязан остаться байт в байт);
-  * порог `MIN_PHONE_DIGITS` — с обоих краёв (8 цифр не номер, 9 цифр номер), чтобы
-    сдвиг порога в любую сторону красил тест, а не только в одну;
-  * **тело запроса, которое реально уходит провайдеру** — и через подставного провайдера,
-    и через настоящий `AnthropicProvider` с подменённым клиентом, и через настоящий
-    `OpenAICompatibleProvider` с подменённым `urlopen`: маскирование обязано быть
-    свойством конвейера, а не вежливой договорённостью с провайдером;
-  * `has_contact` — ставится кодом по факту вырезанного, а не берётся из ответа модели;
-  * сквозь HTTP: в хранилище и в карточку уходит уже вычищенный текст.
-
-Ожидаемое — литералы: ни `MIN_PHONE_DIGITS`, ни `PHONE_MASK`, ни `EMAIL_MASK`
-из `extract` не импортируются, иначе тест поедет вместе с константой и промолчит.
-Сети нет нигде: OFFLINE, подставные провайдеры, подменённый `urlopen`.
+Inputs are literals; no marker or pattern is imported from the module under test.
+Every provider path is covered, because scrubbing is a property of the pipeline.
 """
 from __future__ import annotations
 
@@ -42,59 +24,51 @@ from leadcentre.engine.extract import (
 from leadcentre.store import LocalStore
 from tests.conftest import make_message
 
-# --- входные данные: литералы, ни одного импорта маркеров из проверяемого модуля ---
+# Inputs as literals; no marker is imported from the module under test.
 
 PHONE_INTL_SPACES = "+971 50 123 4567"
 EMAIL = "ivan.petrov@example.com"
 
-# Обращение с обоими видами ПД: на нём проверяется весь конвейер до провайдера.
+# A request with both kinds of personal data, used across the whole pipeline.
 TEXT_WITH_PII = (
     f"Нужен офис в TECOM, звоните {PHONE_INTL_SPACES} или пишите {EMAIL}"
 )
 TEXT_WITH_PII_SCRUBBED = "Нужен офис в TECOM, звоните [phone] или пишите [email]"
 
-# Обращение без ПД: конвейер обязан оставить его нетронутым.
+# A request with none: the pipeline must leave it untouched.
 TEXT_CLEAN = "переезжаем командой 8 человек, нужен офис в TECOM в этом месяце"
 
 
 def _pii_fragments(text: str) -> list[str]:
-    """Куски, которых в теле запроса быть не должно ни в каком виде.
-
-    Проверяем не только строку целиком, но и её части: провайдеру может уйти текст
-    с переносами или другой раскладкой пробелов, а «123 4567» из номера — уже утечка.
-    """
+    """Returns the personal-data fragments that must never appear downstream."""
     return [frag for frag in ("+971", "123 4567", "1234567", EMAIL, "ivan.petrov") if frag]
 
 
 def assert_no_pii(payload: str) -> None:
-    """Негативный контроль тела запроса: ПД нет, а маски на месте.
-
-    Обе половины обязательны: пустое тело тоже «не содержит ПД», и без второй половины
-    проверка зеленела бы на любом мусоре.
-    """
+    """Asserts that no personal-data fragment appears anywhere in the given text."""
     for fragment in _pii_fragments(TEXT_WITH_PII):
         assert fragment not in payload, f"в тело запроса уехали ПД: {fragment!r}"
     assert "[phone]" in payload, "в теле запроса нет маски телефона — текст не тот"
     assert "[email]" in payload, "в теле запроса нет маски почты — текст не тот"
 
 
-# --- сама функция: телефоны в разных форматах ---------------------------------------
+# The function itself, over phone numbers in several formats.
 
 
 @pytest.mark.parametrize(
     ("text", "expected"),
     [
-        # международный с пробелами
+        # international, spaced
         ("звоните +971 50 123 4567", "звоните [phone]"),
-        # международный с дефисами
+        # international, hyphenated
         ("тел. +971-50-123-4567 срочно", "тел. [phone] срочно"),
-        # скобки вокруг кода оператора
+        # brackets around the operator code
         ("мой номер +971 (50) 123-45-67", "мой номер [phone]"),
-        # местный слитно, без плюса
+        # local, unspaced, no plus
         ("call 0501234567 please", "call [phone] please"),
-        # местный с пробелами
+        # local, spaced
         ("тел 050 123 4567", "тел [phone]"),
-        # без разделителей вовсе
+        # no separators at all
         ("+971501234567 напишите", "[phone] напишите"),
     ],
 )
@@ -123,7 +97,6 @@ def test_email_is_masked(text, expected):
 
 
 def test_several_contacts_in_one_text_are_all_masked_and_counted_by_numbers():
-    """Счётчики числами, а не флагом: «что-то вырезали» не отличает 1 от 3."""
     result = scrub_pii(
         "+971501234567 и mail@example.com и +971 4 123 4567, ещё second@example.org"
     )
@@ -144,15 +117,14 @@ def test_arabic_text_keeps_its_words_and_loses_the_phone():
     "text",
     [
         TEXT_CLEAN,
-        "نحتاج مكتب في دبي لفريق من 8 أشخاص",          # арабский без ПД
-        "нужен офис на 8 человек к 2026-09-20",         # дата — не телефон
-        "офис 12, этаж 3",                              # мелкие числа
-        "бюджет до 150 000 AED в год",                  # деньги — не телефон
-        "",                                             # край: пустой текст
+        "نحتاج مكتب في دبي لفريق من 8 أشخاص",          # Arabic with no personal data
+        "нужен офис на 8 человек к 2026-09-20",         # a date is not a phone number
+        "офис 12, этаж 3",                              # small numbers
+        "бюджет до 150 000 AED в год",                  # money is not a phone number
+        "",                                             # edge: empty text
     ],
 )
 def test_text_without_contacts_is_returned_byte_for_byte(text):
-    """Негативный контроль: вход, на котором прибор обязан молчать."""
     result = scrub_pii(text)
     assert result.text == text
     assert result.phones == 0
@@ -160,38 +132,30 @@ def test_text_without_contacts_is_returned_byte_for_byte(text):
     assert result.has_contact is False
 
 
-# --- порог длины номера: оба края ----------------------------------------------------
+# The number-length threshold, at both edges.
 
 
 @pytest.mark.parametrize(
     ("text", "expected", "phones"),
     [
-        ("сумма 1234567 дирхам", "сумма 1234567 дирхам", 0),        # 7 цифр — не номер
-        ("у нас 12345678 дирхам бюджет", "у нас 12345678 дирхам бюджет", 0),  # 8 — не номер
-        ("номер 123456789", "номер [phone]", 1),                    # 9 — уже номер
-        ("номер 1234567890 записан", "номер [phone] записан", 1),   # 10 — номер
-        ("+971 50 123 4567 это 12 цифр", "[phone] это 12 цифр", 1), # середина диапазона
+        ("сумма 1234567 дирхам", "сумма 1234567 дирхам", 0),        # 7 digits: not a number
+        ("у нас 12345678 дирхам бюджет", "у нас 12345678 дирхам бюджет", 0),  # 8: not a number
+        ("номер 123456789", "номер [phone]", 1),                    # 9: a number
+        ("номер 1234567890 записан", "номер [phone] записан", 1),   # 10: a number
+        ("+971 50 123 4567 это 12 цифр", "[phone] это 12 цифр", 1), # middle of the range
     ],
 )
 def test_phone_threshold_is_nine_digits_from_both_sides(text, expected, phones):
-    """Порог сторожится с обеих сторон: 8 цифр — не телефон, 9 — телефон.
-
-    Сдвиг `MIN_PHONE_DIGITS` в любую сторону красит этот тест: вниз — покраснеет
-    строка про 8 цифр, вверх — строка про 9.
-    """
     result = scrub_pii(text)
     assert result.text == expected
     assert result.phones == phones
 
 
-# --- конвейер: провайдер получает уже вычищенный текст --------------------------------
+# The pipeline: a provider receives already scrubbed text.
 
 
 class _RecordingProvider:
-    """Провайдер-заглушка, записывающий тело запроса. В сеть не ходит.
-
-    Он намеренно «не просит» очищенный текст: маскирование обязано случиться до него.
-    """
+    """A provider that records the body it was handed instead of calling out."""
 
     name = "anthropic"
 
@@ -212,7 +176,7 @@ class _RecordingProvider:
                           input_tokens=100, output_tokens=10)
 
 
-# Ответ модели: обязательные поля схемы на месте, has_contact намеренно врёт (см. ниже).
+# A model answer whose has_contact deliberately lies, checked below.
 MODEL_ANSWER = json.dumps(
     {
         "request_types": ["office"],
@@ -232,14 +196,14 @@ MODEL_ANSWER = json.dumps(
 
 @pytest.fixture
 def _online(monkeypatch):
-    """OFFLINE выключен, но сети всё равно нет: провайдер подставной."""
+    """Turns the offline switch off for one test."""
     monkeypatch.delenv("OFFLINE", raising=False)
     monkeypatch.delenv("LLM_MODEL", raising=False)
     monkeypatch.delenv("LLM_PROVIDER", raising=False)
 
 
 def test_build_request_body_hands_the_provider_scrubbed_text():
-    """Тело собрано конвейером — ПД в нём нет, и это видно в самом теле, а не в счётчике."""
+    """The request body handed to a provider is already scrubbed."""
     provider = _RecordingProvider()
     body, scrubbed = build_request_body(make_message(TEXT_WITH_PII), provider)
 
@@ -250,7 +214,7 @@ def test_build_request_body_hands_the_provider_scrubbed_text():
 
 
 def test_pipeline_sends_scrubbed_text_even_though_the_provider_did_not_ask(_online):
-    """Сквозь `extract_detailed`: до провайдера доезжает только вычищенный текст."""
+    """The pipeline scrubs even when the provider never asked it to."""
     provider = _RecordingProvider()
     extraction = extract_detailed(make_message(TEXT_WITH_PII), provider=provider)
 
@@ -296,7 +260,6 @@ class _FakeClient:
 
 
 def test_real_anthropic_provider_receives_no_pii_in_the_call_body(_online, monkeypatch):
-    """Настоящий провайдер, подменён только клиент: смотрим ровно то, что уходит в SDK."""
     bodies: list[dict] = []
     monkeypatch.setattr(AnthropicProvider, "_client", lambda self: _FakeClient(bodies))
     monkeypatch.setenv("CLAUDE_KEY", "ключ-не-нужен-клиент-подменён")
@@ -308,7 +271,7 @@ def test_real_anthropic_provider_receives_no_pii_in_the_call_body(_online, monke
 
 
 class _FakeHttpResponse:
-    """Ответ шлюза в формате OpenAI chat completions."""
+    """A minimal stand-in for an HTTP response."""
 
     def __init__(self) -> None:
         self._payload = json.dumps(
@@ -331,7 +294,7 @@ class _FakeHttpResponse:
 
 
 def test_openai_compatible_provider_puts_no_pii_on_the_wire(_online, monkeypatch):
-    """Самый строгий срез: перехвачен `urlopen`, проверено тело HTTP-запроса как есть."""
+    """The gateway provider puts no personal data on the wire."""
     sent: list[bytes] = []
 
     def fake_urlopen(request, timeout=None):
@@ -351,7 +314,7 @@ def test_openai_compatible_provider_puts_no_pii_on_the_wire(_online, monkeypatch
 
 
 def test_offline_stub_also_scrubs_the_text(monkeypatch):
-    """OFFLINE — тоже конвейер: карточка и хранилище получают текст без ПД."""
+    """The offline stub scrubs too, so tests cannot pass by skipping the work."""
     monkeypatch.setenv("OFFLINE", "1")
     extraction = extract_detailed(make_message(TEXT_WITH_PII))
 
@@ -360,7 +323,7 @@ def test_offline_stub_also_scrubs_the_text(monkeypatch):
     assert extraction.facts.has_contact is True
 
 
-# --- has_contact ставит код, а не модель ---------------------------------------------
+# has_contact is set by code, not by the model.
 
 
 def _answer(**overrides) -> str:
@@ -370,7 +333,7 @@ def _answer(**overrides) -> str:
 
 
 def test_has_contact_is_true_although_the_model_answered_false():
-    """Модель контактов не видит: она отвечает по вычищенному тексту и врёт по определению."""
+    """has_contact follows what was cut out, not what the model claimed."""
     scrubbed = scrub_pii(TEXT_WITH_PII)
     facts, _dropped, _model_timeline = parse_facts(
         _answer(has_contact=False), scrubbed, date(2026, 9, 9)
@@ -379,7 +342,7 @@ def test_has_contact_is_true_although_the_model_answered_false():
 
 
 def test_has_contact_is_false_although_the_model_answered_true():
-    """Обратная сторона той же мутации: слово модели не должно перевешивать факт."""
+    """The same in the other direction: the model cannot invent a contact."""
     scrubbed = scrub_pii(TEXT_CLEAN)
     facts, _dropped, _model_timeline = parse_facts(
         _answer(has_contact=True, quotes=["нужен офис"]), scrubbed, date(2026, 9, 9)
@@ -388,7 +351,6 @@ def test_has_contact_is_false_although_the_model_answered_true():
 
 
 def test_has_contact_in_the_pipeline_follows_what_was_cut_out(_online):
-    """Тот же вывод, но сквозь конвейер: `extract_detailed` не спрашивает модель о контактах."""
     provider = _RecordingProvider(answer=_answer(has_contact=False))
     with_pii = extract_detailed(make_message(TEXT_WITH_PII), provider=provider)
     assert with_pii.facts.has_contact is True
@@ -400,11 +362,11 @@ def test_has_contact_in_the_pipeline_follows_what_was_cut_out(_online):
     assert clean.facts.has_contact is False
 
 
-# --- сквозь HTTP: в хранилище и в CRM уезжает уже вычищенный текст ---------------------
+# Through HTTP: store and CRM receive already scrubbed text.
 
 
 class _RecordingSink:
-    """Приёмник CRM, который только запоминает лид. Ничего никуда не отправляет."""
+    """A CRM sink that records the lead it was handed."""
 
     name = "recording"
 
@@ -427,7 +389,7 @@ def _client(monkeypatch):
 
 
 def test_stored_lead_and_crm_lead_carry_no_pii(_client):
-    """Дальний край конвейера: база и карточка CRM видят текст уже без телефона и почты."""
+    """Neither the stored lead nor the CRM lead carries personal data."""
     lead_id = _client.post(
         "/leads", json={"text": TEXT_WITH_PII, "channel": "whatsapp"}
     ).json()["lead_id"]

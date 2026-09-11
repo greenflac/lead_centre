@@ -1,12 +1,8 @@
-"""Запрет сети для тестов, выполняемый машиной, а не договорённостью.
+"""Network ban for tests, enforced by the machine rather than by agreement.
 
-Модуль подкладывается в PYTHONPATH как sitecustomize: Python импортирует его сам при
-старте, поэтому обойти запрет из теста нельзя. Тест, ушедший в сеть, падает с понятной
-ошибкой, а не краснеет от чужой аварии и не зеленеет от кэша.
-
-Негативный контроль самого запрета — `make test-ci-selfcheck`: попытка открыть внешний
-адрес обязана упасть. Без этого проверки не видно: молчаливый запрет неотличим от
-отсутствующего.
+Placed on PYTHONPATH as sitecustomize, so Python imports it at startup and a test cannot
+work around it. `make test-ci-selfcheck` is the negative control: a silent ban would be
+indistinguishable from no ban at all.
 """
 from __future__ import annotations
 
@@ -14,7 +10,7 @@ import socket
 
 
 class NetworkInTests(RuntimeError):
-    """Тест попытался выйти в сеть."""
+    """A test tried to reach the network."""
 
 
 def _blocked(*_args, **_kwargs):

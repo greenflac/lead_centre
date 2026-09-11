@@ -1,9 +1,5 @@
-"""Deterministic fact extraction from text, without a model.
-
-The only implementation of `rules` mode, shared by the eval harness and the demo set.
-Here `confidence` means "markers matched", not a model probability; the model-backed
-path is engine/extract.py.
-"""
+"""Deterministic fact extraction without a model: the `rules` mode used by the eval
+harness and the demo set. Here `confidence` means "markers matched", not a probability."""
 from __future__ import annotations
 
 import re
@@ -38,8 +34,7 @@ TYPE_MARKERS: dict[RequestType, tuple[str, ...]] = {
         "отчётност", "отчетност",
     ),
     RequestType.RENEWAL: (
-        # Why stems, not whole words: one stem covers every inflected form; «истёк» is
-        # written with both ё and е.
+        # Why stems: one stem covers every inflected form, including both ё and е.
         "продлен", "продли", "продлева", "renew", "истекает", "истекл", "истёк", "истек",
         "заканчивается", "expires", "expiry", "expiring", "ежегодн", "annual fee",
     ),
@@ -68,29 +63,26 @@ MONTHS = {
     "september": 9, "october": 10, "november": 11, "december": 12, "nov": 11, "dec": 12,
 }
 
-# Why the preposition is optional: "срок - 3 недели" states a deadline just as
-# "через 3 недели" does. «день» is listed separately because the stem «дн» misses it.
+# Why optional: a bare number states a deadline. The nominative day form is listed
+# separately, because the stem used for the other forms does not cover it.
 NUM_DAYS_RE = re.compile(
     r"(?:(?:через|in|within)\s+)?(\d+)\s*(?:дн|дней|день|day|days)", re.IGNORECASE
 )
 NUM_WEEKS_RE = re.compile(r"(?:(?:через|in|within)\s+)?(\d+)\s*(?:недел|week)", re.IGNORECASE)
-# Why a tail guard: without the preposition the number also matches talk about the past,
-# and a deadline in the past is not a deadline. Only the tail is inspected, not the sentence.
+# Why a tail guard: a bare number also matches the past, and a past deadline is no deadline.
 PAST_TAIL_MARKERS = ("назад", "ago")
 PAST_TAIL_CHARS = 12
 EXPIRES_RE = re.compile(
     r"(?:expires?|истека\w*|заканчива\w*|слетает)\D{0,25}(\d+)\s*(дн|day|week|недел)", re.IGNORECASE
 )
-# Why up to two words may sit between number and unit: "12 рабочих мест", "6 employment
-# visas". Visas and partners are units because team size is usually named through them.
+# Why words may sit between number and unit: that is how counts and team sizes are written.
 HEADCOUNT_RE = re.compile(
     r"(\d+)\s*(?:[а-яёa-z]+\s+){0,2}?"
     r"(?:человек|чел\b|людей|people|ppl|persons|seats|мест\b|сотрудник\w*|staff"
     r"|партнёр\w*|партнер\w*|виз\w*|visas?)",
     re.IGNORECASE,
 )
-# Why the whole amount is captured: trimming "120-150 тысяч" to "150 тысяч" turns a range
-# into a point, and dropping "до" turns a ceiling into an estimate.
+# Why the whole amount: a trimmed range becomes a point and a ceiling becomes an estimate.
 MONEY_QUALIFIERS = r"(?:до|от|около|примерно|порядка|up\s+to|around|about)\s+"
 MONEY_UNITS = r"(?:aed|дирхам\w*|тысяч\w*|k\b)"
 MONEY_RE = re.compile(
@@ -124,7 +116,7 @@ def _timeline_days(text: str, received_at: date) -> int | None:
     if m:
         value = int(m.group(1))
         return value * 7 if m.group(2).lower().startswith(("недел", "week")) else value
-    # Why before month names: "в этом месяце" is more precise than a month mentioned in passing.
+    # Why before month names: a worded deadline beats a month mentioned in passing.
     named = extract_mod.deadline_days(text, received_at)
     if named is not None:
         return named
@@ -138,22 +130,16 @@ def _timeline_days(text: str, received_at: date) -> int | None:
             best = delta
     if best is not None:
         return best
-    # Why nothing is invented here: "срочно" carries no date. The urgency itself is not
-    # lost — it travels as the separate `urgency_stated` fact.
+    # Why nothing is invented: urgency words carry no date, and travel as their own fact.
     return None
 
 
-# Why a newline ends a sentence: in chat people write in lines, not paragraphs.
 SENTENCE_BOUNDARIES = ".!?\n;"
 MAX_QUOTE_CHARS = 160
 
 
 def _sentence_span(text: str, start: int, end: int) -> tuple[str, int, int]:
-    """Returns the sentence around a match plus the span it occupied.
-
-    The span is returned because overlapping spans identify duplicate quotes: in a long
-    listing without full stops several markers land in the same place.
-    """
+    """Returns the sentence around a match plus its span, which identifies duplicate quotes."""
     left = max((text.rfind(ch, 0, start) for ch in SENTENCE_BOUNDARIES), default=-1)
     right_candidates = [pos for pos in (text.find(ch, end) for ch in SENTENCE_BOUNDARIES) if pos >= 0]
     right = min(right_candidates) if right_candidates else len(text)
@@ -182,19 +168,14 @@ def _sentence_around(text: str, start: int, end: int) -> str:
     return _sentence_span(text, start, end)[0]
 
 
-# Why separate: a licence word sounds the same for a new registration and for a renewal,
-# so on its own it does not prove registration.
+# Why separate: a licence word sounds the same for a registration and for a renewal.
 LICENCE_MARKERS = ("лицензи", "licence", "license")
 
 
 def _drop_setup_inside_renewal(
     low: str, types: list[RequestType], fired: dict[RequestType, list[str]]
 ) -> list[RequestType]:
-    """Drops SETUP when it fired only on a licence word standing next to a renewal.
-
-    A real registration survives: any marker other than a licence word keeps SETUP, since
-    one request may legitimately carry both types.
-    """
+    """Drops SETUP when it fired only on a licence word standing next to a renewal."""
     if RequestType.SETUP not in types or RequestType.RENEWAL not in types:
         return types
     setup_markers = fired.get(RequestType.SETUP, ())
@@ -210,22 +191,15 @@ def _drop_setup_inside_renewal(
 
 
 def rules_facts(message: InboundMessage) -> LeadFacts:
-    """Extracts facts from text without a model.
-
-    Always returns LeadFacts; a field that was not found is None (unknown), never zero.
-    """
+    """Extracts facts from text; a field that was not found is None, never zero."""
     low = message.text.lower()
     scrubbed = extract_mod.scrub_pii(message.text)
     quotes: list[str] = []
-    # Why spans are tracked: an overlapping window is the same text under another marker,
-    # not a second piece of evidence.
+    # Why spans are tracked: an overlapping window is the same text, not new evidence.
     spans: list[tuple[int, int]] = []
 
     def hit(marker: str) -> bool:
-        """Looks a marker up and quotes the whole sentence around it.
-
-        The request text is quoted rather than the marker, since a bare stem proves nothing.
-        """
+        """Looks a marker up and quotes the sentence around it, since a stem proves nothing."""
         index = low.find(marker)
         if index < 0:
             return False
@@ -256,8 +230,7 @@ def rules_facts(message: InboundMessage) -> LeadFacts:
         found = matches[0]
         headcount = int(found.group(1))
         quotes.append(message.text[found.start(): found.end()])
-    # Why a fragment, not a summary: scoring reads this field looking for an amount, and a
-    # stated amount is what separates a declared budget from talk about budgets.
+    # Why a fragment: scoring reads this field for an amount, which is what marks a budget.
     money = MONEY_RE.search(low)
     if money:
         budget = message.text[money.start(): money.end()].strip()

@@ -1,12 +1,7 @@
-"""CRM — сменный приёмник, как источник и хранилище. Движок про CRM ничего не знает.
+"""CRM as a swappable sink; the engine knows nothing about any particular CRM.
 
-Исходов три, и здесь это не формальность: «лид не уехал в HubSpot» и «неизвестно,
-уехал ли» лечатся по-разному, а склеенные в `False` они одинаково выглядят в логе.
-  * `SENT` — CRM подтвердила приём и вернула идентификаторы;
-  * `REJECTED` — CRM отвергла данные (4xx по существу: нет обязательного поля, дубль);
-  * `UNAVAILABLE` — «не смогли»: сеть, таймаут, 401/403, 429, 5xx.
-`NullSink` возвращает четвёртый, честный вариант — `SKIPPED`: он ничего не отправлял,
-и выдавать это за успех нельзя (вердикт выводится из того, что исполнилось).
+Outcomes are SENT, REJECTED, UNAVAILABLE and SKIPPED: "did not reach the CRM" and
+"unknown whether it did" have different remedies and must not merge into False.
 """
 from __future__ import annotations
 
@@ -22,8 +17,7 @@ OUTCOMES = (SENT, REJECTED, UNAVAILABLE, SKIPPED)
 
 @dataclass(frozen=True)
 class CrmLead:
-    """То, что уходит в CRM. Тексту обращения тут место, персональным данным — нет:
-    в `raw_text` кладётся уже вычищенный `scrub_pii` текст (см. api.py)."""
+    """What goes to the CRM; `raw_text` is already scrubbed of personal data."""
 
     lead_id: str
     company_name: str
@@ -39,7 +33,7 @@ class CrmLead:
 
 @dataclass(frozen=True)
 class CrmResult:
-    """Исход отправки. `objects` — то, что реально создано, а не то, что задумывалось."""
+    """Send outcome; `objects` lists what was actually created, not what was intended."""
 
     sink: str
     outcome: str
