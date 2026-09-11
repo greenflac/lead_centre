@@ -92,9 +92,6 @@ def test_format_row_shows_invalid_tier():
     assert row.startswith("INVALID")
 
 
-# --- cli.discover ----------------------------------------------------------------
-
-
 @pytest.fixture(autouse=True)
 def _offline(monkeypatch):
     monkeypatch.setenv("OFFLINE", "1")

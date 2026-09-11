@@ -38,8 +38,6 @@ from leadcentre.engine.reasons import (
 )
 from leadcentre.models import AddressType, Event, Evidence, Score, Tier
 
-# --- исходы ---
-
 
 class StoreError(RuntimeError):
     """Базовая ошибка хранилища. Наверх идёт исключением, чтобы исход не потерялся."""
@@ -53,14 +51,9 @@ class StoreUnavailable(StoreError):
     """«Не смогли»: сеть, доступ, 5xx, схема не применена. Чинится не кодом, а средой."""
 
 
-# --- строки таблиц ---
-
-
 def _iso(value: date | datetime | None) -> str | None:
     return value.isoformat() if value is not None else None
 
-
-# --- причины как данные ---
 
 # Исходы восстановления причин из строки хранилища. Их четыре, а не два, и ни один
 # не сворачивается в другой:
@@ -388,9 +381,6 @@ class DisagreementRow:
             "author": self.author,
             "created_at": _iso(self.created_at or datetime.now(UTC)),
         }
-
-
-# --- результаты ---
 
 
 @dataclass(frozen=True)

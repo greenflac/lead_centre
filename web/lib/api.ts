@@ -1,14 +1,16 @@
-// The single API surface of the dashboard. Components never call fetch and never import
-// mock JSON: they call these six functions. Swapping mock for the live backend is one
-// environment variable, NEXT_PUBLIC_API_URL — nothing else in the UI changes.
-//
-// Three outcomes, not two: a call returns data, or throws ApiError with a kind the UI can
-// explain ("provider out of budget" is not the same as "backend down").
+// The single API surface of the dashboard: six functions, one environment variable.
+// Three outcomes, not two: data back, or an ApiError carrying a kind the UI can explain.
 
-import leadsJson from "../mock/leads.json";
 import companiesJson from "../mock/companies.json";
+import leadsJson from "../mock/leads.json";
 import statsJson from "../mock/stats.json";
-import { ApiError, type Company, type Lead, type LeadStatus, type Stats } from "./types";
+import {
+  normalizeCard,
+  normalizeCompany,
+  normalizePostedLead,
+  normalizeStats,
+  unwrap,
+} from "./live";
 import {
   extractFacts,
   linkReasons,
@@ -18,13 +20,7 @@ import {
   scoreInbound,
 } from "./mockEngine";
 import { draftReply } from "./mockReply";
-import {
-  normalizeCard,
-  normalizeCompany,
-  normalizePostedLead,
-  normalizeStats,
-  unwrap,
-} from "./live";
+import { ApiError, type Company, type Lead, type LeadStatus, type Stats } from "./types";
 
 const TARGET = (process.env.NEXT_PUBLIC_API_URL ?? "").trim().replace(/\/$/, "");
 
@@ -32,36 +28,34 @@ export const isMock = TARGET === "";
 export const apiMode = isMock ? "mock" : "live";
 export const apiBase = TARGET;
 
-// Requests go to this origin and Next forwards them (see the rewrite in next.config.mjs):
-// the backend has no CORS headers, and a proxied same-origin call needs none.
+// Why same-origin: the backend sends no CORS headers, so next.config.mjs proxies /api/backend.
 const BASE = isMock ? "" : "/api/backend";
 
-// Simulated latency of the demo pipeline, so the form behaves like the real thing
-// (extract + score + draft take seconds against the LLM). ВЫБРАНО: 900 ms.
+// Simulated pipeline latency, so the demo form behaves like the live one. CHOSEN: 900 ms.
 const MOCK_LATENCY_MS = 900;
 
-/** Pipeline steps the form reports while it works. Ordered as they actually execute. */
+/** Pipeline steps the form reports, in the order they execute. */
 export type PipelineStep = 0 | 1 | 2 | 3;
 export const PIPELINE_STEPS = 4;
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
-// In-memory store for mock mode: approvals and disagreements made during a demo are
-// visible immediately and disappear on reload, because there is no backend to keep them.
+// Mock-mode store: decisions show at once and vanish on reload, there being no backend.
 let mockLeads: Lead[] = (leadsJson as Lead[]).map((lead) => ({ ...lead }));
 
+/** Anything `fetch` throws is a reachability failure; everything else already has a kind. */
 function classifyError(error: unknown): ApiError {
   if (error instanceof ApiError) return error;
   const message = error instanceof Error ? error.message : String(error);
   return new ApiError("network", "Cannot reach the Lead Centre API", message);
 }
 
+/** One fetch with the envelope rules applied: data back, or an ApiError the UI can explain. */
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response;
   try {
-    // Content-Type is set only when there is a body: sending it on a plain GET turns
-    // every cross-origin read into a CORS preflight, and a backend without an OPTIONS
-    // handler then fails with a bare "Failed to fetch" (observed against a stub API).
+    // Why conditional: Content-Type on a GET forces a CORS preflight the backend cannot answer.
     const headers: Record<string, string> = { ...((init?.headers as Record<string, string>) ?? {}) };
     if (init?.body !== undefined) headers["Content-Type"] = "application/json";
     response = await fetch(`${BASE}${path}`, { ...init, headers, cache: "no-store" });
@@ -70,8 +64,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
   if (!response.ok) {
     const body = await response.text().catch(() => "");
-    // 402/429 from the API mean the LLM provider refused on budget or rate limits.
-    // The manager must read that as "top up the provider", not as a broken dashboard.
+    // 402/429 mean the provider refused on budget or rate limits, not a broken dashboard.
     if (response.status === 402 || response.status === 429) {
       throw new ApiError(
         "budget",
@@ -84,6 +77,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T;
 }
 
+/** `GET /leads` — every scored request, newest envelope flattened to `Lead`. */
 export async function getLeads(): Promise<Lead[]> {
   if (isMock) {
     await sleep(120);
@@ -104,6 +98,7 @@ export async function getCompanies(): Promise<Company[]> {
   return (Array.isArray(rows) ? rows : []).map(normalizeCompany);
 }
 
+/** `GET /stats` — the counters behind the three numbers at the top of the screen. */
 export async function getStats(): Promise<Stats> {
   if (isMock) {
     await sleep(80);
@@ -115,10 +110,8 @@ export async function getStats(): Promise<Stats> {
 }
 
 /**
- * `onStep` is called when a stage has actually finished, not on a timer: in mock mode the
- * four stages run here one after another, so the form reports what executed. Against
- * the live backend they happen inside one HTTP call and cannot be observed — the caller is
- * told so by never receiving a step.
+ * Scores one request. `onStep` fires when a stage has actually finished, never on a timer;
+ * against the live backend the stages are unobservable, so no step is reported at all.
  */
 export async function postLead(
   text: string,
@@ -128,7 +121,7 @@ export async function postLead(
   if (isMock) {
     const stage = MOCK_LATENCY_MS / PIPELINE_STEPS;
     await sleep(stage);
-    // 1. Контакты вырезаются до всякого разбора — этим занят extractFacts.hasContact.
+    // Contacts are located before any parsing; extractFacts.hasContact does that.
     onStep?.(0);
     await sleep(stage);
     const { facts, quotes } = extractFacts(text);
@@ -148,8 +141,7 @@ export async function postLead(
       received_at: new Date().toISOString(),
       is_synthetic: true,
       tier: scored.tier,
-      // Причины — на языке интерфейса (английском); текст обращения и черновик остаются
-      // на языке клиента.
+      // Reasons in the interface language; the request text and the draft stay in the customer's.
       reasons: renderReasons(scored.reasonItems, REASON_UI_LANGUAGE),
       reason_links: linkReasons(scored.reasonItems, quotes, facts),
       evidence: scored.evidence,
@@ -187,23 +179,25 @@ function setMockStatus(id: string, status: LeadStatus, reason: string | null): L
   return { ...updated };
 }
 
+/** Re-reads a card after a decision, so the screen shows what the backend actually stored. */
 async function readCard(id: string, status: LeadStatus, reason: string | null): Promise<Lead> {
   const payload = await request<unknown>(`/leads/${encodeURIComponent(id)}`);
   const card = normalizeCard(unwrap(payload, "card"));
   return { ...card, status, decision_reason: reason };
 }
 
+/** `POST /leads/{id}/approve` — hand the lead and its draft to the CRM sink. */
 export async function approve(id: string): Promise<Lead> {
   if (isMock) {
     await sleep(250);
     return setMockStatus(id, "approved", null);
   }
   await request<unknown>(`/leads/${encodeURIComponent(id)}/approve`, { method: "POST" });
-  // The decision endpoints answer with a CRM/eval receipt, not the card, so the card is
-  // re-read: what the dashboard shows next is what the backend actually stored.
+  // Why re-read: the decision endpoints answer with a receipt, not with the stored card.
   return readCard(id, "approved", null);
 }
 
+/** `POST /leads/{id}/disagree` — record why the card is wrong, for the eval set. */
 export async function disagree(id: string, reason: string): Promise<Lead> {
   if (isMock) {
     await sleep(250);

@@ -25,6 +25,7 @@ const ADDRESS_TITLE: Record<string, string> = {
   A0_unknown: "The registry record does not say what kind of address this is.",
 };
 
+/** Month names for `humanDate`; index 0 is January. */
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /**
@@ -53,6 +54,7 @@ const EVIDENCE_FIELDS: { kind: string; label: string; isDate: boolean; mono: boo
   { kind: "created_on", label: "Registered", isDate: true, mono: false },
 ];
 
+/** How many evidence fields fit the cell at the measured column width; the rest live in `title`. */
 const VISIBLE_EVIDENCE = 2;
 
 type EvidencePart = {
@@ -91,7 +93,8 @@ function evidenceTitle(parts: EvidencePart[], unread: Evidence[]): string {
   return lines.join("\n");
 }
 
-function EvidenceCell({ company }: { company: Company }) {
+/** The evidence column, with all three outcomes of `readEvidence` spelled out in words. */
+function EvidenceCell({ company }: { company: Company }): React.JSX.Element {
   const { parts, unread, hasAny } = readEvidence(company.evidence);
   const readable = parts.filter((part) => part.text).length;
 
@@ -129,7 +132,8 @@ function EvidenceCell({ company }: { company: Company }) {
   );
 }
 
-function AddressCell({ type }: { type: string }) {
+/** The address-type column. A code the screen cannot name is said so, not left blank. */
+function AddressCell({ type }: { type: string }): React.JSX.Element {
   const label = ADDRESS_LABEL[type];
   if (label) {
     return (
@@ -146,17 +150,20 @@ function AddressCell({ type }: { type: string }) {
   );
 }
 
+interface DiscoveredViewProps {
+  companies: Company[];
+  loading: boolean;
+  error: ApiError | null;
+  onRetry: () => void;
+}
+
+/** The registry watchlist: one public LEI record per row, with the field the reason rests on. */
 export default function DiscoveredView({
   companies,
   loading,
   error,
   onRetry,
-}: {
-  companies: Company[];
-  loading: boolean;
-  error: ApiError | null;
-  onRetry: () => void;
-}) {
+}: DiscoveredViewProps): React.JSX.Element {
   const [tierFilter, setTierFilter] = useState<Tier | null>(null);
 
   const rows = useMemo(

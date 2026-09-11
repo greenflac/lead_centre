@@ -52,8 +52,6 @@ class LocalStore:
         if self.path is not None:
             self._load()
 
-    # --- файл ---
-
     def _load(self) -> None:
         assert self.path is not None
         if not self.path.exists():
@@ -204,8 +202,6 @@ class LocalStore:
                 self._data["companies"],
                 self._data["disagreements"],
             )
-
-    # --- вспомогательное ---
 
     def _find(self, collection: str, lead_id: str) -> dict[str, Any] | None:
         key = "id" if collection == "leads" else "lead_id"

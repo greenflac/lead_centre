@@ -160,9 +160,6 @@ class Score:
         )
 
 
-# --- входящие обращения ---
-
-
 class RequestType(str, Enum):
     OFFICE = "office"
     SETUP = "setup"
@@ -175,7 +172,7 @@ class RequestType(str, Enum):
 
 @dataclass(frozen=True)
 class InboundMessage:
-    """Обращение из канала SORP: чат Jivo, WhatsApp, Telegram, форма сайта."""
+    """Обращение из клиентского канала: чат Jivo, WhatsApp, Telegram, форма сайта."""
 
     external_id: str
     channel: str            # jivo | whatsapp | telegram | form

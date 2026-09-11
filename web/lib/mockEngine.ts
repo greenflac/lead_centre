@@ -1,48 +1,30 @@
-// Client-side facts + scoring used ONLY by the mock adapter, for requests typed into the
-// demo form.
-//
-// Осознанная копия, а не забытый долг: это порт двух модулей на Python —
-// `leadcentre/engine/facts_rules.py` (deterministic fact extraction) and
-// `leadcentre/engine/score.py::score_inbound` with the thresholds of
-// `leadcentre/engine/rubric.py`. One piece of knowledge in two languages, which is exactly
-// the disease that made the Python side merge its two copies of the fact heuristic. It
-// exists only because a browser cannot run Python with no backend attached. The re-check
-// against those three files is no longer a promise: web/scripts/crosscheck.py runs both
-// paths over 10 requests and every field of the result, and CI fails the build when they
-// disagree. Last synced against
-// commit ae00357 ("одна эвристика фактов на всех; горизонт срочности расширен до 60 дней")
-// plus SIGNALS_FOR_HIGH = 2. Re-synced 2026-09-10 against RequestType.RENEWAL, the
-// sentence-quote rule (facts_rules.hit / _sentence_span), _drop_setup_inside_renewal, the
-// headcount third outcome, the dominant-script language rule, the overlapping-quote filter
-// and the whole-budget capture.
-// When NEXT_PUBLIC_API_URL is set, nothing in this file runs: the Python engine decides.
+// Fact extraction and scoring for the mock adapter only: a port of
+// leadcentre/engine/facts_rules.py, score.py::score_inbound and rubric.py.
+// Why a second copy exists: a browser cannot run Python with no backend attached.
+// web/scripts/crosscheck.py compares both paths field by field and CI fails on a drift.
+// With NEXT_PUBLIC_API_URL set nothing here runs — the Python engine decides.
 
 import type { Evidence, LeadFacts, Tier } from "./types";
 
-// --- thresholds mirrored from leadcentre/engine/rubric.py ---
+// Thresholds mirrored from leadcentre/engine/rubric.py.
 const URGENT_TIMELINE_DAYS = 60;
 const PACKAGE_MIN_REQUEST_TYPES = 2;
 const TEAM_MIN_HEADCOUNT = 5;
 const LOW_CONFIDENCE = 0.5;
 const TARGET_LANGUAGES = ["ru"];
-// A single signal is not enough to be hot: at one signal, HIGH went to 30 of 70 requests
-// and stopped meaning anything.
+// Why 2: at one signal HIGH covered 30 of 70 requests and stopped meaning anything.
 const SIGNALS_FOR_HIGH = 2;
 const LANGUAGE_NEEDS_ANOTHER_SIGNAL = true;
 const LADDER: Tier[] = ["LOW", "MEDIUM", "HIGH"];
 const INBOUND_BASE: Tier = "MEDIUM";
 const INBOUND_BASE_NO_REQUEST: Tier = "LOW";
 
-// --- routing, mirrored from leadcentre/engine/extract.py ---
+// Routing, mirrored from leadcentre/engine/extract.py.
 const LONG_MESSAGE_CHARS = 600;
 const SHORT_MODEL = "claude-haiku-4-5-20251001";
 const LONG_MODEL = "claude-opus-5";
 
-/**
- * Which model the live pipeline would pick for this text, and why. The decision is made by
- * message length before any network call, so the mock can state it honestly — it is the
- * routing rule, not a claim that a model ran.
- */
+/** Which model the live pipeline would pick, and why. A routing rule, not a claim a model ran. */
 export function routeForText(text: string): { model: string; reason: string } {
   const length = text.length;
   return length > LONG_MESSAGE_CHARS
@@ -50,7 +32,7 @@ export function routeForText(text: string): { model: string; reason: string } {
     : { model: SHORT_MODEL, reason: `short request: ${length} chars <= ${LONG_MESSAGE_CHARS}` };
 }
 
-// --- markers mirrored from leadcentre/engine/facts_rules.py ---
+// Markers mirrored from leadcentre/engine/facts_rules.py.
 const RULES_CONFIDENCE_MATCHED = 1.0;
 const RULES_CONFIDENCE_EMPTY = 0.0;
 const MIXED_SHARE = 0.2;
@@ -81,8 +63,7 @@ const TYPE_MARKERS: [string, string[]][] = [
     "платёжный шлюз", "payment gateway"]],
 ];
 
-// Слова о лицензии звучат одинаково при первичной регистрации и при продлении.
-// Порт facts_rules.LICENCE_MARKERS / _drop_setup_inside_renewal.
+// Why separate: licence words read the same for a first setup and for a renewal.
 const LICENCE_MARKERS = ["лицензи", "licence", "license"];
 
 const BUDGET_MARKERS = [
@@ -90,28 +71,26 @@ const BUDGET_MARKERS = [
   "approved",
 ];
 
-// Порт extract.DEADLINE_MARKERS / VAGUE_URGENCY_MARKERS. Раньше здесь лежал один список
-// вперемешку, и «срочно» стояло рядом с «в этом месяце» — а это разные вещи: первое даты
-// не содержит, второе содержит и считается от даты ОБРАЩЕНИЯ, а не от сегодняшнего дня.
-const FRIDAY = 4; // индекс пятницы в getUTCDay() после сдвига: понедельник = 0
+// Why two lists: "this month" yields a date counted from the request, "urgent" yields none.
+const FRIDAY = 4; // Monday-first index
 
-/** До последнего дня месяца обращения. «В этом месяце» 31-го числа — ноль дней. */
+/** Days left to the last day of the month the request arrived in. */
 function daysToEndOfMonth(at: Date): number {
   const last = Date.UTC(at.getUTCFullYear(), at.getUTCMonth() + 1, 0);
   return Math.round((last - Date.UTC(at.getUTCFullYear(), at.getUTCMonth(), at.getUTCDate())) / 86400000);
 }
 
-/** Понедельник = 0, как в Python `date.weekday()`; JS считает с воскресенья. */
+/** Monday = 0, as in Python `date.weekday()`; JS counts from Sunday. */
 function weekdayMondayFirst(at: Date): number {
   return (at.getUTCDay() + 6) % 7;
 }
 
-/** До конца недели обращения. Неделя ISO: понедельник-воскресенье. */
+/** Days left to the end of the ISO week the request arrived in. */
 function daysToEndOfWeek(at: Date): number {
   return 6 - weekdayMondayFirst(at);
 }
 
-/** До ближайшей пятницы, считая день обращения: обращение в пятницу — ноль. */
+/** Days to the next Friday, counting the day of the request itself. */
 function daysToNextFriday(at: Date): number {
   return (FRIDAY - weekdayMondayFirst(at) + 7) % 7;
 }
@@ -133,17 +112,13 @@ const VAGUE_URGENCY_MARKERS = [
   "срочно", "urgent", "asap", "как можно быстрее", "лишь бы быстро",
 ];
 
-/** Порт extract.deadline_days: сработало несколько маркеров — берётся ближайший срок. */
+/** Deadline in days from the markers present; several markers yield the nearest one. */
 function deadlineDays(low: string, receivedAt: Date): number | null {
   const found = DEADLINE_MARKERS.filter(([m]) => low.includes(m)).map(([, rule]) => rule(receivedAt));
   return found.length ? Math.min(...found) : null;
 }
 
-/**
- * Порт extract.wordless_urgency. Инвариант разделения: срок и словесная срочность —
- * разные признаки, и одно обращение не получает оба сразу, иначе карточка пишет
- * «даты клиент не назвал» на обращении, где дата названа.
- */
+/** Urgency claimed in words only. Why exclusive with a deadline: a card must not say "no date given" when one was. */
 function wordlessUrgency(low: string, timelineDaysValue: number | null): boolean {
   if (timelineDaysValue !== null) return false;
   if (DEADLINE_MARKERS.some(([m]) => low.includes(m))) return false;
@@ -161,17 +136,13 @@ const MONTHS: [string, number][] = [
 const NUM_DAYS_RE = /(?:через|in|within)\s+(\d+)\s*(?:дн|дней|day|days)/i;
 const NUM_WEEKS_RE = /(?:через|in|within)\s+(\d+)\s*(?:недел|week)/i;
 const EXPIRES_RE = /(?:expires?|истека[а-яё]*|заканчива[а-яё]*|слетает)\D{0,25}(\d+)\s*(дн|day|week|недел)/i;
-// \b и \w в JavaScript считают словом только ASCII, а в Python — и кириллицу тоже.
-// ИЗМЕРЕНО сверкой (web/scripts/crosscheck.py): из-за этого «12 рабочих мест» давало
-// headcount=12 в Python и null в TS, и обращение urg-02 расходилось по приоритету
-// HIGH против MEDIUM. Границы слова записаны явным просмотром вперёд.
+// Why an explicit lookahead: JS word boundaries are ASCII-only, Python's are not.
 const WORD_TAIL = "(?![0-9A-Za-z_\\u0400-\\u04ff])";
 const HEADCOUNT_RE = new RegExp(
   `(\\d+)\\s*(?:[а-яёa-z]+\\s+){0,2}?(?:человек|чел${WORD_TAIL}|людей|people|ppl${WORD_TAIL}|persons|seats|мест${WORD_TAIL}|сотрудник[а-яё]*|staff|партнёр[а-яё]*|партнер[а-яё]*|виз[а-яё]*|visas?)`,
   "gi",
 );
-// Порт facts_rules.MONEY_RE: сумма цитируется целиком — с диапазоном, с «до»/«от» и с
-// валютой. Урезанная до последнего числа, цитата меняет смысл: диапазон становится точкой.
+// Why the whole sum: trimmed to its last number, a range would read as a single figure.
 const MONEY_QUALIFIERS = "(?:до|от|около|примерно|порядка|up\\s+to|around|about)\\s+";
 const MONEY_UNITS = "(?:aed|дирхам[а-яё]*|тысяч[а-яё]*|k\\b)";
 const MONEY_RE = new RegExp(
@@ -185,16 +156,11 @@ const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 const PHONE_RE = /(?<![\w])\+?\d[\d\-\s().]{5,}\d(?![\w])/;
 const MIN_PHONE_DIGITS = 9;
 
-// Границы предложения в чате: перевод строки считается концом наравне с точкой.
+// In chat a newline ends a sentence just as a full stop does.
 const SENTENCE_BOUNDARIES = ".!?\n;";
 const MAX_QUOTE_CHARS = 160;
 
-/**
- * Порт facts_rules._sentence_around: предложение, внутри которого лежит совпадение.
- * Длинное подрезается вокруг самого совпадения по границам слов С ОБЕИХ сторон и
- * помечается многоточием: подрезка только справа давала цитаты вида «eezone, если…» —
- * доказательство, похожее на мусор (ИЗМЕРЕНО в Python на edge-03, 12 из 14 цитат).
- */
+/** The sentence a match sits in, trimmed on BOTH sides at word boundaries when too long. */
 function sentenceSpan(text: string, start: number, end: number): [string, number, number] {
   let left = -1;
   for (const ch of SENTENCE_BOUNDARIES) left = Math.max(left, text.lastIndexOf(ch, start - 1));
@@ -221,15 +187,11 @@ function sentenceSpan(text: string, start: number, end: number): [string, number
   return [`${head > left + 1 ? "…" : ""}${cut}${tail < right ? "…" : ""}`, head, tail];
 }
 
-// --- причины: зеркало каталога leadcentre/engine/reasons.py ---
-//
-// Причина хранится структурно — код плюс параметры — и отрисовывается на языке
-// интерфейса. Так устроен и Python (`Score.reason_items` + `reasons_in(language)`), и
-// иначе двуязычность превращается в два независимых списка строк. Сверка
-// web/scripts/crosscheck.py сличает отрисовку на ОБОИХ языках.
+// Reasons mirror leadcentre/engine/reasons.py: a code plus parameters, rendered on demand.
+// Why structural: two bilingual string lists drift; one catalogue cannot.
 export type ReasonLanguage = "ru" | "en";
 
-/** Язык интерфейса дашборда. Причины идут на нём; текст клиента и черновик — нет. */
+/** Interface language. Reasons use it; the customer's text and the draft do not. */
 export const REASON_UI_LANGUAGE: ReasonLanguage = "en";
 
 export interface ReasonItem {
@@ -282,8 +244,7 @@ const REASON_CATALOGUE: Record<string, ReasonSpec> = {
   },
 };
 
-// Русский требует трёх форм числительного, английский — двух (порт _plural_index_ru /
-// _plural_index_en, правило CLDR one/few/many).
+// Russian needs three numeral forms, English two (CLDR one/few/many).
 const PLURAL_FORMS: Record<ReasonLanguage, Record<string, string[]>> = {
   ru: {
     day: ["день", "дня", "дней"],
@@ -309,7 +270,7 @@ function pluralPhrase(language: ReasonLanguage, value: number, noun: string): st
   return `${value} ${PLURAL_FORMS[language][noun][pluralIndex(language, value)]}`;
 }
 
-/** Отрисовка одной причины. Неизвестный код — ошибка, а не пустая строка. */
+/** Renders one reason. An unknown code throws rather than yielding an empty string. */
 export function renderReason(item: ReasonItem, language: ReasonLanguage): string {
   const spec = REASON_CATALOGUE[item.code];
   if (!spec) throw new Error(`unknown reason code: ${item.code}`);
@@ -324,10 +285,12 @@ export function renderReason(item: ReasonItem, language: ReasonLanguage): string
   });
 }
 
+/** Renders a whole list of reasons into one language. */
 export function renderReasons(items: ReasonItem[], language: ReasonLanguage): string[] {
   return items.map((item) => renderReason(item, language));
 }
 
+/** Moves a tier along LOW → MEDIUM → HIGH, clamped at both ends. */
 function step(tier: Tier, delta: number): Tier {
   const index = Math.min(Math.max(LADDER.indexOf(tier) + delta, 0), LADDER.length - 1);
   return LADDER[index];
@@ -344,6 +307,7 @@ export function detectLanguage(text: string): string {
   return "mixed";
 }
 
+/** Whether the text carries a way to reach the customer. A short digit run is not a phone. */
 function hasContact(text: string): boolean {
   if (EMAIL_RE.test(text)) return true;
   const phone = text.match(PHONE_RE);
@@ -372,17 +336,11 @@ function timelineDays(text: string, receivedAt: Date): number | null {
     if (delta >= 0 && (best === null || delta < best)) best = delta;
   }
   if (best !== null) return best;
-  // Срок, названный словами: «в этом месяце», «до пятницы». Считается от даты обращения.
-  // Слово «срочно» даты не содержит и сюда не попадает — оно уходит в urgency_stated.
+  // Deadlines named in words; wordless urgency carries no date and goes to urgency_stated.
   return deadlineDays(low, receivedAt);
 }
 
-/**
- * Port of facts_rules._drop_setup_inside_renewal. "Renew the licence" is not registering a
- * company: SETUP is dropped when it was lit only by a licence word standing next to a
- * renewal word in the same sentence. Measured on urg-13, where markers said setup and the
- * model said renewal — and the model was right.
- */
+/** "Renew the licence" is not a company setup: drops SETUP lit only by a licence word next to a renewal word. */
 function dropSetupInsideRenewal(
   low: string,
   types: string[],
@@ -405,22 +363,17 @@ export interface ExtractionResult {
   quotes: string[];
 }
 
-/**
- * Port of facts_rules.rules_facts. `confidence` here means "markers matched", not a model's
- * probability — 1.0 or 0.0, exactly as the Python module documents.
- */
+/** `confidence` here means "markers matched" — 1.0 or 0.0, not a model's probability. */
 export function extractFacts(text: string, receivedAt: Date = new Date()): ExtractionResult {
   const low = text.toLowerCase();
   const quotes: string[] = [];
   const spans: [number, number][] = [];
 
-  // The proof is the sentence the customer wrote, not the stem our matcher found:
-  // a quote «регистрац» reads as a stemmer bug, not as evidence (facts_rules.hit).
+  // Why a sentence: a bare stem as the quote reads as a matcher bug, not as evidence.
   const hit = (marker: string): boolean => {
     const index = low.indexOf(marker);
     if (index < 0) return false;
-    // Порт отсева цитат-двойников: окно, пересекающееся с уже занятым, — тот же кусок
-    // текста под другим маркером, а не второе доказательство.
+    // An overlapping window is the same text under another marker, not a second proof.
     const [fragment, from, to] = sentenceSpan(text, index, index + marker.length);
     const overlaps = spans.some(([takenFrom, takenTo]) => from < takenTo && takenFrom < to);
     if (fragment && !overlaps && !quotes.includes(fragment)) {
@@ -442,8 +395,7 @@ export function extractFacts(text: string, receivedAt: Date = new Date()): Extra
   }
   types = dropSetupInsideRenewal(low, types, fired);
 
-  // Третий исход для факта, как в Python: несколько разных количеств людей в одном
-  // тексте — размер команды из него не следует, и первое совпадение не выдаётся за него.
+  // Third outcome: several different counts mean the team size does not follow at all.
   let headcount: number | null = null;
   HEADCOUNT_RE.lastIndex = 0;
   const heads = [...low.matchAll(HEADCOUNT_RE)];
@@ -454,13 +406,8 @@ export function extractFacts(text: string, receivedAt: Date = new Date()): Extra
     quotes.push(text.slice(head.index!, head.index! + head[0].length));
   }
 
-  // budget_hint carries the text itself, not a paraphrase: the rubric looks for a figure
-  // inside it, and a paraphrase would silently swallow that signal. It is what the customer
-  // wrote, not the list of markers that fired — a joined list read as debug output on the
-  // card ("150 тысяч; бюджет; AED; дирхам"). A figure, when there is one, displaces
-  // everything else: the figure is what separates a named budget from talk about one.
-  // Mirrors facts_rules.rules_facts; the marker branch stops at the first hit, so the
-  // quotes it leaves behind differ from the figure branch and must not be merged.
+  // Why the customer's own words: the rubric looks for a figure inside budget_hint, and a
+  // figure is what separates a named budget from talk about one.
   let budget: string | null = null;
   const money = low.match(MONEY_RE);
   if (money && money.index !== undefined) {
@@ -497,19 +444,16 @@ export function extractFacts(text: string, receivedAt: Date = new Date()): Extra
 
 export interface ScoreResult {
   tier: Tier;
-  /** Причины структурно: код плюс параметры. Строки получают отрисовкой (renderReasons). */
+  /** Reasons as code plus parameters; `renderReasons` turns them into strings. */
   reasonItems: ReasonItem[];
   evidence: Evidence[];
   violations: string[];
 }
 
 /**
- * Which quotes prove which reason. Same method as web/scripts/gen_mock.py: the extractor is
- * run over each quote, and a quote counts as proof when the same fact follows from it alone
- * — no second copy of the markers. Связь идёт по КОДУ причины, а не по её тексту:
- * текст двуязычный и переписывается, код — контракт. Reasons that cannot have a quote
- * (language of the whole text, extraction confidence) get an empty list, and that third
- * outcome is not folded into "no quote found".
+ * Which quotes prove which reason: a quote counts when the same fact follows from it alone.
+ * Why matched by code: reason text is bilingual and gets rewritten, the code is the contract.
+ * A reason that cannot have a quote gets an empty list — a third outcome of its own.
  */
 export function linkReasons(
   items: ReasonItem[],
@@ -525,9 +469,7 @@ export function linkReasons(
     urgent_stated: (f) => f.urgency_stated,
     package_request: (f) => f.request_types.length > 0,
     team_over_flexi_quota: (f) => f.headcount === facts.headcount,
-    // A quote proves the budget only when the SAME budget follows from it: "any money
-    // in the quote" put a sentence about a 4 млн AED turnover under the reason
-    // "budget named: 150 тысяч" — proof naming a different figure than the reason.
+    // Why the same figure: "any money in the quote" proved a budget with a different sum.
     budget_named: (f) => f.budget_hint === facts.budget_hint,
     spam_or_off_topic: (f) => f.is_spam,
   };
@@ -575,7 +517,7 @@ export function scoreInbound(text: string, facts: LeadFacts, quotes: string[]): 
     substantive += 1;
     reasons.push({ code: "team_over_flexi_quota", params: { headcount: facts.headcount } });
   }
-  // Only a figure counts as a budget: "how much does it cost" is a question, not a budget.
+  // Only a figure counts as a budget: "how much does it cost" is a question.
   if (facts.budget_hint && /\d/.test(facts.budget_hint)) {
     substantive += 1;
     reasons.push({ code: "budget_named", params: { budget: facts.budget_hint.slice(0, 40) } });
@@ -590,8 +532,7 @@ export function scoreInbound(text: string, facts: LeadFacts, quotes: string[]): 
     }
   }
 
-  // Two distinct reasons to step up, deliberately not merged: a set of signals makes a
-  // request hot, while a single signal only rescues a request from LOW.
+  // Why two paths: a set of signals makes a request hot; one signal only lifts it from LOW.
   const enoughSignals = substantive >= SIGNALS_FOR_HIGH;
   const rescuedFromLow = substantive > 0 && tier === "LOW";
   if (enoughSignals || rescuedFromLow) tier = step(tier, 1);

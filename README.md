@@ -1,317 +1,321 @@
-# SORP Lead Centre
+# Lead Centre
+
+> English version — [`README.en.md`](README.en.md).
 
 [![ci](https://github.com/greenflac/lead_centre/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/greenflac/lead_centre/actions/workflows/ci.yml?query=branch%3Amain)
 
-Every day people write to a Dubai consultancy — the website chat, WhatsApp, Telegram:
-"how much does it cost to set up a company?", "I need an office for eight people from
-October", "my visa expires in two weeks". Every one of those messages was already paid for
-with advertising. Then it sits in a queue until a manager gets to it: hours, and overnight
-until morning. The person writes to three other firms meanwhile; whoever answers first
-keeps them. The money is spent, the lead is gone, and nobody counts how many.
+Каждый день в консалтинговую компанию в Дубае пишут люди — в чат на сайте, в WhatsApp, в
+Telegram: «сколько стоит открыть компанию?», «нужен офис на восемь человек с октября»,
+«виза заканчивается через две недели». Каждое такое обращение уже оплачено рекламой, и
+дальше оно лежит в очереди, пока до него дойдёт менеджер: часы, а ночью — до утра. Человек
+за это время пишет ещё в три фирмы, и клиента забирает тот, кто ответил первым. **Lead
+Centre закрывает это ожидание.** Через несколько секунд после обращения у менеджера на
+экране готовая карточка: что человек хочет, сколько людей, к какому сроку, на каком языке,
+насколько он горячий и почему именно так — с цитатами из его же сообщения, — плюс черновик
+ответа на его языке. Менеджер читает, правит, нажимает кнопку и отвечает первым.
 
-This is the tool that closes that wait. A message arrives and within seconds the manager
-has a card in front of them: what the person wants, how many people, what deadline, which
-language, how hot the request is and exactly why — with quotes from their own message —
-plus a draft reply in their language. The manager reads it, edits it, presses the button.
-Nothing is ever sent by the system itself. The second half works the other way round: the
-same engine reads a public UAE company registry and finds firms that will need these
-services soon — a reason with a date and evidence, not a bought contact list.
+![Список обращений: приоритет, факты и черновик ответа в одной карточке](web/screenshots/01-inbox.png)
 
-What it is not: not a chatbot instead of a person, not a mailing list, not a replacement
-for the manager. It is preparation for the manager's conversation.
+*Главный экран. Каждое обращение уже разобрано: приоритет, причины, извлечённые факты,
+черновик ответа на языке клиента. Счётчики наверху — сколько обращений оценено, сколько
+горячих ждут ответа и сколько движок отказался оценивать, потому что не хватило
+доказательств.*
 
-A proactive test project for the SORP Group "AI developer (vibe coding)" vacancy; it is
-not a production system and is not connected to any SORP data. The inbound requests in the
-demo are synthetic; the registry is real.
+## Что это даёт владельцу
 
-![Inbox: the request list with priorities and an open card](web/screenshots/01-inbox.png)
+Владелец уже платит за обращения, которые приходят сегодня. Вернуть часть тех, что сгорают
+из-за времени ответа, дешевле, чем купить новых. Разбор одного обращения стоит около трети
+цента — расчёт и команда в таблице [«Что измерено»](#что-измерено).
 
-*The main screen: every inbound request already carries a priority, the reasons behind it,
-the facts extracted from the text, and a draft reply in the customer's language. The header
-counts what was scored and how many invariant violations there were.*
+Вторая половина работает в обратную сторону: тот же движок читает открытый реестр компаний
+ОАЭ и находит тех, кому услуги понадобятся скоро — с поводом, датой и ссылкой на запись
+реестра. Продления лицензий, виз и аренды — это выручка, которая повторяется у одного и
+того же клиента каждый год; реестр показывает, у кого срок подходит.
 
-## How it earns its keep
+Ни одной цифры конверсии и ни одного срока внедрения в этом репозитории не обещано: здесь
+только те числа, которые печатает команда — и рядом с каждым написано, какая.
 
-The owner already pays for the requests arriving today. Recovering some of the ones that
-burn out on response time is cheaper than buying new ones, and renewals — licences, visas,
-tenancy — are revenue that repeats with the same client every year; the registry shows
-whose date is coming up. No conversion figure and no rollout timeline is claimed anywhere
-in this repository: the only numbers here are the ones a command prints.
+## Отправляет человек, а не система
 
-## Running it
+Наружу клиенту не уходит ничего: ни письма, ни сообщения, ни звонка. Система готовит
+разбор и черновик, кнопку нажимает менеджер. Это не настройка, которую забыли включить, а
+устройство продукта — и по той же причине во вкладке с реестром нет колонок с телефоном и
+почтой и нет кнопки «написать им».
 
-Python 3.11. `pip install -e ".[dev]"`.
+![Карточка обращения: факты, причины приоритета, цитаты и черновик ответа](web/screenshots/02b-lead-card-closeup.png)
+
+*Приоритет всегда объяснён. Слева — извлечённые факты и дословные цитаты из обращения,
+справа — причины, по которым движок поставил именно эту ступень, и черновик ответа.
+Обращение без цитаты не может быть поднято в HIGH: движок вернёт «не смогли оценить»
+вместо догадки.*
+
+![Живой прогон: карточка, собранная моделью из свободного текста](web/screenshots/09-live-new-request.png)
+
+*Тот же экран на живой модели, а не на демо-данных: рецензент вставляет любой текст и
+получает карточку. Здесь — HIGH, четыре причины, срок 20 дней (посчитан от даты обращения),
+четыре цитаты и черновик по-русски, потому что клиент написал по-русски.*
+
+## Что измерено
+
+Каждое число ниже получено в этом репозитории, и рядом стоит команда, которой его
+перепроверить. Прогон — 2026-09-11.
+
+| Что меряем | Значение | Чем получено |
+|---|---|---|
+| Тесты | 877 прошло, 0 упало, 0 пропущено | `make test-ci` — сеть запрещена машиной, а не договорённостью; сам запрет проверяется `make test-ci-selfcheck` |
+| Согласие с ручной разметкой, каппа Коэна | 0,838 (po 0,900, pe 0,382, 30 пар, совпало 27) | `python eval/run_eval.py --labels eval/labels_synthetic.csv` |
+| Стабильность: три прогона одного текста | 70 из 70 обращений дали один и тот же приоритет | тот же прогон |
+| Негативные контроли | 6 из 6 | тот же прогон |
+| Распределение приоритетов на наборе из 70 обращений | 13 горячих / 41 средних / 16 холодных, 0 нарушений инвариантов | `PYTHONPATH=. python3 web/scripts/gen_mock.py` — движок проходит `data/inbound_seed.csv` и кладёт счётчики в `web/mock/stats.json` |
+| Сквозная проверка первого абзаца этого файла | выполнено всё, что проверялось; число проверок 31 или 32 | `make demo` — четыре обращения проходят весь путь от текста до черновика. Проверок 32, когда арабский черновик написан, и 31, когда модель недоступна и движок честно возвращает третий исход |
+| Реестр LEI по ОАЭ | 9 369 компаний с юридическим адресом в ОАЭ, из них 3 940 с просроченной регистрацией | выгрузка 2026-09-10, `docs/data/gleif_schema.md` — там же curl, которым это пересчитывается |
+| Вкладка «Найдено» | 60 компаний: 16 горячих, 44 средних, 0 нарушений инвариантов | тот же прогон: `GleifAdapter(offline=True)` по кэшу реестра |
+| Скоринг реестра из кэша | проверено 30, 5 горячих / 25 средних, 0 нарушений инвариантов, 0 пропущено | `make run` |
+| Стоимость разбора одного обращения | ≈ $0,0033 на холодном кэше, ≈ $0,0030 на тёплом — **РАСЧЁТ**, не выписка по счёту | токены каждого вызова пишутся в `data/extract_cache.json` при `python eval/run_eval.py --engine=llm --limit 10 --labels …` (нужен ключ), цена считается по прайсу моделей |
+| Время разбора на живой модели | 5,4 с, уверенность извлечения 0,90, 3 494 входных токена (ИЗМЕРЕНО 2026-09-11, Haiku 4.5) | `make shots-live` с ключом `CLAUDE_KEY`; без ключа не воспроизводится |
+
+Каппа — это **согласие разметки автора с движком на синтетических обращениях**, а не
+точность. Обращения придуманы, и разметку писал тот же человек, что и рубрику: число
+показывает, что движок воспроизводит заявленные правила, а не что он угадывает намерение
+клиента. Точность меряется только на живом потоке — две недели реальных обращений, разметка
+менеджера, параллельный ручной ответ и время до первого ответа как метрика.
+`eval/labels_template.csv` (30 строк) ждёт разметки владельца; `eval/labels_synthetic.csv` —
+заглушка автора стенда, и в самом файле это написано.
+
+Сам прибор проверен негативным контролем, потому что метрика, которая не двигается, не
+меряет ничего: при разметке, схлопнутой в один класс, стенд печатает `ВЫРОЖДЕНО` и выходит
+с кодом 2, а не с нулём; на перемешанных метках каппа падает около нуля. Константы-решения
+проверены мутацией в обе стороны — занижение `RULES_CONFIDENCE_MATCHED` до 0.4 роняет каппу
+с 0,8381 до 0,4747 и контроли с 6 из 6 до 3 из 6, ужесточение целевого порога по контролям
+переводит блок не в «не годно», а в третий исход «не смогли проверить». Границы измерения —
+`eval/README.md`.
+
+## Как запустить
+
+Python 3.11, `pip install -e ".[dev]"`. Ключи и сеть не нужны.
 
 ```bash
-make test-ci     # the whole test suite, network blocked by the machine, not by agreement
-make demo        # the first paragraph of this file, checked end to end: 4 requests, ~32 checks
-make run         # score registry companies from the cached sample, no network, no API key
-python eval/run_eval.py --labels eval/labels_synthetic.csv   # the measurement bench
+make test-ci     # весь набор тестов, сеть запрещена машиной
+make demo        # первый абзац этого файла, проверенный сквозняком: 4 обращения, ~32 проверки
+make run         # скоринг компаний реестра из кэша: без сети и без ключа API
+python eval/run_eval.py --labels eval/labels_synthetic.csv   # измерительный стенд
 ```
 
-Everything else:
+Всё остальное:
 
 ```bash
-make test-ci-selfcheck  # negative control: a network call in that mode must fail
-make check-web          # the dashboard's own instruments: contrast, design system, port vs engine
-make discover           # the same scoring run, against the live GLEIF API
-make mutate             # test run with the bytecode cache cleared (see the defect story)
-python eval/run_eval.py --engine=llm --limit 10 --labels ...  # with live extraction, costs money
-OFFLINE=1 python -m leadcentre.api                            # API on :8000
-cd web && npm install && npm run dev                          # dashboard on :3000
+make test-ci-selfcheck  # негативный контроль: сетевой вызов в этом режиме обязан упасть
+make check-web          # приборы дашборда: контраст, сверка стилей, сверка порта с движком
+make discover           # тот же скоринг, но против живого API GLEIF
+make mutate             # прогон тестов с очищенным кэшем байт-кода
+OFFLINE=1 python -m leadcentre.api            # API на :8000
+cd web && npm install && npm run dev          # дашборд на :3000
 ```
 
-`OFFLINE=1` means cached data and no network anywhere. The dashboard runs on generated mock
-data with no backend attached, and switches to the API with a single environment variable
-(`NEXT_PUBLIC_API_URL`); the header says which mode is on.
+`OFFLINE=1` означает кэш вместо сети везде. Дашборд по умолчанию работает на сгенерированных
+демо-данных вообще без бэкенда и переключается на API одной переменной среды
+(`NEXT_PUBLIC_API_URL`); режим написан в шапке, чтобы демо-числа нельзя было принять за
+боевые.
 
-Keys are read from the environment: `CLAUDE_KEY` for the model, `SUPABASE_URL` plus keys for
-the store, `HUBSPOT_PERSONAL_KEY` for the CRM sink. Without them the code falls back to the
-local store and the null CRM sink — explicitly, never silently: an unknown value of
-`LEADCENTRE_STORE` or `LLM_PROVIDER` is an error, not a default.
+Ключи читаются из среды: `CLAUDE_KEY` для модели, `SUPABASE_URL` и ключи для хранилища,
+`HUBSPOT_PERSONAL_KEY` для CRM. Без них код переключается на локальное хранилище и пустой CRM-сток —
+явно, а не молча: неизвестное значение `LEADCENTRE_STORE` или `LLM_PROVIDER` — это ошибка, а
+не молчаливая подстановка умолчания.
 
-## Architecture
+## Как устроено
 
 ```mermaid
 flowchart LR
-    A["Inbound text<br/>form, WhatsApp, chat"] --> S["Scrub PII"]
-    B["GLEIF registry adapter<br/>SourceAdapter protocol"] --> E["Score<br/>rubric as data + invariants"]
-    S --> X["Extract facts<br/>LLM, JSON schema"]
+    A["Входящий текст<br/>форма, WhatsApp, чат"] --> S["Вырезать персональные данные"]
+    B["Адаптер реестра GLEIF<br/>протокол SourceAdapter"] --> E["Скоринг<br/>рубрика как данные + инварианты"]
+    S --> X["Извлечь факты<br/>модель, JSON-схема"]
     X --> E
-    E --> D["Draft reply + lint"]
-    E --> ST["Store<br/>local JSON or Supabase"]
+    E --> D["Черновик ответа + линтер"]
+    E --> ST["Хранилище<br/>локальный JSON или Supabase"]
     D --> API["FastAPI"]
     ST --> API
-    API --> UI["Next.js dashboard"]
-    UI --> CRM["CRM sink<br/>approved by a human"]
+    API --> UI["Дашборд на Next.js"]
+    UI --> CRM["CRM<br/>только после кнопки человека"]
 ```
 
-Three properties are deliberate:
+Три свойства сделаны намеренно.
 
-**One engine, two intakes.** An inbound message and a registry company reach the same
-`score` module and the same rubric. The registry axes are address type × event; an inbound
-request adds an intent-and-urgency axis on top. Adding a source means implementing the
-`SourceAdapter` protocol (`leadcentre/sources/base.py`) — GLEIF is one implementation, a
-paid provider or a client's own export would be another, and the engine knows nothing about
-either.
+**Один движок, два входа.** Обращение клиента и компания из реестра попадают в один и тот
+же модуль скоринга и одну и ту же рубрику. Добавить источник — значит реализовать протокол
+`SourceAdapter` ([`leadcentre/sources/base.py`](leadcentre/sources/base.py)); GLEIF — одна
+реализация, платный поставщик или выгрузка клиента были бы другой, и движок о них ничего не
+знает.
 
-**The model proposes facts, the code decides the priority.** Extraction (`engine/extract.py`)
-returns structured facts and nothing else. The tier comes from `engine/rubric.py` — thresholds
-and the matrix are data in one file — plus invariants in `engine/score.py`: HIGH requires at
-least one verbatim evidence quote, low extraction confidence caps the tier, a broken invariant
-returns `INVALID` rather than a guess.
+**Модель предлагает факты, приоритет решает код.** Извлечение
+([`leadcentre/engine/extract.py`](leadcentre/engine/extract.py)) возвращает структурированные
+факты и больше ничего. Ступень считает [`rubric.py`](leadcentre/engine/rubric.py) — пороги и
+матрица лежат данными в одном файле — плюс инварианты в
+[`score.py`](leadcentre/engine/score.py): HIGH требует хотя бы одной дословной цитаты, низкая
+уверенность извлечения не даёт поднять ступень, нарушенный инвариант возвращает `INVALID`, а
+не догадку.
 
-![A lead card: extracted facts, reasons, evidence quotes, draft reply](web/screenshots/02b-lead-card-closeup.png)
+**Три исхода, а не два.** Каждая проверка отвечает `годно` / `не годно` / `не смогли
+проверить` и печатает рядом `проверено N, нарушений M, не смогли K`: ноль нарушений при нуле
+проверок — это не успех. То же правило держат хранилище (`успех` / `отказ` / `недоступно`),
+CRM-сток (`отправлено` / `отказ` / `недоступно` / `пропущено`) и линтер черновиков.
 
-*Every priority is explained: the reasons come from the rubric, and the quotes are the
-customer's own sentences. A request with no quote cannot be raised to HIGH — the engine
-returns "not scored" instead of guessing.*
+![Отказ провайдера модели: читаемое объяснение, ответ сервера и кнопка повтора](web/screenshots/06-error-provider-budget.png)
 
-**Three outcomes, not two.** Every check returns `ok` / `not ok` / `could not check`, and
-prints `checked N, violations M, could not K`. Zero violations out of zero checks is not a
-pass. The same rule holds for the store (`success` / `rejected` / `unavailable`), the CRM
-sink (`sent` / `rejected` / `unavailable` / `skipped`) and the reply linter.
+*Путь отказа — часть продукта. Когда провайдер модели отказывает по бюджету или лимиту,
+API отвечает 402 с машиночитаемым кодом, а интерфейс показывает это: не белый экран и не
+пустой список, который читается как «лидов нет».*
 
-![Provider budget error: a readable message, the raw server detail and a retry button](web/screenshots/06-error-provider-budget.png)
+Маршрут по моделям выбирается длиной сообщения: до 600 знаков — Haiku 4.5, длиннее — Opus 5.
+Порог — выбранная константа, обоснование лежит рядом с ней; в карточку пишется та модель,
+которая реально ответила, взятая из ответа API, а не из намерения. Русский и английский
+черновики — детерминированные шаблоны; арабский пишет модель в рамках, заданных кодом, и он
+обязан пройти тот же линтер, иначе карточка вернётся без черновика и с причиной.
 
-*The failure path is part of the product. When the model provider refuses on budget or rate
-limits, the API answers 402 with a machine-readable code and the dashboard shows this — not
-a white screen, not an empty list that looks like "no leads".*
-
-Model routing is by message length: requests up to 600 characters go to Haiku 4.5, longer
-ones to Opus 5 (`engine/extract.py`). The threshold is a chosen constant with its rationale
-next to it; the card records which model actually served the lead, taken from the API
-response rather than from intent. Russian and English drafts are deterministic templates;
-Arabic is written by the model inside limits set by the code and has to pass the same linter,
-otherwise the card comes back with no draft and a reason.
-
-Repository map:
-
-| Path | What is there |
+| Путь | Что там |
 |---|---|
-| `leadcentre/engine/` | extract, rubric, score, reply, lint, transliteration, shared fact heuristics |
-| `leadcentre/sources/` | `SourceAdapter` protocol + GLEIF adapter |
-| `leadcentre/store/`, `leadcentre/crm/` | local JSON / Supabase store, Null and HubSpot sinks |
-| `leadcentre/api.py` | FastAPI, 9 routes; logic in functions, handlers only parse |
-| `eval/` | measurement bench: Cohen's kappa, confusion matrix, stability, negative controls |
-| `prompts/` | versioned prompts (`extract_v1`…`v4`, `translit_v1`), loaded by the code |
-| `web/` | Next.js dashboard, mock mode and live mode (`web/README.md`) |
-| `data/` | 70 synthetic requests, GLEIF samples, demo price list |
-| `docs/` | one-pager, demo script, data notes (`docs/README.md`) |
+| `leadcentre/engine/` | извлечение, рубрика, скоринг, черновик, линтер, транслитерация |
+| `leadcentre/sources/` | протокол `SourceAdapter` и адаптер GLEIF |
+| `leadcentre/store/`, `leadcentre/crm/` | локальное JSON-хранилище и Supabase, пустой сток и HubSpot |
+| `leadcentre/api.py` | FastAPI, 9 маршрутов; логика в функциях, обработчики только разбирают запрос |
+| `eval/` | измерительный стенд: каппа, матрица ошибок, стабильность, негативные контроли |
+| `prompts/` | версионированные промпты (`extract_v1`…`v5`, `translit_v1`), их грузит код |
+| `web/` | дашборд на Next.js, демо-режим и живой режим ([`web/README.md`](web/README.md)) |
+| `data/` | 70 синтетических обращений, выборки GLEIF, демонстрационный прайс |
+| `docs/` | одна страница о задаче, сценарий демонстрации, заметки о данных ([`docs/README.md`](docs/README.md)) |
 
-## The registry side
+## Реестр: список наблюдения, а не база для рассылки
 
-![Discovered tab: companies from the LEI registry with licence numbers and reasons](web/screenshots/05-discovered.png)
+![Вкладка «Найдено»: компании из реестра LEI с поводом, датой и ссылкой на запись](web/screenshots/05-discovered.png)
 
-*A watchlist, not a mailing list: name, city, registration authority, licence number and a
-dated reason ("LEI registration lapsed 5 days ago"). There is no phone column, no e-mail
-column and no "contact them" button, and the tab says so.*
+*Каждая строка — реальная запись открытого реестра: название, тип адреса, город, повод с
+датой («регистрация LEI просрочена 5 дней назад») и доказательство — срок продления и номер
+LEI. Поля берутся из реестра, приоритет и повод — наш вывод. Колонок с телефоном и почтой
+нет, и вкладка прямо объясняет почему.*
 
-## What is measured
+## На каких данных это показано
 
-Every number below came out of this repository. The command that produced it is named.
+- **70 обращений во входящих синтетические** — экспортированного лога обращений здесь нет,
+  все строки `data/inbound_seed.csv` написаны для этого проекта
+  ([`docs/data/inbound_seed.md`](docs/data/inbound_seed.md)): каналы jivo 24 / whatsapp 20 /
+  telegram 16 / форма 10, языки ru 47 / en 16 / смешанный 6 / ar 1, длина текста от пустой
+  строки и одних эмодзи до 1332 знаков. Каждая карточка помечена в интерфейсе как
+  синтетическая.
+- **Реестр GLEIF настоящий**, но в нём только компании, получившие LEI: 9 369
+  юридических лиц ОАЭ с перекосом в финансовые, торговые и фондовые структуры — это не вся
+  лицензионная база Дубая. Строки реестра помечены как запись открытого реестра.
+- **Прайс демонстрационный** (`data/pricelist_demo.yaml`): публичные рыночные диапазоны,
+  помечены как таковые в файле, в черновиках и в интерфейсе. Черновик называет только
+  диапазон, а линтер сверяет каждую сумму в дирхамах с прайсом — выдуманное число не пройдёт
+  проверку.
+- **Персональные данные режутся до вызова модели.** Телефоны и почты вырезаются из текста
+  перед отправкой куда бы то ни было, а признак «контакт есть» выводится из того, что
+  вырезал скруббер, а не из мнения модели.
+- **Скриншоты снимаются руками** после изменений движка. Если число внутри картинки
+  расходится с таблицей выше — измеренное то, что в таблице.
 
-| Measurement | Value | Where from |
-|---|---|---|
-| Tests | 877 passed, 0 failed, 0 skipped | `make test-ci` — network is blocked by the machine, not by convention; the ban itself is checked by `make test-ci-selfcheck` |
-| Agreement with the author's labels, Cohen's kappa | 0.838 (po 0.900, pe 0.382, 30 pairs, 27 matched) | `python eval/run_eval.py --labels eval/labels_synthetic.csv` |
-| Stability, 3 runs of the same input | 1.0000 on 70 requests | same run |
-| Negative controls | 6 of 6 | same run |
-| Priority distribution on the 70-request seed | 13 HIGH / 41 MEDIUM / 16 LOW, 0 invariant violations | the engine over `data/inbound_seed.csv` |
-| Cost per lead over the seed | $0.0033 cold cache, $0.0030 warm | token counts of the whole set, Haiku/Opus prices |
-| Extraction latency | ~5 s per lead (8 edge-case requests, 35.1 s total, Haiku 4.5) | measured 2026-09-09 on live Haiku 4.5; not reproducible without an API key |
-| Registry volume, UAE | 9 369 legal entities with an LEI, of which 3 940 have a lapsed LEI registration (golden copy of 2026-09-10; the registry is live and these move daily) | `docs/data/gleif_schema.md` — one curl re-checks them |
+## Где это работает, а где нужен следующий шаг
 
-Reading of the agreement number, in the bench's own words (`eval/README.md`): it is
-**agreement between the author's labels and the engine on synthetic requests**, not accuracy.
-The requests are invented, and the person who wrote the labels also wrote the rubric, so the
-figure shows that the engine reproduces the stated rubric — not that it reads customer intent
-correctly. Accuracy needs a live SORP stream: two weeks of real requests, a manager's labels,
-a parallel manual reply, and time-to-first-answer as the metric. `eval/labels_template.csv`
-(30 rows) is waiting for the owner's labels; `eval/labels_synthetic.csv` is a stand-in by the
-bench author and is marked as such in the file itself.
+Сегодня система разбирает обращение, объясняет приоритет доказательствами и готовит
+черновик — на любом входе, который можно вставить текстом, и на реестре, который отдаёт LEI.
+Дальше начинается то, что требует данных владельца и решения владельца:
 
-The bench is checked against itself, because a metric that never moves measures nothing: with
-all labels forced to one class it prints `DEGENERATE` and exits "could not check" (code 2)
-rather than 0; with labels shuffled on six seeds the kappa falls to between −0.2308 and
-+0.1282 (measured against the 0.7436 baseline the bench had at the time). Decision constants
-are checked by mutation in both directions — 20 of 20 engine mutations killed (thresholds,
-matrix cells, target city, registrar code, the intent ladder). One is honestly not covered:
-`URGENT_DEFAULT_DAYS` survives mutation on the current labels, and that is recorded as debt
-in `eval/README.md` rather than papered over.
+- **Разметка владельца.** Каппа выше — согласие с разметкой автора. Тридцать строк
+  `eval/labels_template.csv`, заполненные менеджером, превращают её в согласие с практикой
+  компании; до этого число говорит только о воспроизведении рубрики.
+- **Живой поток вместо синтетики.** Две недели реальных обращений дают то, чего синтетика
+  дать не может: время до первого ответа, долю упущенных и долю несогласий менеджера.
+- **CRM.** Создание компании в HubSpot проверено живым вызовом, запись удалена сразу после.
+  Сделки, контакты и связи v4 написаны по документированной форме API, но живым вызовом не
+  подтверждены: доступный токен отвечает 403 `MISSING_SCOPES`. Сток по умолчанию — пустой,
+  демо-прогон ничей CRM не заполняет.
+- **Арабский черновик** не читал носитель языка, и карточка это говорит.
+- **Кэш промпта не окупается на дешёвой модели** (замер): на промпте ~2,9 тыс. токенов Haiku
+  отдаёт ноль чтений и ноль записей кэша — префикс ниже порога модели. На Opus кэш работает
+  (вход на тёплом чтении дешевле в 5,4 раза), но живёт 5 минут, то есть помогает от одного
+  обращения в пять минут и чаще. Записано как отрицательный результат.
+- **API не отдаёт CORS-заголовков** (замер), поэтому живые вызовы дашборд проксирует через
+  свой origin. Добавлять ли middleware — решение владельца API.
 
-Tests do not reach the network, and that is enforced by `ci/sitecustomize.py` loaded through
-`PYTHONPATH`, not by convention. `make test-ci-selfcheck` is the negative control for the ban
-itself: a silent ban is indistinguishable from a missing one.
+## Следующий шаг: сигналы риска по компании
 
-## Data boundaries
+**Кода нет.** Ни модуля, ни адаптера, ни маршрута, ни теста — это направление, а не
+функциональность.
 
-- **The 70 inbound requests are synthetic.** SORP has no exported request log available here.
-  Every row of `data/inbound_seed.csv` was written for this project (`docs/data/inbound_seed.md`):
-  channels jivo 24 / whatsapp 20 / telegram 16 / form 10, languages ru 47 / en 16 / mixed 6 /
-  ar 1, text length median 98 and max 1332 characters, including empty text, emoji-only and a
-  long mixed-language message. Every card in the dashboard is tagged **synthetic data**. The
-  distribution is our hypothesis about the channel mix, not a measurement of SORP's traffic;
-  phone numbers and e-mail addresses in the seed are reserved fictional patterns only.
-- **GLEIF is a real public registry, but only companies that hold an LEI.** That is roughly
-  9 369 UAE entities, a slice skewed towards financial, trading and fund structures — not the
-  whole Dubai licence base, and the flow of new entries is dozens per month, not thousands.
-  Registry rows in the dashboard are tagged **public registry record**: the fields are the
-  registry's, the priority and the reason are ours.
-- **The price list is a demo.** `data/pricelist_demo.yaml` holds public market ranges and
-  author-chosen values, marked in the file, in the draft replies and in the UI. These are not
-  SORP's prices. Drafts only ever state a range, and the linter cross-checks every AED figure
-  in a draft against the price list, so a hallucinated number fails the check.
-- **Personal data is cut before the model call.** Phone numbers and e-mail addresses are
-  stripped from the text before it is sent anywhere, and `has_contact` is derived from what
-  the scrubber actually removed rather than from the model's opinion.
-- **Screenshots are taken by hand after engine changes.** If a number inside an image
-  disagrees with the table above, the table is the measured one.
+Почему именно оно следующее: фирма регистрирует компании и открывает им счета, а банки и
+регуляторы ОАЭ проверяют бенефициаров, статус лицензии и структуру группы до того, как счёт
+появится. Клиент, который не проходит эти проверки, стоит дороже, чем необработанный лид,
+поэтому вопрос «что это за компания» встаёт рядом с вопросом «чего хочет этот клиент».
 
-## What this system does not do
+Что это давало бы: публичные сигналы, собранные до того, как менеджер вложил время, —
+присутствие в санкционных и ограничительных списках, статус лицензии и регистрации,
+структура владения и связи с материнскими компаниями, возраст и активность юрлица. GLEIF уже
+отдаёт связи `direct-parent` / `ultimate-parent` в тех же записях, которые репозиторий
+скачивает сегодня; кода, который их читает, пока нет. Результат — не «хорошая» или «плохая»
+компания, а список сигналов, у каждого источник и дата: та же форма, что у приоритета
+сегодня, — причина плюс доказательство.
 
-It does not send anything to a customer — no e-mail, no WhatsApp message, no call. It does
-not collect contact details from the registry: the Discovered tab has no phone or e-mail
-column by design, and no "write to them" button. It is a triage and drafting tool with a
-human on every outgoing action.
+Встраивается внутрь существующей конструкции, а не рядом: тот же движок и рубрика данными;
+каждый список или реестр — ещё одна реализация протокола `SourceAdapter`, как GLEIF; те же
+три исхода `есть` / `нет` / `не смогли проверить`; тот же инвариант — нет источника с датой,
+нет сигнала, как нет цитаты — нет HIGH.
 
-## What is not done, and why
+Препятствия честнее назвать сразу. Открытые санкционные данные различаются по охвату и
+свежести, а часть агрегированных списков лицензирована только для некоммерческого
+использования — лицензия решает, что вообще можно встраивать. Сопоставление по названию без
+общего идентификатора даёт ложные попадания: имена в Заливе повторяются и транслитерируются
+несколькими способами, поэтому достоверным считается только совпадение по LEI или номеру
+лицензии, остальное остаётся кандидатом для человека. Утверждение о компании имеет
+юридический вес, и это оставляет результат сигналом для решения менеджера, а не
+автоматическим отказом. Ни сроков, ни цифр точности здесь не заявлено, и ни один поставщик
+данных не назван: кандидатные источники из этой среды недоступны по сетевой политике, а
+непроверенное имя — это выдумка.
 
-- **No owner labels yet.** `eval/labels.csv` does not exist; the kappa above is against the
-  author's stand-in labels. Until the owner fills in the 30-row template, the number says the
-  engine follows the rubric, nothing more.
-- **No n8n workflow.** It was planned and did not get built; there is no `n8n/` directory
-  in this repository, and this line is here instead of a claim.
-- **HubSpot is partly unverified.** Company creation was exercised live against the portal
-  and the record deleted straight afterwards. Deals return 403 `MISSING_SCOPES` on the
-  available token, so deals, contacts and v4 associations are written to the documented API
-  shape but never confirmed by a live call. The default sink is `null`, so demo runs do not
-  fill anyone's CRM; the `NullSink` reports `skipped`, not `sent`.
-- **Model quality is measured on a small sample.** The Haiku/Opus comparison (5.9 s and
-  $0.00299 per lead versus 8.1 s and $0.01598) rests on 3 requests, and one instability is
-  known and unfixed: on the longest request Haiku returned a relative deadline as 7 days four
-  times and 38 days twice over six runs, which is why long messages are routed to Opus.
-- **Arabic drafts have not been read by a native speaker.** The card says so on the draft
-  itself.
-- **Prompt caching does not pay off on the cheap model.** Measured: with a ~2.9k-token prompt
-  Haiku reports zero cache reads and zero cache writes — the prefix is below the model's
-  threshold. On Opus the cache works (input 5.4× cheaper on a warm read) but with a 5-minute
-  TTL, so it only helps above one lead per five minutes. Recorded as a negative result rather
-  than dropped.
-- **The API sends no CORS headers** (measured), so the dashboard proxies live calls through
-  its own origin instead. Adding the middleware is a decision for whoever owns the API.
+## Один дефект целиком
 
-## Next step: risk signals on a company lead
+**Симптом.** На живом прогоне короткие вопросы о цене выходили в HIGH. `prc-01` — всё
+сообщение «скок стоит фриз зона?» — не должен обгонять переезд команды.
 
-**Not in the code.** No module, no adapter, no route, no test — a direction, not functionality.
+**Причина.** У извлечения есть поле `budget_hint` со смыслом «клиент назвал бюджет». Модель
+клала туда *вопрос* клиента о цене: `prc-01` давал `budget_hint = 'скок стоит'`, `acct-01` —
+`'сколько в месяц выйдет'`. Код скоринга читает это поле как «клиент показал готовность
+платить» и поднимает ступень. Модель не галлюцинировала: она отвечала на вопрос, который
+промпт задал недостаточно точно. Вопрос о величине — не величина.
 
-Why it is next for SORP: the firm registers companies and opens bank accounts for them, and UAE
-banks and regulators check beneficial owners, licence status and group structure before an
-account exists. A client who fails those checks costs more than a lead nobody worked, so "who is
-this company" belongs next to "what does this customer want" — all the engine reads today.
+**Поиск до починки.** У дефекта есть форма: *вопрос клиента, записанный как факт*. Grep по
+форме, а не по полю, нашёл второй случай, о котором никто не сообщал: `jurisdiction_hint`,
+где вопрос «mainland или freezone?» превращался в `jurisdiction_hint = 'mainland, freezone'`,
+то есть движок считал, что клиент уже выбрал оба. Починены оба поля, а не одно
+заявленное.
 
-What it would produce: public signals gathered before a manager invests time — presence on
-sanctions and restrictive-measure lists, licence and registration status, ownership structure and
-links to parent companies, age and activity of the legal entity. GLEIF already carries the group
-links as `direct-parent` / `ultimate-parent` relationships on records this repository fetches; no
-code reads them yet. The output is not "good" or "bad" but a list of signals, each with its
-source and date — the shape priority has now: a reason plus its evidence.
+**Починка.** [`prompts/extract_v2.md`](prompts/extract_v2.md): `budget_hint` заполняется
+только когда названа сумма («нет числа — нет `budget_hint`»), `jurisdiction_hint` пуст, когда
+клиент спрашивает, какую юрисдикцию выбрать, плюс шесть примеров ровно на этих границах.
+Промпт — версионированный файл, v1 остался рядом для сравнения.
 
-It goes inside the existing construction, not beside it: the same engine and rubric-as-data; each
-list or registry is another implementation of the `SourceAdapter` protocol
-(`leadcentre/sources/base.py`), as GLEIF is; the same three outcomes, `hit` / `no hit` /
-`could not check`, printed as `checked N, hits M, could not K`; the same invariant — no citable
-source and date, no signal, as no quote means no HIGH.
+**Замер, v1 → v2, три обращения на Haiku 4.5.** `prc-01` `budget_hint` `'скок стоит'` →
+`None`; `acct-01` `'сколько в месяц выйдет'` → `None`; `edge-03`, где сумма действительно
+названа, значение сохранил — негативный контроль того, что починка не просто обнулила поле.
+`edge-03` `jurisdiction_hint` `'mainland, freezone'` → `None`.
 
-Obstacles first. Open sanctions data differs in coverage and freshness, and some aggregated lists
-are licensed for non-commercial use only, so the licence decides what may be embedded at all.
-Matching by name without a shared identifier produces false hits — Gulf names repeat and
-transliterate several ways — so only a match on LEI or licence number would count as certain and
-the rest stays a candidate for a human. A statement about a company carries legal weight, which
-keeps the output a signal for a manager's decision, never an automatic refusal. No timeline and
-no accuracy figure is claimed here, and no data provider is named: the candidate sources are
-unreachable from this environment (network policy), and an unverified name is an invention.
+**Чего это стоило.** Промпт вырос с 1927 до 2934 входных токенов на запрос (+52 %), обращение
+подорожало примерно с $0,0027 до $0,0031 (число токенов печатает сам прогон извлечения,
+поле `input_tokens` в ответе `POST /leads`; цена — расчёт по прейскуранту модели, не выписка). Это принято: рост купил три границы, за каждой из
+которых стоял дефект. У него нашлось и побочное следствие: сжатие примеров в v3 потеряло
+подсказку, которая держала `prc-01` в классе «регистрация компании», и поле начало плавать,
+пока подсказку не вернули. Резать примеры безопасно только с перепроверкой тех полей,
+которые эти примеры держали.
 
-## One defect, in full
+## Что ещё есть в репозитории
 
-**Symptom.** On a live run, short price questions were coming out HIGH. `prc-01` — the whole
-message is "скок стоит фриз зона?" — should not outrank a team relocation.
+| Документ | О чём |
+|---|---|
+| [`docs/onepager.md`](docs/onepager.md) | одна страница без терминов: задача, решение, что показано честно |
+| [`docs/loom_script.md`](docs/loom_script.md) | сценарий четырёхминутной демонстрации по работающим экранам |
+| [`eval/README.md`](eval/README.md) | что означает каждое измеренное число и где стенд слаб |
+| [`web/README.md`](web/README.md) | режимы дашборда, скриншоты, откуда берутся демо-данные |
+| [`docs/data/gleif_schema.md`](docs/data/gleif_schema.md) | схема реестра, объёмы по ОАЭ и два сигнала для поиска |
+| [`docs/data/inbound_seed.md`](docs/data/inbound_seed.md) | как собран синтетический набор и какие края он покрывает |
+| [`README.en.md`](README.en.md) | English version of this document |
 
-**Cause.** The extractor has a `budget_hint` field, meaning "the customer named a budget".
-The model was filling it with the customer's *question* about price: `prc-01` produced
-`budget_hint = 'скок стоит'`, `acct-01` produced `'сколько в месяц выйдет'`. The scoring
-code reads that field as "the customer signalled willingness to pay" and raised the tier.
-The model was not hallucinating; it was answering a question the prompt had not asked
-precisely enough — a question about a value is not a value.
-
-**Search before fix.** The defect has a shape: *a customer's question recorded as a fact*.
-Grepping for that shape rather than for that field found a second instance nobody had
-reported — `jurisdiction_hint`, where a customer asking "mainland or freezone?" produced
-`jurisdiction_hint = 'mainland, freezone'`, i.e. the engine believed the customer had already
-chosen both. Both fields were fixed, not just the reported one.
-
-**Fix.** `prompts/extract_v2.md`: `budget_hint` is filled only when a money figure is named
-("no number, no budget_hint"), `jurisdiction_hint` is null when the customer is asking which
-jurisdiction to pick, plus six examples sitting exactly on those boundaries. The prompt is a
-versioned file; v1 stayed next to it for comparison.
-
-**Measured, v1 → v2, three requests on Haiku 4.5.** `prc-01` budget_hint `'скок стоит'` → `None`;
-`acct-01` `'сколько в месяц выйдет'` → `None`; `edge-03`, where a real figure was named,
-kept its value — the negative control that the fix did not simply blank the field. `edge-03`
-jurisdiction_hint `'mainland, freezone'` → `None`.
-
-**What it cost.** The prompt grew from 1927 to 2934 input tokens per request (+52%), moving
-the lead from about $0.0027 to about $0.0031. That was accepted: the growth bought three
-boundaries, each of which had a defect behind it. It also had a side effect caught later —
-compressing the examples in v3 lost the hint that kept `prc-01` classified as a company-setup
-request, and the field started flapping until the hint was restored. Trimming examples is
-only safe if you re-check the fields those examples were holding.
-
-## Related notes in the repository
-
-- `docs/onepager.md` — one page without jargon: the problem, the answer, what is shown honestly.
-- `docs/data/gleif_schema.md` — registry schema, volumes and the two discovery signals.
-- `docs/data/inbound_seed.md` — how the synthetic set is built and which edges it covers.
-- `eval/README.md` — what each measured number means and where the bench is weak.
-- `web/README.md` — dashboard modes, screenshots, and where the mock data comes from.
-- `docs/loom_script.md` — a four-minute walkthrough over the screens that exist.
+Инициативное тестовое задание: не боевая система и ни к каким данным заказчика не
+подключена. Лицензия — [`LICENSE`](LICENSE).

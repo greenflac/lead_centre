@@ -6,14 +6,23 @@ import { ApiError, type Lead } from "../lib/types";
 import LeadCard from "./LeadCard";
 import { ErrorNotice } from "./ui";
 
-const CHANNELS = [
+/** Channels a request can be marked as arriving from. */
+const CHANNELS: { value: string; label: string }[] = [
   { value: "form", label: "Website form" },
   { value: "jivo", label: "Jivo chat" },
   { value: "whatsapp", label: "WhatsApp" },
   { value: "telegram", label: "Telegram" },
 ];
 
-// Starting points for the evaluator; they are meant to be edited, not submitted as-is.
+/** Pipeline stages, in the order they execute; a stage lights up when it has finished. */
+const STEPS: [string, string][] = [
+  ["Mask contacts.", "Phone numbers and e-mail addresses are cut out of the text before anything is sent to the model."],
+  ["Extract facts.", "Services asked for, head count, timeline, jurisdiction, language, plus a confidence figure."],
+  ["Score.", "The model proposes facts, the code decides the priority — a fixed rubric with reasons and invariants, not the model’s opinion."],
+  ["Draft a reply.", "In the customer’s language, with price ranges taken from the demo price list and never invented."],
+];
+
+/** Starting points for the evaluator; they are meant to be edited, not submitted as-is. */
 const SAMPLES: { label: string; text: string; channel: string }[] = [
   {
     label: "Urgent team relocation (RU)",
@@ -37,15 +46,22 @@ const SAMPLES: { label: string; text: string; channel: string }[] = [
   },
 ];
 
+interface NewLeadViewProps {
+  /** Clock the "3 h ago" column is measured against; null until the client has mounted. */
+  now: Date | null;
+  onCreated: (lead: Lead) => void;
+  onLeadChanged: (lead: Lead) => void;
+}
+
+/**
+ * The form a reviewer drives: any text in, one real card out, scored by the same rubric as
+ * every card in the inbox.
+ */
 export default function NewLeadView({
   now,
   onCreated,
   onLeadChanged,
-}: {
-  now: Date | null;
-  onCreated: (lead: Lead) => void;
-  onLeadChanged: (lead: Lead) => void;
-}) {
+}: NewLeadViewProps): React.JSX.Element {
   const [text, setText] = useState("");
   const [channel, setChannel] = useState("form");
   const [busy, setBusy] = useState(false);
@@ -55,7 +71,7 @@ export default function NewLeadView({
   // а не по таймеру: индикатор, который движется сам по себе, измеряет не работу.
   const [step, setStep] = useState<number>(-1);
 
-  async function submit() {
+  async function submit(): Promise<void> {
     setBusy(true);
     setError(null);
     setStep(-1);
@@ -69,13 +85,6 @@ export default function NewLeadView({
       setBusy(false);
     }
   }
-
-  const STEPS = [
-    ["Mask contacts.", "Phone numbers and e-mail addresses are cut out of the text before anything is sent to the model."],
-    ["Extract facts.", "Services asked for, head count, timeline, jurisdiction, language, plus a confidence figure."],
-    ["Score.", "The model proposes facts, the code decides the priority — a fixed rubric with reasons and invariants, not the model’s opinion."],
-    ["Draft a reply.", "In the customer’s language, with price ranges taken from the demo price list and never invented."],
-  ];
 
   return (
     <div style={{ marginTop: 16 }}>

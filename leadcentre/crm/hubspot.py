@@ -36,7 +36,7 @@ from leadcentre.crm.base import (
 
 API = "https://api.hubapi.com"
 TIMEOUT_S = 20.0            # вызывается из обработчика HTTP, как и Supabase
-USER_AGENT = "leadcentre/0.1 (+SORP Lead Centre)"
+USER_AGENT = "leadcentre/0.1 (+Lead Centre)"
 
 # Воронка и стадия: `default`/`appointmentscheduled` — то, что заведено в новом портале
 # HubSpot по умолчанию. На портале с настроенной воронкой задаются HUBSPOT_PIPELINE/STAGE.
@@ -71,8 +71,6 @@ class HubspotSink:
         self.token = os.environ.get("HUBSPOT_PERSONAL_KEY", "") if token is None else token
         self.pipeline = os.environ.get("HUBSPOT_PIPELINE") or DEFAULT_PIPELINE
         self.dealstage = os.environ.get("HUBSPOT_DEALSTAGE") or DEFAULT_DEALSTAGE
-
-    # --- транспорт ---
 
     def _call(self, method: str, path: str, body: Any = None) -> tuple[int, Any]:
         """Возвращает (код, тело). Исход решает вызывающий: код здесь не интерпретируется."""
@@ -141,8 +139,6 @@ class HubspotSink:
             "dealstage": self.dealstage,
             "description": "; ".join(lead.reasons)[:1000],
         }
-
-    # --- отправка ---
 
     def send(self, lead: CrmLead) -> CrmResult:
         if not self.token:

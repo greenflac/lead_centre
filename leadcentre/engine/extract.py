@@ -70,7 +70,7 @@ EFFORT_MODELS = ("claude-opus-5", "claude-opus-4-", "claude-sonnet-5", "claude-s
                  "claude-fable-")
 POLLINATIONS_MODEL = "openai"            # алиас GPT-OSS 20B в выдаче GET /models шлюза
 POLLINATIONS_URL = "https://text.pollinations.ai/openai"
-USER_AGENT = "leadcentre/0.1 (+SORP Lead Centre)"
+USER_AGENT = "leadcentre/0.1 (+Lead Centre)"
 MAX_TOKENS = 4096                        # ответ — один JSON-объект, взято с запасом
 TIMEOUT_S = 60.0                         # чат-канал, дольше ждать смысла нет
 MAX_RETRIES = 2                          # столько же, сколько по умолчанию у SDK
@@ -268,9 +268,6 @@ def user_content(message: InboundMessage, scrubbed: Scrubbed) -> str:
         f"Канал: {message.channel}\n"
         f"Текст обращения:\n{scrubbed.text}"
     )
-
-
-# --- провайдеры ---
 
 
 @dataclass(frozen=True)
@@ -781,9 +778,6 @@ def wordless_urgency(text: str, timeline_days: int | None) -> bool:
     return timeline_days is None and urgency_stated(text)
 
 
-# --- режим OFFLINE ---
-
-
 def detect_language(text: str) -> str:
     """Язык по алфавиту: дешёвая детерминированная оценка для OFFLINE и для сверки с моделью.
 
@@ -844,9 +838,6 @@ def _offline_extraction(message: InboundMessage) -> Extraction:
 
 def is_offline() -> bool:
     return os.environ.get("OFFLINE", "") not in ("", "0")
-
-
-# --- точка входа ---
 
 
 def extract_detailed(message: InboundMessage, provider: Provider | None = None) -> Extraction:

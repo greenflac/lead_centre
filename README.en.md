@@ -46,7 +46,7 @@ Python 3.11. `pip install -e ".[dev]"`.
 
 ```bash
 make test-ci     # the whole test suite, network blocked by the machine, not by agreement
-make demo        # the first paragraph of this file, checked end to end: 4 requests, 31 checks
+make demo        # the first paragraph of this file, checked end to end: 4 requests, ~32 checks
 make run         # score registry companies from the cached sample, no network, no API key
 python eval/run_eval.py --labels eval/labels_synthetic.csv   # the measurement bench
 ```
@@ -136,7 +136,7 @@ Repository map:
 | `leadcentre/store/`, `leadcentre/crm/` | local JSON / Supabase store, Null and HubSpot sinks |
 | `leadcentre/api.py` | FastAPI, 9 routes; logic in functions, handlers only parse |
 | `eval/` | measurement bench: Cohen's kappa, confusion matrix, stability, negative controls |
-| `prompts/` | versioned prompts (`extract_v1`…`v4`, `translit_v1`), loaded by the code |
+| `prompts/` | versioned prompts (`extract_v1`…`v5`, `translit_v1`), loaded by the code |
 | `web/` | Next.js dashboard, mock mode and live mode (`web/README.md`) |
 | `data/` | 70 synthetic requests, GLEIF samples, demo price list |
 | `docs/` | one-pager, demo script, data notes (`docs/README.md`) |

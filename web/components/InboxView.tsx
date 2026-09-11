@@ -5,6 +5,13 @@ import type { ApiError, Lead, Tier } from "../lib/types";
 import LeadCard from "./LeadCard";
 import { CHANNEL_LABEL, EmptyState, ErrorNotice, isRtlText, LoadingRows, TierChip, timeAgo } from "./ui";
 
+/**
+ * Позиция в списке — самостоятельный канал приоритета (01_material.md §3.2) и ответ на
+ * вопрос «что делать сейчас», а не «что у нас есть» (02_references.md §1.8). Внутри тира
+ * порядок по свежести: два обращения одного тира разделяет только время ожидания.
+ */
+const TIER_ORDER: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2, INVALID: 3 };
+
 const TIERS: Tier[] = ["HIGH", "MEDIUM", "LOW", "INVALID"];
 
 const PREVIEW_CHARS = 130;
@@ -71,6 +78,19 @@ function whyLine(lead: Lead): string {
   return parts.slice(0, 3).join(" · ");
 }
 
+interface InboxViewProps {
+  leads: Lead[];
+  loading: boolean;
+  error: ApiError | null;
+  /** Clock the "3 h ago" column is measured against; null until the client has mounted. */
+  now: Date | null;
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+  onLeadChanged: (lead: Lead) => void;
+  onRetry: () => void;
+}
+
+/** The triage screen: the prioritised list on the left, the open card on the right. */
 export default function InboxView({
   leads,
   loading,
@@ -80,23 +100,9 @@ export default function InboxView({
   onSelect,
   onLeadChanged,
   onRetry,
-}: {
-  leads: Lead[];
-  loading: boolean;
-  error: ApiError | null;
-  now: Date | null;
-  selectedId: string | null;
-  onSelect: (id: string) => void;
-  onLeadChanged: (lead: Lead) => void;
-  onRetry: () => void;
-}) {
+}: InboxViewProps): React.JSX.Element {
   const [tierFilter, setTierFilter] = useState<Tier | null>(null);
   const [query, setQuery] = useState("");
-
-  // Позиция в списке — самостоятельный канал приоритета (01_material.md §3.2) и ответ на
-  // вопрос «что делать сейчас», а не «что у нас есть» (02_references.md §1.8). Внутри тира
-  // порядок по свежести: два обращения одного тира разделяет только время ожидания.
-  const TIER_ORDER: Record<string, number> = { HIGH: 0, MEDIUM: 1, LOW: 2, INVALID: 3 };
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -220,8 +226,6 @@ export default function InboxView({
                   {lead.status === "rejected" ? <span className="chip chip-status">disagreed</span> : null}
                   <span className="lead-row-meta">{now ? timeAgo(lead.received_at, now) : ""}</span>
                 </div>
-                {/* dir="auto": арабская строка обязана начинаться справа, соседняя русская —
-                    слева. */}
                 <div
                   className={`lead-row-preview${isRtlText(lead.text) ? " rtl-block" : ""}`}
                   dir="auto"

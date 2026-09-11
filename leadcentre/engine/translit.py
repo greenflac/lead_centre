@@ -152,9 +152,6 @@ def save_cache(cache: dict[str, dict]) -> None:
     )
 
 
-# --- собственно транслитерация ---
-
-
 def load_prompt() -> str:
     try:
         return PROMPT_PATH.read_text(encoding="utf-8")

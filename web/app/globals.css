@@ -1,20 +1,11 @@
-/* SORP Lead Centre — dashboard styling.
-
-   Система, а не набор решений (docs/design/01_material.md §1):
-   * три размера текста — 12 / 14 / 16 px, два начертания — 400 и 500 (§2.1);
-   * отступы только из ряда 4 8 12 16 20 24 32 48 (§2.2);
-   * два радиуса — 4 px мелкое, 8 px панели (§2.3);
-   * ни одной тени: разделение делают контур outline-variant и тон поверхности (§1.3);
-   * один хроматический акцент (--primary), и он занят действием; приоритет ахроматичен (§3);
-   * error зарезервирован под ошибку и на приоритет не тратится (§1.4).
-
-   Контрасты палитры считает web/scripts/contrast.py по формуле WCAG — числа прогона
-   приведены в отчёте сессии, порог 4.5 для текста и 3.0 для носителей смысла. */
+/* Lead Centre dashboard styling. Budget: 3 text sizes, 2 weights, spacing from
+   4/8/12/16/20/24/32/48, 2 radii, no shadows, one chromatic accent reserved for actions.
+   web/scripts/css_audit.py and web/scripts/contrast.py hold these numbers. */
 
 :root {
   color-scheme: light;
 
-  /* --- светлая схема (01_material.md §3.3) --- */
+  /* light scheme */
   --surface: #FFFFFF;
   --surface-container: #F4F5F7;
   --surface-container-high: #EDEFF2;
@@ -34,8 +25,7 @@
   --error-container: #F9DEDC;
   --on-error-container: #410E0B;
 
-  /* --- тёмная схема: значения объявлены здесь один раз (Е1), а роли им назначаются
-         ниже двумя селекторами — явный переключатель и системная тема --- */
+  /* Why: dark values are declared once here; two selectors below assign the roles. */
   --dk-surface: #14161A;
   --dk-surface-container: #1D2025;
   --dk-surface-container-high: #24282E;
@@ -55,14 +45,14 @@
   --dk-error-container: #8C1D18;
   --dk-on-error-container: #F9DEDC;
 
-  /* --- сетка, радиусы, шрифты --- */
+  /* grid, radii, fonts */
   --r-small: 4px;
   --r-panel: 8px;
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
           "Noto Naskh Arabic", sans-serif;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-  --track: 0.05em;               /* единственный трекинг верхнего регистра (§6.6) */
-  --state: 100ms;                /* short2 — hover/focus (§2.6) */
+  --track: 0.05em;               /* the one uppercase tracking */
+  --state: 100ms;                /* hover/focus */
 }
 
 .theme-dark,
@@ -112,10 +102,8 @@
   }
 }
 
-/* Арабская гарнитура. Noto Naskh Arabic, лицензия OFL (проверено до встраивания, Ц5:
-   METADATA.pb репозитория google/fonts, license: "OFL"; текст лицензии лежит рядом —
-   public/fonts/OFL.txt). Файл self-hosted: у браузера демонстрации нет сети, ссылка на
-   fonts.googleapis.com не загрузилась бы и молча дала бы системный фолбэк. */
+/* Why self-hosted: the demo browser has no network, so a Google Fonts link would fall
+   back to a system face in silence. Noto Naskh Arabic, OFL, see public/fonts/OFL.txt. */
 @font-face {
   font-family: "Noto Naskh Arabic";
   src: url("/fonts/NotoNaskhArabic-variable.ttf") format("truetype-variations");
@@ -131,7 +119,7 @@ html, body {
   background: var(--surface-container);
   color: var(--on-surface);
   font-family: var(--font);
-  font-size: 14px;      /* body-medium */
+  font-size: 14px;
   line-height: 20px;
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
@@ -140,7 +128,7 @@ html, body {
 button { font: inherit; color: inherit; }
 a { color: var(--primary); }
 
-/* Одна манера верхнего регистра на весь экран (§6.6): 12/16, вес 500, трекинг --track. */
+/* One uppercase treatment across the screen. */
 .label,
 .section-title,
 .stat-label,
@@ -181,7 +169,7 @@ table.grid th {
 .brand-name { font-size: 16px; line-height: 24px; font-weight: 500; }
 .brand-sub { font-size: 12px; line-height: 16px; opacity: 0.75; }
 
-/* --- полоса происхождения данных: один постоянный индикатор режима (02_references §6.2) --- */
+/* --- provenance strip: one standing indicator of the data mode --- */
 
 .provenance-strip {
   background: var(--primary-container);
@@ -207,7 +195,7 @@ table.grid th {
 .provenance-item { color: inherit; }
 .provenance-item b { font-weight: 500; }
 
-/* --- три числа в шапке (02_references §6.1) --- */
+/* --- the three numbers --- */
 
 .stats {
   display: grid;
@@ -317,7 +305,7 @@ table.grid th {
 }
 .lead-row:hover { background: var(--surface-container-high); }
 .lead-row[aria-current="true"] { background: var(--primary-container); }
-/* Линейка только у HIGH: тогда её наличие само несёт смысл, а цвет не обязан (§3.2). */
+/* Why HIGH only: the rule's presence carries the meaning, so colour need not. */
 .lead-row.tier-HIGH { border-inline-start-color: var(--inverse-surface); }
 
 .lead-row-top {
@@ -343,8 +331,7 @@ table.grid th {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* Причины лежат не на языке интерфейса — строка списка говорит это теми же словами,
-   что и нота на карточке. */
+/* Marks reasons that are not in the interface language. */
 .why-lang { color: var(--on-surface-variant); font-style: italic; }
 .lead-row-meta {
   margin-inline-start: auto;
@@ -355,7 +342,7 @@ table.grid th {
   white-space: nowrap;
 }
 
-/* --- чипы: три формы, не больше (§5.2ж) --- */
+/* --- chips: three shapes, no more --- */
 
 .chip {
   display: inline-flex;
@@ -370,19 +357,19 @@ table.grid th {
   letter-spacing: var(--track);
   white-space: nowrap;
 }
-/* 1. приоритет — лестница выразительности, без хроматики (§3.2) */
+/* 1. priority: a ladder of emphasis, achromatic */
 .chip.tier-HIGH { background: var(--inverse-surface); color: var(--inverse-on-surface); }
 .chip.tier-MEDIUM { border-color: var(--outline); color: var(--medium-text); }
 .chip.tier-LOW { color: var(--on-surface-variant); padding: 0; }
 .chip.tier-INVALID { color: var(--on-surface-variant); padding: 0; font-style: italic; }
-/* 2. нейтральный чип метаданных */
+/* 2. neutral metadata chip */
 .chip-plain {
   border-color: var(--outline);
   color: var(--on-surface-variant);
   font-weight: 400;
   letter-spacing: 0;
 }
-/* 3. чип состояния решения */
+/* 3. decision-state chip */
 .chip-status {
   background: var(--primary-container);
   color: var(--on-primary-container);
@@ -420,15 +407,12 @@ table.grid th {
   border: 1px solid var(--outline-variant);
   border-radius: var(--r-small);
   padding: 12px;
-  /* Обрез приходится ровно между строками, а не на половину букв. Считать надо не по
-     content-box: в прокручиваемой коробке текст виден и в нижнем padding, режет её
-     padding-box. ИЗМЕРЕНО в браузере: видимая высота текста = clientHeight - padding-top,
-     поэтому 12 строк по 20 px + 12 padding-top + 2 border = 254, и тринадцатая строка
-     не показывается наполовину. Сам факт обрезки подписывает LeadCard, измерив её. */
+  /* Why 254: a scroll box clips on its padding-box, so 12 lines x 20 + 12 padding-top
+     + 2 border ends exactly between lines instead of halfway through the 13th. */
   max-height: 254px;
   overflow-y: auto;
 }
-/* Подсветка цитаты, на которой построена причина. */
+/* Highlight of the quote a reason is built on. */
 .message-text mark {
   background: var(--primary-container);
   color: var(--on-primary-container);
@@ -436,8 +420,7 @@ table.grid th {
   padding: 0 4px;
   margin: 0 -4px;
 }
-/* Нажатая причина: цитата усиливается тем же синим, а не инверсией в чёрное —
-   чёрный прямоугольник в тексте читается как замазанный фрагмент, а не как выделение. */
+/* Why not inverted to black: a black block inside text reads as redacted, not selected. */
 .message-text mark.on {
   background: var(--primary);
   color: var(--on-primary);
@@ -449,7 +432,7 @@ table.grid th {
 .facts dd.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; font-weight: 400; }
 .facts-missing { margin-top: 8px; color: var(--on-surface-variant); }
 
-/* --- причины: каждая кликается и подсвечивает свою цитату --- */
+/* --- reasons: each one clicks and highlights its own quote --- */
 
 .reasons { list-style: none; margin: 0; padding: 0; }
 .reasons li + li { margin-top: 4px; }
@@ -499,7 +482,7 @@ table.grid th {
   overflow-wrap: anywhere;
 }
 
-/* --- уверенность извлечения: полоса High / Medium / Low (02_references §6.5) --- */
+/* --- extraction confidence: a High / Medium / Low band --- */
 
 .confidence {
   display: flex;
@@ -541,7 +524,6 @@ table.grid th {
 
 .actions { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
 
-/* Кнопка 40px по M3 (§2.5); зона нажатия и так выше 24 CSS px по SC 2.5.8. */
 .btn {
   height: 40px;
   display: inline-flex;
@@ -560,7 +542,7 @@ table.grid th {
 .btn:disabled { opacity: 0.55; cursor: not-allowed; }
 .btn-primary { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
 .btn-primary:hover:not(:disabled) { background: var(--on-primary-container); border-color: var(--on-primary-container); }
-/* Отклоняющее действие — текстовая кнопка: вес формы ниже, чем у основного (§5.2о). */
+/* The rejecting action carries less form weight than the primary one. */
 .btn-text { border-color: transparent; background: none; color: var(--primary); padding: 0 12px; }
 .btn-text:hover:not(:disabled) { background: var(--surface-container-high); }
 
@@ -602,7 +584,7 @@ input:focus, textarea:focus, select:focus, .btn:focus-visible, .tab:focus-visibl
   border-bottom: 1px solid var(--outline-variant);
 }
 .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-/* Фильтр-чип M3: 32px, радиус 8px, контур 1px у невыбранного и 0 у выбранного (§2.3). */
+
 .filter-btn {
   height: 32px;
   padding: 0 12px;
@@ -629,24 +611,18 @@ input:focus, textarea:focus, select:focus, .btn:focus-visible, .tab:focus-visibl
 
 .table-wrap { overflow-x: auto; }
 table.grid { width: 100%; border-collapse: collapse; }
-/* Ширины подобраны так, чтобы содержательные колонки не резались: «why» несёт число дней
-   просрочки, «evidence» — сам идентификатор записи (LEI, ровно 20 символов) и дату, ради
-   которой строка тут, «flag» — подпись типа адреса словами, а не машинную метку.
-   min-width 1180 -> 1252 (ИЗМЕРЕНО в браузере на 60 строках набора: самой широкой
-   ячейке evidence нужно 378 px, address type — 143 px).
-   После правки рубрики районы Дубая стали целевыми, и в колонке города появились
-   «Nad Al Sheba» и «Dubai Silicon Oasis». Обрезанные до «Nad Al S…», они противоречили
-   строке: приоритет HIGH стоит ровно потому, что это Дубай, а прочитать это было нельзя.
-
-   ИЗМЕРЕНО 2026-09-11 в браузере при ширине окна 1440: контейнер таблицы даёт 1270 px,
-   и это потолок — что шире, то режется краем экрана, а не многоточием. Потребность
-   колонок: приоритет 89, компания 505 (медиана 228), тип адреса 143, город 223
-   («Dubai Silicon Oasis» — 169), причина 687 (медиана 251), доказательства 406.
-   Сумма потребностей вдвое больше потолка, поэтому режется не всё подряд, а выбранное:
-   причина и номер LEI влезают целиком на типичной строке, перерасход забран у названий
-   компаний — они режутся и так (26 строк из 60), и целиком лежат под наведением.
-   Строки с двумя причинами сразу («просрочка + город вне списка», 687 px) не влезут ни
-   при какой раскладке; там читается первая причина, вторая — под наведением. */
+/* MEASURED in the browser at a 1440px window, 60-row set. Container ceiling 1270px;
+   anything wider is cut by the screen edge, not by an ellipsis.
+     column      needed (max / median)   given
+     priority     89                      88
+     company     505 / 228               208
+     address     143                     148
+     city        223 (Dubai Silicon Oasis 169)  168
+     why         687 / 251               252
+     evidence    406                     406
+   Demand is twice the ceiling, so the overspend is taken from company names: they clip
+   anyway (26 rows of 60) and are readable in full on hover. Rows carrying two reasons
+   at once (687px) fit at no layout; the second reason is on hover. */
 table.grid-fixed { table-layout: fixed; min-width: 1270px; }
 table.grid-fixed col.c-priority { width: 88px; }
 table.grid-fixed col.c-company { width: 208px; }
@@ -659,7 +635,7 @@ table.grid th {
   padding: 16px;
   border-bottom: 1px solid var(--outline-variant);
   background: var(--surface-container);
-  /* Шапка при table-layout: fixed обязана переноситься: nowrap наезжает на соседа. */
+  /* Why wrap: under table-layout: fixed, nowrap headers overlap their neighbour. */
   white-space: normal;
 }
 table.grid td {
@@ -668,14 +644,13 @@ table.grid td {
   vertical-align: middle;
   font-variant-numeric: tabular-nums;
 }
-/* Одна строка на ячейку: три источника высоты делали строку 61px вместо 44 (§5.2и). */
+/* One line per cell. */
 table.grid td.clip { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 table.grid tr:hover td { background: var(--surface-container-high); }
 .cell-name { font-weight: 500; }
 .cell-mono { font-family: var(--mono); font-size: 12px; line-height: 16px; color: var(--medium-text); }
 .cell-reason { color: var(--on-surface-variant); }
-/* Доказательство: подпись поля приглушена, значение — основным тоном, чтобы в одной
-   строке было видно, где имя поля, а где сам факт из записи реестра. */
+/* Field label muted, value in the main tone, so one line separates name from fact. */
 .ev-label { color: var(--on-surface-variant); }
 .ev-sep { color: var(--on-surface-variant); padding: 0 4px; }
 
@@ -697,8 +672,7 @@ table.grid tr:hover td { background: var(--surface-container-high); }
   color: var(--on-error-container);
 }
 .notice-error .notice-title { color: var(--on-error-container); }
-/* Раскрытие внутри плашки ошибки наследует её цвет: сводка не должна выпадать из
-   пары «on-error-container на error-container», которую считает contrast.py. */
+/* Why inherit: the summary must stay inside the pair contrast.py measures. */
 .notice-details { margin-top: 8px; }
 .notice-error .details-summary { color: inherit; }
 .notice-detail {
@@ -714,7 +688,7 @@ table.grid tr:hover td { background: var(--surface-container-high); }
 .empty-state-body { max-width: 480px; margin: 0 auto; }
 .empty-state .actions { justify-content: center; }
 
-/* Скелетон без бесконечной анимации (§6.5): статичный тон поверхности. */
+/* Skeleton without an endless animation. */
 .skeleton { background: var(--surface-container-high); border-radius: var(--r-small); }
 .skeleton-row { height: 16px; margin: 16px; }
 
@@ -767,7 +741,7 @@ table.grid tr:hover td { background: var(--surface-container-high); }
 @media (max-width: 900px) {
   .pipeline { border-inline-start: none; border-top: 1px solid var(--outline-variant); }
 }
-/* Загрузка = четыре шага конвейера, а не спиннер (02_references §6.10). */
+/* Loading is four pipeline steps, not a spinner. */
 .pipeline-steps { list-style: none; margin: 0 0 16px; padding: 0; }
 .pipeline-steps li {
   display: flex;
@@ -800,7 +774,7 @@ table.grid tr:hover td { background: var(--surface-container-high); }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* --- раскрытие «как это посчитано»: инженерное в один клик, а не в основном потоке --- */
+/* --- "how this was scored": engineering one click away, not in the main flow --- */
 
 .details { border-top: 1px solid var(--outline-variant); padding-top: 12px; }
 .details-summary {
@@ -826,7 +800,7 @@ table.grid tr:hover td { background: var(--surface-container-high); }
   line-height: 16px;
 }
 
-/* --- служебная строка «чем обслужен лид» --- */
+/* --- provenance rows --- */
 
 .served {
   display: grid;
@@ -844,19 +818,13 @@ table.grid tr:hover td { background: var(--surface-container-high); }
   overflow-wrap: anywhere;
 }
 
-/* --- двунаправленный текст (docs/design/03_arabic_rtl.md §2.5, §3.2) ---
-   Направление задаётся содержимым блока (dir="auto" в разметке), а не страницей:
-   инбокс смешанный — русские, английские и арабские обращения в одном списке, и
-   глобальный dir="rtl" сломал бы большинство строк. Арабский набирается крупнее и
-   с бо́льшим интерлиньяжем: при равном кегле насх мельче латиницы (§3.2). */
-/* Класс ставится разметкой по первому сильному символу текста (ui.tsx isRtlText), тем же
-   правилом, по которому направление вычисляет dir="auto". Селектор :dir(rtl) не годится:
-   сборщик CSS выбрасывает его молча (ИЗМЕРЕНО: правила нет в собранном чанке), а
-   [dir="rtl"] не срабатывает, потому что в атрибуте стоит строка "auto". */
+/* --- bidirectional text ---
+   Why a class and not :dir(rtl): the CSS bundler drops :dir(rtl) silently, and
+   [dir="rtl"] never matches because the attribute literally holds "auto".
+   Why larger: at an equal size Naskh reads smaller than Latin. */
 .rtl-block {
   font-size: 15px;
   line-height: 1.75;
 }
-/* Латинские острова внутри арабского блока: идентификаторы, суммы и коды не
-   переворачиваются и изолируются от окружения (§2.1). */
+/* Latin islands inside an Arabic block stay isolated from their surroundings. */
 bdi, .cell-mono, .served dd { unicode-bidi: isolate; }

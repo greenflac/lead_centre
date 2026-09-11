@@ -1,13 +1,6 @@
-// Translation between the FastAPI backend and the shapes this dashboard renders.
-//
-// The wire shapes below are ИЗМЕРЕНО, not assumed: they were captured from
-// `OFFLINE=1 python -m leadcentre.api` running locally on 2026-09-09 —
-// GET /leads, POST /leads, GET /companies, GET /stats. Keep this module the only place
-// that knows about the envelope, so components keep seeing one flat Lead type.
-//
-// The API answers in envelopes with three outcomes (ok / rejected / unavailable); a
-// missing score is NOT quietly turned into LOW — it becomes INVALID ("not scored"), which
-// is what the engine itself does when it cannot judge.
+// Translation between the FastAPI backend and the shapes this dashboard renders. The only
+// module that knows the wire envelope, so components keep seeing one flat Lead type.
+// Why INVALID and not LOW for a missing score: "could not judge" is a third outcome.
 
 import { ApiError, type Company, type Evidence, type Lead, type LeadFacts, type Reply, type Stats, type Tier } from "./types";
 
@@ -33,6 +26,7 @@ function asStrings(value: unknown): string[] {
   return asArray(value).filter((item): item is string => typeof item === "string");
 }
 
+/** The `facts` blob of a card, with every field defaulted rather than left undefined. */
 export function normalizeFacts(value: unknown): LeadFacts {
   const facts = asObject(value);
   return {
@@ -50,18 +44,9 @@ export function normalizeFacts(value: unknown): LeadFacts {
 }
 
 /**
- * Reasons in the language of the interface, with three outcomes kept apart.
- *
- * The engine stores a reason as a code plus parameters and renders it on demand, so the
- * API hands over `reasons_by_language` — and it contains ONLY the languages it could
- * actually assemble. A missing "en" key is therefore the machine-readable "do not pass the
- * Russian text off as English": rows written before reason codes existed
- * (`reasons_outcome: "no_codes"`) can never be rendered in English, because there is no way
- * back from a finished string to a code.
- *
- *   ok        → the English rendering of the very reason the engine produced;
- *   empty     → no reasons at all, and that is not a failure;
- *   otherwise → the stored Russian text, marked as stored, never relabelled as English.
+ * Reasons in the interface language, three outcomes kept apart: the English rendering; no
+ * reasons at all, which is not a failure; or the stored Russian, marked as stored.
+ * Why: a missing "en" key means the engine could not assemble English, so it must not be faked.
  */
 export function uiReasons(score: Json): Pick<Lead, "reasons" | "reasons_language" | "reasons_note"> {
   const byLanguage = asObject(score.reasons_by_language);
@@ -79,6 +64,7 @@ export function uiReasons(score: Json): Pick<Lead, "reasons" | "reasons_language
   };
 }
 
+/** The `reply` block of a card. `outcome` falls back to the older `status` field. */
 function normalizeReply(value: unknown): Reply {
   const reply = asObject(value);
   return {
@@ -117,9 +103,6 @@ export function normalizeCard(value: unknown): Lead {
     tier: scored ? asTier(score.tier) : "INVALID",
     ...(scored ? uiReasons(score) : { reasons: [], reasons_language: "en", reasons_note: "" }),
     evidence: asEvidence(score.evidence),
-    // Служебный текст английского интерфейса пишется здесь по-английски: русская строка
-    // на карточке читается как недоделка, а не как объяснение (та же причина, по которой
-    // движок перевёл Reply.notice).
     violations: scored
       ? asStrings(score.violations)
       : ["not scored: the backend returned this lead without a score"],
@@ -150,9 +133,7 @@ export function normalizePostedLead(value: unknown, text: string, channel: strin
     violations: asStrings(score.violations),
     facts,
     facts_source: asString(extraction.provider, "llm"),
-    // Чем обслужен лид — из ответа API, а не из намерения: имя модели то, которое
-    // вернул провайдер. Стоимость бэкенд не считает, поэтому её здесь нет, а не ноль:
-    // выдуманный ноль хуже отсутствующего поля.
+    // Why no cost: the backend does not count it, and an invented zero is worse than a gap.
     serving: Object.keys(extraction).length
       ? {
           provider: asString(extraction.provider, "llm"),
@@ -231,10 +212,7 @@ export function normalizeStats(value: unknown): Stats {
   };
 }
 
-/**
- * Reads the envelope. `unavailable` is the backend saying "could not", which is neither
- * data nor a crash — it becomes an ApiError the UI explains, never an empty list.
- */
+/** Reads the envelope. "unavailable" becomes an explained ApiError, never an empty list. */
 export function unwrap(payload: unknown, key: string): unknown {
   const body = asObject(payload);
   const outcome = asString(body.outcome, "ok");

@@ -146,9 +146,6 @@ def test_supabase_requires_keys(monkeypatch):
         SupabaseStore()
 
 
-# --- CRM ---
-
-
 def test_null_sink_reports_skipped_not_sent():
     """NullSink ничего не отправлял; выдать это за успех — то же враньё, что и «отправлено»."""
     result = NullSink().send(CrmLead("id", "ACME", "HIGH", "form", "ru", "текст"))
@@ -186,9 +183,6 @@ def test_get_sink_rejects_unknown_name(monkeypatch):
     monkeypatch.setenv("CRM_SINK", "битрикс")
     with pytest.raises(CrmConfigError):
         get_sink()
-
-
-# --- API ---
 
 
 def test_post_lead_returns_card_and_stores_it(client, memory_store):

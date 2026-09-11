@@ -50,7 +50,7 @@ SCHEMA_PATH = Path(__file__).resolve().parent / "schema.sql"
 нельзя — у PostgREST нет такого эндпоинта, а строки подключения к Postgres в среде нет."""
 
 TIMEOUT_S = 20.0          # запрос идёт из обработчика; дольше держать клиента нельзя
-USER_AGENT = "leadcentre/0.1 (+SORP Lead Centre)"
+USER_AGENT = "leadcentre/0.1 (+Lead Centre)"
 DEFAULT_LIMIT = 50        # столько строк помещается в один экран инбокса
 
 # Коды PostgREST, означающие «схема не применена». Отделены от прочих 404.
@@ -82,8 +82,6 @@ class SupabaseStore:
                 "не заданы SUPABASE_URL и/или SUPABASE_SECRET_KEY — "
                 "живое хранилище недоступно; для офлайна поставьте OFFLINE=1"
             )
-
-    # --- транспорт ---
 
     def _headers(self, key: str, extra: dict[str, str] | None = None) -> dict[str, str]:
         headers = {

@@ -1,6 +1,4 @@
-// Wire shapes. Kept in one place so the mock adapter and the live adapter cannot drift.
-// Mirrors leadcentre/models.py (Tier, InboundMessage, LeadFacts, Score) — when the Python
-// contract changes, this file changes with it.
+// Wire shapes, mirroring leadcentre/models.py. One place, so the two adapters cannot drift.
 
 export type Tier = "HIGH" | "MEDIUM" | "LOW" | "INVALID";
 
@@ -16,7 +14,7 @@ export interface LeadFacts {
   jurisdiction_hint: string | null;
   headcount: number | null;
   timeline_days: number | null;
-  /** Срочность заявлена словами, даты в тексте нет — признак есть, придуманной даты нет. */
+  /** Urgency claimed in words with no date in the text: a signal, not an invented date. */
   urgency_stated: boolean;
   budget_hint: string | null;
   language: string;
@@ -39,11 +37,7 @@ export interface Reply {
 /** A reason together with the quotes it is derived from. Empty list = not quotable. */
 export interface ReasonLink {
   text: string;
-  /**
-   * The reason's code from `leadcentre/engine/reasons.py`. It is the contract; the text is
-   * bilingual and gets rewritten, so anything that has to recognise a particular reason
-   * matches on this and never on the words.
-   */
+  /** The reason's code: the contract. Match on it, never on the bilingual text. */
   code?: string;
   quotes: number[];
 }
@@ -76,11 +70,7 @@ export interface Lead {
   is_synthetic: boolean;
   tier: Tier;
   reasons: string[];
-  /**
-   * Language the strings in `reasons` are actually in — what happened, not what was meant
-   *. The interface is English, so anything but "en" has to be visible on the card:
-   * a lead scored before the engine kept reason codes can only be shown as stored (RU).
-   */
+  /** Language `reasons` is actually in. Anything but "en" has to be visible on the card. */
   reasons_language?: string;
   /** Why the reasons are not in the interface language. Empty when they are. */
   reasons_note?: string;

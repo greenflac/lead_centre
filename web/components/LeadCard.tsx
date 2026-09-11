@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { Lead } from "../lib/types";
-import { ApiError } from "../lib/types";
 import { approve, disagree } from "../lib/api";
+import { ApiError, type Lead } from "../lib/types";
 import {
   CHANNEL_LABEL,
   Chip,
@@ -16,6 +15,7 @@ import {
   timeAgo,
 } from "./ui";
 
+/** Request-type codes as words on the card. An unknown code is printed raw, never hidden. */
 const REQUEST_LABEL: Record<string, string> = {
   office: "office",
   setup: "company setup",
@@ -26,6 +26,7 @@ const REQUEST_LABEL: Record<string, string> = {
   other: "other",
 };
 
+/** One line under the draft saying which of the four drafting outcomes this card got. */
 const OUTCOME_NOTE: Record<string, string> = {
   draft: "Draft reply — prices are ranges from the demo price list, never a quote.",
   questions: "Too few facts for numbers: the engine asks instead of guessing a price.",
@@ -88,7 +89,12 @@ function markQuotes(text: string, quotes: string[], activeIndices: number[]): Re
   return out;
 }
 
-function factRow(label: string, value: string | number | null | undefined, suffix = "") {
+/** One `dt`/`dd` pair, or nothing at all when the fact is not there — never an empty row. */
+function factRow(
+  label: string,
+  value: string | number | null | undefined,
+  suffix = "",
+): React.JSX.Element | null {
   if (value === null || value === undefined || value === "") return null;
   return (
     <>
@@ -101,15 +107,18 @@ function factRow(label: string, value: string | number | null | undefined, suffi
   );
 }
 
-export default function LeadCard({
-  lead,
-  now,
-  onChanged,
-}: {
+interface LeadCardProps {
   lead: Lead;
+  /** Clock the "3 h ago" column is measured against; null until the client has mounted. */
   now: Date | null;
   onChanged: (lead: Lead) => void;
-}) {
+}
+
+/**
+ * One request in full: its text with the quotes marked inside it, the extracted facts, the
+ * reasons behind the priority, the draft reply, and the two decision buttons.
+ */
+export default function LeadCard({ lead, now, onChanged }: LeadCardProps): React.JSX.Element {
   const [busy, setBusy] = useState<"approve" | "disagree" | null>(null);
   const [showReason, setShowReason] = useState(false);
   const [reason, setReason] = useState("");
@@ -125,7 +134,7 @@ export default function LeadCard({
     setAllEvidence(false);
   }, [lead.id]);
 
-  async function run(action: "approve" | "disagree") {
+  async function run(action: "approve" | "disagree"): Promise<void> {
     setBusy(action);
     setError(null);
     try {
@@ -165,10 +174,9 @@ export default function LeadCard({
       <div className="card-head">
         <div className="card-head-row">
           <TierChip tier={lead.tier} />
-          {/* Машинный id убран из шапки: UUID/`edge-02` моноширинным на самом видном месте
-              читается как лог, а не как карточка менеджера, и выдаёт внутренние имена
-              тест-кейсов. Значение не потеряно — оно ниже, в раскрытии «How this was
-              scored» как `request id`, там же, где остальное инженерное. */}
+          {/* Машинного id в шапке нет намеренно: моноширинный `edge-02` на самом видном
+              месте читается как лог и выдаёт внутренние имена тест-кейсов. Значение
+              лежит в раскрытии «How this was scored» как `request id`. */}
           <Chip title="Channel the request arrived from">{CHANNEL_LABEL[lead.channel] ?? lead.channel}</Chip>
           <Chip title="Language detected in the request text">{lead.language}</Chip>
           {lead.is_synthetic ? <SyntheticTag /> : null}
@@ -388,8 +396,6 @@ export default function LeadCard({
                   <button className="btn btn-primary" disabled={busy !== null} onClick={() => run("approve")}>
                     {busy === "approve" ? <span className="spinner" /> : null} Approve, send to CRM
                   </button>
-                  {/* Отклоняющее действие — текстовая кнопка: вес формы ниже, чем у
-                      основного действия (01_material.md §5.2о). */}
                   <button className="btn btn-text" disabled={busy !== null} onClick={() => setShowReason((v) => !v)}>
                     Disagree
                   </button>
