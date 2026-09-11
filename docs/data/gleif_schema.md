@@ -5,13 +5,22 @@ JSON:API, фильтры и сортировка. Всё ниже ИЗМЕРЕН
 
 ## Объём по ОАЭ
 
+ИЗМЕРЕНО 2026-09-11 по выгрузке `goldenCopy` от 2026-09-10T16:00Z. Реестр живой: за двое
+суток общее число выросло с 9 362 до 9 369, просрочек — с 3 937 до 3 940. Числа ниже
+проверяются одной командой, подставьте свой срез вместо `LAPSED`:
+
+```bash
+curl -s 'https://api.gleif.org/api/v1/lei-records?filter[entity.legalAddress.country]=AE&filter[registration.status]=LAPSED&page[size]=1' \
+  | python3 -c 'import sys,json; print(json.load(sys.stdin)["meta"]["pagination"]["total"])'
+```
+
 | Срез | Записей |
 |---|---|
-| Юридический адрес в ОАЭ | **9 362** |
-| Юрлицо активно (`entity.status=ACTIVE`) | 9 229 |
-| Регистрация LEI действует (`registration.status=ISSUED`) | 5 294 |
-| **Регистрация LEI просрочена (`LAPSED`)** | **3 937** |
-| RETIRED / ANNULLED / PENDING_TRANSFER | 97 / 3 / 1 |
+| Юридический адрес в ОАЭ | **9 369** |
+| Юрлицо активно (`entity.status=ACTIVE`) | 9 236 |
+| Регистрация LEI действует (`registration.status=ISSUED`) | 5 297 |
+| **Регистрация LEI просрочена (`LAPSED`)** | **3 940** |
+| RETIRED / ANNULLED / PENDING_TRANSFER | 97 / 3 / 2 |
 
 Новых юрлиц с LEI по ОАЭ появляется ≈20–25 в месяц (по 600 свежайшим записям:
 65 создано за последние 90 дней).
