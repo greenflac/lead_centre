@@ -1,4 +1,4 @@
-.PHONY: test lint run discover fetch demo test-ci test-ci-selfcheck mutate check-web
+.PHONY: test lint run discover fetch demo test-ci test-ci-selfcheck mutate check-web shots-live
 
 test:
 	OFFLINE=1 python -m pytest
@@ -17,6 +17,9 @@ fetch: ## обновить кэш из GLEIF
 
 demo: ## сквозная проверка обещания из README: четыре обращения, около 32 проверок
 	PYTHONPATH=. OFFLINE=1 python scripts/e2e_demo.py
+
+shots-live: ## кадры живого режима: API без OFFLINE, своя сборка дашборда, живые вызовы модели
+	bash scripts/shots_live.sh
 
 check-web: ## приборы дашборда: контраст, свойства системы, сверка порта с движком
 	python3 web/scripts/contrast.py
