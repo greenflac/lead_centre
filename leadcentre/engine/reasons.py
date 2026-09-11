@@ -113,6 +113,11 @@ class ReasonCode(str, Enum):
     CITY_NOT_SET = "city_not_set"
     CITY_UNRECOGNISED = "city_unrecognised"
     ENTITY_INACTIVE = "entity_inactive"
+    ENTITY_STATUS_UNKNOWN = "entity_status_unknown"
+    ENTITY_STATUS_NOT_SET = "entity_status_not_set"
+    REGISTRATION_STATUS_NO_EVENT = "registration_status_no_event"
+    REGISTRATION_STATUS_UNKNOWN = "registration_status_unknown"
+    REGISTRATION_STATUS_NOT_SET = "registration_status_not_set"
     # --- входящее обращение (ось C) ---
     SPAM_OR_OFF_TOPIC = "spam_or_off_topic"
     NO_REQUEST_TYPE = "no_request_type"
@@ -348,6 +353,60 @@ CATALOGUE: dict[ReasonCode, ReasonSpec] = {
         texts={
             Language.RU: "юрлицо неактивно",
             Language.EN: "entity is not active",
+        },
+    ),
+    ReasonCode.ENTITY_STATUS_UNKNOWN: ReasonSpec(
+        # Третий исход по юрлицу: реестр статус не сообщил (GLEIF пишет в это поле
+        # слово NULL) или прислал слово, которого нет в его же перечислении. Отдельный
+        # код, а не ENTITY_INACTIVE: «реестр сказал, что юрлицо мертво» и «реестр
+        # промолчал» — разные новости, и второе не повод ронять лид в LOW.
+        params=("status",),
+        texts={
+            Language.RU: "статус юрлица в реестре не определён ({status}) — "
+                         "выше среднего не поднимаем, проверьте вручную",
+            Language.EN: "entity status is undetermined in the registry ({status}) — "
+                         "capped at medium, check by hand",
+        },
+    ),
+    ReasonCode.ENTITY_STATUS_NOT_SET: ReasonSpec(
+        # Тот же исход, что и предыдущий, но реестр не сказал вообще ничего: поля нет.
+        # Отдельный код, а не подстановка слова-заглушки в {status}: заглушка была бы
+        # текстом внутри score.py, а текста там нет (см. модуль CITY_NOT_SET).
+        params=(),
+        texts={
+            Language.RU: "статуса юрлица в записи реестра нет — "
+                         "выше среднего не поднимаем, проверьте вручную",
+            Language.EN: "the registry record carries no entity status — "
+                         "capped at medium, check by hand",
+        },
+    ),
+    ReasonCode.REGISTRATION_STATUS_NO_EVENT: ReasonSpec(
+        # Статус известен, но ни просрочки, ни скорого продления по нему не считают
+        # (RETIRED, DUPLICATE, ANNULLED, MERGED, PENDING_TRANSFER, PENDING_ARCHIVAL).
+        # Печатается затем, чтобы «повода нет» перестало быть молчанием: раньше карточка
+        # такой компании выглядела точно так же, как карточка со свежим ISSUED.
+        params=("status",),
+        texts={
+            Language.RU: "статус регистрации {status}: повода по реестру не считаем",
+            Language.EN: "registration status {status}: no registry event is counted",
+        },
+    ),
+    ReasonCode.REGISTRATION_STATUS_UNKNOWN: ReasonSpec(
+        params=("status",),
+        texts={
+            Language.RU: "статус регистрации не из перечня реестра ({status}) — "
+                         "повод по реестру определить не смогли",
+            Language.EN: "registration status is outside the registry list ({status}) — "
+                         "could not tell whether there is an event",
+        },
+    ),
+    ReasonCode.REGISTRATION_STATUS_NOT_SET: ReasonSpec(
+        params=(),
+        texts={
+            Language.RU: "статус регистрации не указан — повод по реестру "
+                         "определить не смогли",
+            Language.EN: "registration status is not set — could not tell whether "
+                         "there is an event",
         },
     ),
     # --- входящее обращение ---

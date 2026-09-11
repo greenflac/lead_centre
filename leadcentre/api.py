@@ -412,7 +412,11 @@ def handle_discover(payload: DiscoverIn, today: date | None = None) -> dict[str,
             next_renewal_on=company.next_renewal_on,
             facts={
                 "country": company.country,
+                # Булево поле оставлено ради потребителей, которые его уже читают
+                # (`web/lib/live.ts`); третий исход в нём не виден, поэтому рядом едет
+                # сам статус — «не сообщён» и «неактивно» в хранилище различимы.
                 "entity_active": company.entity_active,
+                "entity_status": company.entity_status.value,
                 "address_lines": list(company.address_lines),
                 "tier": company_score.tier.value,
                 "reasons": list(company_score.reasons),

@@ -54,6 +54,23 @@ class CityMatch(str, Enum):
     NOT_SET = "not_set"              # города в записи нет вовсе
 
 
+class EntityStatus(str, Enum):
+    """Что реестр сказал о существовании юрлица. Исхода три, а не два.
+
+    `UNKNOWN` — не «неактивно»: GLEIF отдельным значением `NULL` сообщает, что статус
+    ему не передали (ИЗМЕРЕНО 2026-09-11: по ОАЭ 36 записей из 9369, см. `sources/gleif.py`).
+    Свернуть его в `INACTIVE` — значит напечатать на карточке «юрлицо неактивно» там, где
+    реестр этого не говорил, и уронить лид до LOW по выдуманному факту.
+
+    Значения — наши машинные ключи (они уезжают в API), а не слова реестра: слова реестра
+    переводит в них адаптер источника, потому что вокабуляр у каждого источника свой.
+    """
+
+    ACTIVE = "active"        # реестр сказал: юрлицо действует
+    INACTIVE = "inactive"    # реестр сказал: юрлицо не действует
+    UNKNOWN = "unknown"      # реестр не сказал ничего или сказал незнакомое слово
+
+
 @dataclass(frozen=True)
 class Company:
     """Компания из внешнего источника, приведённая к общему виду."""
@@ -67,10 +84,21 @@ class Company:
     registrar_id: str | None    # орган регистрации (RA-код GLEIF)
     license_no: str | None
     created_on: date | None
-    entity_active: bool
-    registration_status: str    # ISSUED / LAPSED / ...
+    entity_status: EntityStatus
+    registration_status: str    # сырое слово реестра: ISSUED / LAPSED / RETIRED / ...
     next_renewal_on: date | None
+    entity_status_raw: str = ""  # что стояло в поле источника — для печати в причине
     is_synthetic: bool = False
+
+    @property
+    def entity_active(self) -> bool:
+        """Совместимость с потребителями, у которых поле булево (`web/`, payload API).
+
+        Третий исход в булевом поле не виден: и INACTIVE, и UNKNOWN дают False.
+        Код движка обязан читать `entity_status`, а не это поле, — здесь оно одно
+        и вычисляемое, чтобы второго способа узнать статус не завелось (Е1).
+        """
+        return self.entity_status is EntityStatus.ACTIVE
 
 
 @dataclass(frozen=True)

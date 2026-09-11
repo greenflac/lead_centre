@@ -17,6 +17,7 @@ from __future__ import annotations
 import importlib.util
 import sys
 from collections import Counter
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -24,7 +25,7 @@ import pytest
 from leadcentre.engine.facts_rules import rules_facts
 from leadcentre.engine.reasons import ReasonCode
 from leadcentre.engine.score import score_inbound
-from leadcentre.models import Tier
+from leadcentre.models import InboundMessage, Tier
 from tests.conftest import has_reason
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -111,12 +112,14 @@ def test_no_invalid_leads_in_the_seed(tiers):
 
 # --- не выродился ли признак срочности при пороге 60 -----------------------------
 #
-# ИЗМЕРЕНО 2026-09-11 на 70 обращениях: срок извлечён у 14, из них 7 укладываются в
+# ИЗМЕРЕНО 2026-09-11 на 70 обращениях: срок извлечён у 15, из них 8 укладываются в
 # 60 дней (признак срабатывает) и 7 не укладываются (не срабатывает). Числа менялись
-# трижды, и каждый раз по делу: 15/8/7 — пока движок сам придумывал две недели на
+# четырежды, и каждый раз по делу: 15/8/7 — пока движок сам придумывал две недели на
 # каждое «срочно»; 9/2/7 — когда придуманные сроки убрали, но вместе с ними потерялись
 # и названные словами («в этом месяце», «до пятницы»); 14/7/7 — когда названные словами
-# сроки стали считаться от даты обращения.
+# сроки стали считаться от даты обращения; 15/8/7 — когда число перестало требовать
+# предлога и вернулся срок urg-06 («срок - 3 недели», 21 день). Совпадение первой и
+# последней тройки случайно: там были придуманные сроки, здесь названные клиентом.
 
 
 def test_timeline_signal_still_discriminates(facts):
@@ -140,7 +143,7 @@ def test_timeline_signal_still_discriminates(facts):
     # сроки, названные словами («в этом месяце» у urg-01 и urg-15, «до конца месяца»
     # у urg-04, «до пятницы» у urg-05, «на этой неделе» у urg-09): до разделения
     # маркеров они терялись целиком, и внутри окна оказывалось только два.
-    assert len(fires) == 7
+    assert len(fires) == 8
     assert len(silent) == 7
 
 
@@ -154,40 +157,64 @@ def test_timeline_signal_is_not_the_only_road_to_high(messages, facts, tiers):
     assert high_without_timeline, "все HIGH держатся на одном признаке — шкала однобокая"
 
 
-def test_urgency_fires_on_7_of_the_14_extracted_deadlines(scores, facts):
+def test_urgency_fires_on_8_of_the_15_extracted_deadlines(scores, facts):
     """Сколько раз признак срочности реально сработал — числом, а не «работает».
 
     Считается по коду причины в карточке, а не по порогу из `rubric` и не по началу
     строки: тест видит поведение, а не константу, и переживает правку формулировки.
 
-    ИЗМЕРЕНО 2026-09-11: 14 сроков извлечено, 7 внутри горячего окна, 7 вне его.
-    Придуманных сроков среди них нет (слово «срочно» даты не даёт), а названные
-    словами считаются от даты обращения — поэтому их 14, а не 9.
+    ИЗМЕРЕНО 2026-09-11: 15 сроков извлечено, 8 внутри горячего окна, 7 вне его.
+    Придуманных сроков среди них нет (слово «срочно» даты не даёт), названные словами
+    считаются от даты обращения, а число без предлога («срок - 3 недели» у urg-06)
+    больше не теряется — поэтому их 15, а не 9 и не 14.
     """
     with_deadline = [f for f in facts if f.timeline_days is not None]
     fired = [s for s in scores if has_reason(s, ReasonCode.URGENT_TIMELINE)]
-    assert len(with_deadline) == 14
-    assert len(fired) == 7
+    assert len(with_deadline) == 15
+    assert len(fired) == 8
     assert len(with_deadline) - len(fired) == 7
 
 
 def test_urgency_in_words_is_counted_separately_from_a_named_deadline(scores, facts):
     """Заявленная словами срочность — свой признак со своей причиной, а не срок.
 
-    Негативный контроль правила: обе группы обязаны быть непустыми. Если бы словесная
-    срочность зажигала и `URGENT_TIMELINE`, признак снова означал бы придуманную дату;
-    если бы не зажигала ничего, набор потерял бы семь горячих обращений.
+    На наборе из 70 обращений этот признак больше не срабатывает НИ РАЗУ: ИЗМЕРЕНО
+    2026-09-11, было 1 (urg-06, «asap»), стало 0 — у urg-06 появился названный срок
+    «3 недели», и слово «asap» законно уступило ему место. Поэтому положительный
+    контроль признака переехал в отдельный тест на литеральном входе
+    (`test_wordless_urgency_still_fires_on_a_text_without_a_date`): корпус его теперь
+    не меряет, и молча считать это успехом нельзя.
+
+    Здесь остаются те проверки, которые корпус мерить всё ещё может: срок и словесная
+    срочность не сходятся на одном обращении ни фактом, ни причиной.
     """
     stated = [f for f in facts if f.urgency_stated]
-    # Признак-факт, а не только причина: обращение с названной датой не должно
-    # одновременно числиться «срочность заявлена словами, даты клиент не назвал».
     both_facts = [f for f in facts if f.urgency_stated and f.timeline_days is not None]
     assert not both_facts, "факты: у обращения есть и названный срок, и словесная срочность"
     by_words = [s for s in scores if has_reason(s, ReasonCode.URGENT_STATED)]
     by_date = [s for s in scores if has_reason(s, ReasonCode.URGENT_TIMELINE)]
-    assert len(stated) >= len(by_words) > 0, "словесная срочность не сработала ни разу"
+    assert len(stated) == len(by_words) == 0, (
+        "словесная срочность снова сработала на наборе — перемеряйте числа выше"
+    )
     assert by_date, "срок, названный клиентом, перестал срабатывать"
     both = [s for s in scores
             if has_reason(s, ReasonCode.URGENT_STATED)
             and has_reason(s, ReasonCode.URGENT_TIMELINE)]
     assert not both, "одно обращение получило и придуманную, и названную срочность"
+
+
+def test_wordless_urgency_still_fires_on_a_text_without_a_date():
+    """Положительный контроль признака словесной срочности на литеральном входе.
+
+    Корпус его больше не задевает (см. тест выше), а правило живо: текст со словом
+    «срочно» и без единого числа обязан дать `urgency_stated` и пустой `timeline_days`.
+    """
+    message = InboundMessage(
+        external_id="wordless-urgency",
+        channel="jivo",
+        text="нужен офис в Дубае, нужно срочно, перезвоните пожалуйста",
+        received_at=date(2026, 9, 11),
+    )
+    extracted = rules_facts(message)
+    assert extracted.timeline_days is None
+    assert extracted.urgency_stated is True

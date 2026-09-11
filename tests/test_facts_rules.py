@@ -613,3 +613,46 @@ def test_any_extracted_deadline_silences_wordless_urgency(text, received_at, exp
     facts = rules_facts(_with_date(text, received_at))
     assert facts.timeline_days == expected_timeline
     assert facts.urgency_stated is False
+
+
+# --- срок, названный числом без предлога ------------------------------------------
+#
+# Дефект: `NUM_DAYS_RE`/`NUM_WEEKS_RE` требовали предлога «через/in/within», и текст
+# «срок - 3 недели» (обращение urg-06 из data/inbound_seed.csv) не давал срока вовсе —
+# клиент срок назвал, движок его потерял. ИЗМЕРЕНО 2026-09-11: на 70 обращениях набора
+# задето 1 обращение, ложных срабатываний при снятии предлога — 0.
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        # Ровно тот вход, на котором дефект наблюдался (И2).
+        ("нам нужен office space asap, 10 seats, + 10 residence visa. срок - 3 недели.", 21),
+        # Предлог на месте — поведение прежнее (положительный контроль).
+        ("нужен офис через 3 недели", 21),
+        ("we need the office in 3 weeks", 21),
+        # Края диапазона и середина: один день, три недели, три месяца.
+        ("срок - 1 день", 1),
+        ("нужно за 10 дней", 10),
+        ("срок 90 дней", 90),
+        ("timeline 2 weeks", 14),
+        ("нужно за 1 неделю", 7),
+        # Негативный контроль: число о прошлом сроком не становится.
+        ("2 недели назад отправляли заявку, ответа нет", None),
+        ("we wrote 10 days ago and got no reply", None),
+        # Негативный контроль: числа не о времени срока не дают.
+        ("нужен офис на 8 человек", None),
+        ("12 рабочих мест, барша хайтс", None),
+    ],
+)
+def test_deadline_in_days_or_weeks_does_not_require_a_preposition(text, expected):
+    assert rules_facts(_with_date(text, date(2026, 9, 11))).timeline_days == expected
+
+
+def test_past_tense_number_does_not_hide_a_real_deadline_later_in_the_text():
+    """Отброшен должен быть только рассказ о прошлом, а не весь текст.
+
+    «писали 2 недели назад, а нужно за 10 дней» — срок здесь есть, и он второй.
+    """
+    text = "писали 2 недели назад, а нужно за 10 дней"
+    assert rules_facts(_with_date(text, date(2026, 9, 11))).timeline_days == 10

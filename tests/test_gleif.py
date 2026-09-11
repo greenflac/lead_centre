@@ -501,3 +501,180 @@ def test_url_is_built_with_filters_and_sort():
     fresh_url = GleifAdapter(mode="fresh", offline=True)._url(10)
     assert "sort=-entity.creationDate" in fresh_url
     assert "registration.status" not in fresh_url
+
+
+# --- статус юрлица: три исхода вместо двух ----------------------------------------
+#
+# Дефект: `entity.get("status") == "ACTIVE"` — всё остальное, включая слово NULL
+# («статус не сообщён») и отсутствие поля, означало «юрлицо неактивно» и роняло лид
+# в LOW с причиной, которой реестр не давал.
+#
+# ИЗМЕРЕНО 2026-09-11 запросом к api.gleif.org: перечисление значений выдаёт сам API
+# (`filter[entity.status]=ZZZ` → 400 «expected is one of ACTIVE, INACTIVE, NULL»),
+# по ОАЭ 9369 записей: ACTIVE 9236, INACTIVE 97, NULL 36. В офлайн-выборках
+# data/gleif_ae_*_sample.json (120 записей) все 120 ACTIVE — дефект на них не виден,
+# поэтому вход для него сохранён отдельным файлом tests/data/gleif_ae_odd_status_sample.json
+# (8 живых записей, выгрузка 2026-09-11).
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("ACTIVE", "active"),
+        ("INACTIVE", "inactive"),
+        ("NULL", "unknown"),      # слово реестра: «статус не сообщён»
+        ("active", "active"),     # регистр слова статуса решения не меняет
+        (" ACTIVE ", "active"),
+        ("DISSOLVED", "unknown"), # слово не из перечня реестра — не приговор юрлицу
+        ("", "unknown"),
+        (None, "unknown"),
+    ],
+)
+def test_entity_status_words_map_to_three_outcomes(raw, expected):
+    """Ожидаемое — литералы значений, а не импорт перечисления из проверяемого модуля."""
+    from leadcentre.sources.gleif import entity_status
+
+    assert entity_status(raw).value == expected
+
+
+def test_entity_status_unknown_is_not_entity_active():
+    """`entity_active` остаётся булевым для web/, но третий исход в нём не прячется."""
+    from leadcentre.sources.gleif import to_company
+
+    record = {
+        "attributes": {
+            "lei": "TESTLEI0000000000099",
+            "entity": {
+                "legalName": {"name": "Unknown Status Trading LLC"},
+                "status": "NULL",
+                "legalAddress": {"city": "Dubai", "country": "AE", "addressLines": ["Office 1"]},
+            },
+            "registration": {"status": "ISSUED", "nextRenewalDate": "2027-01-01T00:00:00Z"},
+        }
+    }
+    company = to_company(record)
+    assert company.entity_status.value == "unknown"
+    assert company.entity_status_raw == "NULL"
+    assert company.entity_active is False
+
+
+ODD_STATUS_SAMPLE = Path(__file__).resolve().parent / "data" / "gleif_ae_odd_status_sample.json"
+
+
+def test_odd_status_sample_is_what_the_registry_really_returned():
+    """Негативный контроль прибора: пустой файл сделал бы следующие числа бессмысленными.
+
+    Литералы выписаны руками из выгрузки 2026-09-11 (api.gleif.org, фильтры
+    entity.legalAddress.country=AE плюс registration.status / entity.status).
+    """
+    records = json.loads(ODD_STATUS_SAMPLE.read_text())
+    assert len(records) == 8
+    seen = sorted(
+        (r["attributes"]["entity"].get("status"), r["attributes"]["registration"]["status"])
+        for r in records
+    )
+    assert seen == [
+        ("ACTIVE", "PENDING_TRANSFER"),
+        ("ACTIVE", "PENDING_TRANSFER"),
+        ("INACTIVE", "RETIRED"),
+        ("INACTIVE", "RETIRED"),
+        ("NULL", "ANNULLED"),
+        ("NULL", "ANNULLED"),
+        ("NULL", "DUPLICATE"),
+        ("NULL", "DUPLICATE"),
+    ]
+
+
+def test_no_card_of_the_odd_sample_claims_an_inactive_entity_the_registry_never_reported():
+    """Главное требование правки: «реестр промолчал» не печатается как «юрлицо неактивно».
+
+    ИЗМЕРЕНО 2026-09-11 на этих же 8 записях: было 6 карточек с причиной
+    `entity_inactive` (4 из них — записи со словом NULL), стало 2 — ровно те, где
+    реестр написал INACTIVE.
+    """
+    from datetime import date as _date
+
+    from leadcentre.engine.reasons import ReasonCode
+    from leadcentre.engine.score import score
+
+    records = json.loads(ODD_STATUS_SAMPLE.read_text())
+    companies = [to_company(r) for r in records]
+    scores = [score(c, _date(2026, 9, 11)) for c in companies]
+    codes = [{i.code for i in s.reason_items} for s in scores]
+
+    inactive = [c.external_id for c, s in zip(companies, codes, strict=True)
+                if ReasonCode.ENTITY_INACTIVE in s]
+    unknown = [c.external_id for c, s in zip(companies, codes, strict=True)
+               if ReasonCode.ENTITY_STATUS_UNKNOWN in s]
+    assert len(inactive) == 2
+    assert len(unknown) == 4
+    for company, its_codes in zip(companies, codes, strict=True):
+        if company.entity_status_raw == "NULL":
+            assert ReasonCode.ENTITY_INACTIVE not in its_codes, company.external_id
+
+
+# --- метка языка: сравнение по BCP 47, а не буква в букву -------------------------
+
+
+@pytest.mark.parametrize(
+    ("tag", "expected"),
+    [
+        ("en", True),
+        ("EN", True),        # метки языка регистронезависимы (RFC 5646 §2.1.1)
+        ("en-US", True),     # подтег региона язык не меняет
+        ("en_GB", True),
+        ("eng", True),       # ISO 639-2/T того же языка
+        ("ar", False),
+        ("ar-AE", False),
+        ("", False),
+        (None, False),
+        ("english", False),  # не код языка: угадывать не беремся
+    ],
+)
+def test_english_language_tag_is_matched_by_its_primary_subtag(tag, expected):
+    from leadcentre.sources.gleif import is_english
+
+    assert is_english(tag) is expected
+
+
+def test_english_address_and_name_survive_an_uppercase_language_tag():
+    """Вход, на котором дефект воспроизводится: латиница помечена «EN», а не «en».
+
+    В выборках GLEIF по ОАЭ (1000 записей, ИЗМЕРЕНО 2026-09-11) таких меток нет —
+    поэтому вход здесь литеральный, а не из data/. Метка вида `pl-PL` в выдаче GLEIF
+    встречается (2 записи из 3000), то есть форма с подтегом реальна.
+    """
+    record = {
+        "attributes": {
+            "lei": "TESTLEI0000000000100",
+            "entity": {
+                "legalName": {"name": "شركة الاختبار"},
+                "status": "ACTIVE",
+                "legalAddress": {
+                    "city": "دبي",
+                    "country": "AE",
+                    "addressLines": ["شارع الاختبار"],
+                },
+                "otherAddresses": [
+                    {
+                        "type": "ALTERNATIVE_LANGUAGE_LEGAL_ADDRESS",
+                        "language": "EN-US",
+                        "city": "Dubai",
+                        "addressLines": ["Test Street"],
+                    }
+                ],
+                "otherNames": [
+                    {
+                        "type": "ALTERNATIVE_LANGUAGE_LEGAL_NAME",
+                        "language": "EN-US",
+                        "name": "Test Trading L.L.C",
+                    }
+                ],
+            },
+            "registration": {"status": "ISSUED", "nextRenewalDate": "2027-01-01T00:00:00Z"},
+        }
+    }
+    company = to_company(record)
+    assert company.name == "Test Trading L.L.C"
+    assert company.city == "Dubai"
+    assert company.country == "AE"

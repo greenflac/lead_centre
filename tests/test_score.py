@@ -17,7 +17,7 @@ from leadcentre.engine.score import (
     classify_event,
     score,
 )
-from leadcentre.models import AddressType, CityMatch, Event, Tier
+from leadcentre.models import AddressType, CityMatch, EntityStatus, Event, Tier
 from tests.conftest import (
     ADDR_BUSINESS_CENTRE,
     ADDR_EMPTY,
@@ -335,7 +335,7 @@ def test_city_does_not_raise_a_low_lead():
 
 def test_inactive_entity_is_low():
     """Негативный контроль: неактивное юрлицо — LOW, даже если ячейка матрицы HIGH."""
-    company = lapsed_company(10, address_lines=ADDR_REGISTRAR, entity_active=False)
+    company = lapsed_company(10, address_lines=ADDR_REGISTRAR, entity_status=EntityStatus.INACTIVE)
     result = score(company, TODAY)
     assert result.tier is Tier.LOW
     assert has_reason(result, ReasonCode.ENTITY_INACTIVE)
@@ -352,7 +352,7 @@ def test_non_ae_country_is_invalid_with_violation():
 
 def test_invalid_wins_over_inactive_low():
     """INVALID не сворачивается в LOW: «не смогли оценить» ≠ «оценили низко»."""
-    company = lapsed_company(10, country="SA", entity_active=False)
+    company = lapsed_company(10, country="SA", entity_status=EntityStatus.INACTIVE)
     result = score(company, TODAY)
     assert result.tier is Tier.INVALID
     assert len(result.violations) == 1
@@ -379,3 +379,148 @@ def test_evidence_without_optional_fields():
     company = make_company(license_no=None, created_on=None, next_renewal_on=None)
     result = score(company, TODAY)
     assert [e.kind for e in result.evidence] == ["lei"]
+
+
+# --- статус регистрации: «повода нет» и «статуса не знаем» — разные исходы ---------
+#
+# Дефект: сравнение с двумя литералами («LAPSED», «ISSUED»), и любое третье слово
+# реестра молча означало «повода для разговора нет». Перечисление статусов отдал сам
+# API GLEIF (ИЗМЕРЕНО 2026-09-11: ISSUED, LAPSED, ANNULLED, PENDING_TRANSFER,
+# PENDING_ARCHIVAL, DUPLICATE, RETIRED, MERGED; по ОАЭ 132 записи из 9369 — не ISSUED
+# и не LAPSED). Ожидаемое ниже — литералы кодов, а не импорт списка из rubric.
+
+
+@pytest.mark.parametrize(
+    ("status", "expected_code"),
+    [
+        # Оба статуса, по которым ось B считает повод: отдельной причины про статус нет.
+        ("ISSUED", None),
+        ("LAPSED", None),
+        # Известные реестру статусы, по которым повода нет: решение названо вслух.
+        ("RETIRED", ReasonCode.REGISTRATION_STATUS_NO_EVENT),
+        ("DUPLICATE", ReasonCode.REGISTRATION_STATUS_NO_EVENT),
+        ("ANNULLED", ReasonCode.REGISTRATION_STATUS_NO_EVENT),
+        ("MERGED", ReasonCode.REGISTRATION_STATUS_NO_EVENT),
+        ("PENDING_TRANSFER", ReasonCode.REGISTRATION_STATUS_NO_EVENT),
+        ("PENDING_ARCHIVAL", ReasonCode.REGISTRATION_STATUS_NO_EVENT),
+        # Слово не из перечня реестра: «не смогли определить», третий исход.
+        ("SUSPENDED", ReasonCode.REGISTRATION_STATUS_UNKNOWN),
+        ("ISSUED_AND_THEN_SOME", ReasonCode.REGISTRATION_STATUS_UNKNOWN),
+        # Поля нет вовсе.
+        ("", ReasonCode.REGISTRATION_STATUS_NOT_SET),
+        ("   ", ReasonCode.REGISTRATION_STATUS_NOT_SET),
+    ],
+)
+def test_registration_status_outcome_is_named_on_the_card(status, expected_code):
+    company = make_company(
+        registration_status=status,
+        created_on=TODAY - timedelta(days=1000),
+        next_renewal_on=TODAY + timedelta(days=300),
+    )
+    result = score(company, TODAY)
+    about_status = [
+        item.code for item in result.reason_items
+        if item.code in (
+            ReasonCode.REGISTRATION_STATUS_NO_EVENT,
+            ReasonCode.REGISTRATION_STATUS_UNKNOWN,
+            ReasonCode.REGISTRATION_STATUS_NOT_SET,
+        )
+    ]
+    assert about_status == ([expected_code] if expected_code else [])
+
+
+def test_unknown_registration_status_prints_the_word_the_registry_sent():
+    """Слово реестра едет в причину: без него «не смогли» нечем проверить руками."""
+    company = make_company(registration_status="SUSPENDED")
+    result = score(company, TODAY)
+    assert "SUSPENDED" in " ".join(result.reasons)
+
+
+@pytest.mark.parametrize("status", ["lapsed", " LAPSED ", "Lapsed"])
+def test_lapsed_status_is_recognised_whatever_the_case(status):
+    """Регистр слова статуса — не новость о компании: повод обязан сработать."""
+    company = make_company(
+        registration_status=status,
+        next_renewal_on=TODAY - timedelta(days=10),
+        created_on=TODAY - timedelta(days=1000),
+    )
+    event, _ = classify_event(company, TODAY)
+    assert event is Event.LAPSED
+
+
+@pytest.mark.parametrize("status", ["issued", "ISSUED"])
+def test_issued_status_is_recognised_whatever_the_case(status):
+    company = make_company(
+        registration_status=status,
+        next_renewal_on=TODAY + timedelta(days=10),
+        created_on=TODAY - timedelta(days=1000),
+    )
+    event, _ = classify_event(company, TODAY)
+    assert event is Event.RENEWAL_SOON
+
+
+def test_registration_status_reason_does_not_move_the_tier():
+    """Причина про статус объясняет молчание оси B, а не наказывает за него.
+
+    Та же компания с RETIRED и с выдуманным SUSPENDED обязана получить одну ступень:
+    двигает ступень повод, а не то, знаем ли мы слово.
+    """
+    retired = make_company(registration_status="RETIRED", address_lines=ADDR_REGISTRAR)
+    unknown = make_company(registration_status="SUSPENDED", address_lines=ADDR_REGISTRAR)
+    assert score(retired, TODAY).tier is score(unknown, TODAY).tier
+
+
+# --- статус юрлица: «неактивно» и «реестр промолчал» — разные исходы ---------------
+
+
+def test_unknown_entity_status_is_capped_at_medium_not_dropped_to_low():
+    """Слово NULL реестра — не приговор: ступень ограничена средней, а не LOW.
+
+    Ячейка матрицы у этой компании HIGH (адрес регистратора плюс свежая просрочка);
+    при INACTIVE она даёт LOW (тест выше), при UNKNOWN обязана дать MEDIUM.
+    """
+    company = lapsed_company(
+        10, address_lines=ADDR_REGISTRAR, entity_status=EntityStatus.UNKNOWN,
+        entity_status_raw="NULL",
+    )
+    result = score(company, TODAY)
+    assert result.tier is Tier.MEDIUM
+    assert has_reason(result, ReasonCode.ENTITY_STATUS_UNKNOWN)
+    assert not has_reason(result, ReasonCode.ENTITY_INACTIVE)
+    assert "NULL" in " ".join(result.reasons)
+
+
+def test_missing_entity_status_has_its_own_reason():
+    """Поля нет вовсе — отдельный код, а не слово-заглушка внутри score.py."""
+    company = lapsed_company(
+        10, address_lines=ADDR_REGISTRAR, entity_status=EntityStatus.UNKNOWN,
+        entity_status_raw="",
+    )
+    result = score(company, TODAY)
+    assert result.tier is Tier.MEDIUM
+    assert has_reason(result, ReasonCode.ENTITY_STATUS_NOT_SET)
+    assert not has_reason(result, ReasonCode.ENTITY_STATUS_UNKNOWN)
+
+
+def test_unknown_entity_status_does_not_raise_a_low_card():
+    """Ограничение работает в одну сторону: MEDIUM — потолок, а не пол.
+
+    Компания без повода (ячейка LOW) с несообщённым статусом остаётся LOW.
+    """
+    company = make_company(
+        entity_status=EntityStatus.UNKNOWN, entity_status_raw="NULL",
+        address_lines=ADDR_OWN, registration_status="RETIRED",
+    )
+    result = score(company, TODAY)
+    assert result.tier is Tier.LOW
+    assert has_reason(result, ReasonCode.ENTITY_STATUS_UNKNOWN)
+
+
+def test_active_entity_gets_no_status_reason_at_all():
+    """Положительный контроль: у обычной активной компании ни одной причины про статус."""
+    company = lapsed_company(10, address_lines=ADDR_REGISTRAR)
+    result = score(company, TODAY)
+    assert not has_reason(result, ReasonCode.ENTITY_INACTIVE)
+    assert not has_reason(result, ReasonCode.ENTITY_STATUS_UNKNOWN)
+    assert not has_reason(result, ReasonCode.ENTITY_STATUS_NOT_SET)
+    assert result.tier is Tier.HIGH
