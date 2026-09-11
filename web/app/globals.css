@@ -420,10 +420,12 @@ table.grid th {
   border: 1px solid var(--outline-variant);
   border-radius: var(--r-small);
   padding: 12px;
-  /* 266 = 12 строк по 20 px + 24 padding + 2 border: обрез приходится между строками,
-     а не на половину букв (кадр 07-empty-state.png). Сам факт обрезки подписывает
-     LeadCard, измерив её. */
-  max-height: 266px;
+  /* Обрез приходится ровно между строками, а не на половину букв. Считать надо не по
+     content-box: в прокручиваемой коробке текст виден и в нижнем padding, режет её
+     padding-box. ИЗМЕРЕНО в браузере: видимая высота текста = clientHeight - padding-top,
+     поэтому 12 строк по 20 px + 12 padding-top + 2 border = 254, и тринадцатая строка
+     не показывается наполовину. Сам факт обрезки подписывает LeadCard, измерив её. */
+  max-height: 254px;
   overflow-y: auto;
 }
 /* Подсветка цитаты, на которой построена причина. */
@@ -631,14 +633,27 @@ table.grid { width: 100%; border-collapse: collapse; }
    просрочки, «evidence» — сам идентификатор записи (LEI, ровно 20 символов) и дату, ради
    которой строка тут, «flag» — подпись типа адреса словами, а не машинную метку.
    min-width 1180 -> 1252 (ИЗМЕРЕНО в браузере на 60 строках набора: самой широкой
-   ячейке evidence нужно 378 px, address type — 143 px). */
-table.grid-fixed { table-layout: fixed; min-width: 1252px; }
+   ячейке evidence нужно 378 px, address type — 143 px).
+   После правки рубрики районы Дубая стали целевыми, и в колонке города появились
+   «Nad Al Sheba» и «Dubai Silicon Oasis». Обрезанные до «Nad Al S…», они противоречили
+   строке: приоритет HIGH стоит ровно потому, что это Дубай, а прочитать это было нельзя.
+
+   ИЗМЕРЕНО 2026-09-11 в браузере при ширине окна 1440: контейнер таблицы даёт 1270 px,
+   и это потолок — что шире, то режется краем экрана, а не многоточием. Потребность
+   колонок: приоритет 89, компания 505 (медиана 228), тип адреса 143, город 223
+   («Dubai Silicon Oasis» — 169), причина 687 (медиана 251), доказательства 406.
+   Сумма потребностей вдвое больше потолка, поэтому режется не всё подряд, а выбранное:
+   причина и номер LEI влезают целиком на типичной строке, перерасход забран у названий
+   компаний — они режутся и так (26 строк из 60), и целиком лежат под наведением.
+   Строки с двумя причинами сразу («просрочка + город вне списка», 687 px) не влезут ни
+   при какой раскладке; там читается первая причина, вторая — под наведением. */
+table.grid-fixed { table-layout: fixed; min-width: 1270px; }
 table.grid-fixed col.c-priority { width: 88px; }
-table.grid-fixed col.c-company { width: 240px; }
+table.grid-fixed col.c-company { width: 208px; }
 table.grid-fixed col.c-flag { width: 148px; }
-table.grid-fixed col.c-city { width: 104px; }
-table.grid-fixed col.c-why { width: 280px; }
-table.grid-fixed col.c-evidence { width: 392px; }
+table.grid-fixed col.c-city { width: 168px; }
+table.grid-fixed col.c-why { width: 252px; }
+table.grid-fixed col.c-evidence { width: 406px; }
 table.grid th {
   text-align: start;
   padding: 16px;

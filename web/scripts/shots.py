@@ -87,7 +87,10 @@ def main() -> int:
                                page.locator(".panel").nth(1)))
 
         if want("07"):
-            page.locator("input.search-box").fill("zzzz-no-such-request")
+            # Правдоподобный запрос, а не «zzzz»: пустое состояние показывают менеджеру, и в
+            # строке поиска должно стоять то, что он мог бы набрать. ИЗМЕРЕНО: «Ras Al Khaimah»
+            # не встречается ни в одном из 70 обращений, то есть состояние честно пустое.
+            page.locator("input.search-box").fill("Ras Al Khaimah")
             page.wait_for_timeout(300)
             page.locator("input.search-box").blur()
             page.wait_for_timeout(150)
