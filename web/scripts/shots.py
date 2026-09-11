@@ -48,6 +48,15 @@ def main() -> int:
     def want(name: str) -> bool:
         return not only or name.startswith(only)
 
+    def want_live(name: str) -> bool:
+        """Кадр живого режима: только по явному запросу, никогда «заодно».
+
+        Без этого обычный прогон против мока снял бы 08/09 с ярлыком «Live backend»
+        над демо-данными — ровно та ложь, из-за которой прежние кадры показывали
+        встроенную заглушку под видом живого извлечения.
+        """
+        return bool(only) and name.startswith(only)
+
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path=CHROME, args=["--no-sandbox"])
         page = browser.new_page(viewport={"width": WIDTH, "height": HEIGHT},
@@ -104,6 +113,30 @@ def main() -> int:
             taken.append(shoot(page, "05-discovered.png"))
             page.get_by_role("tab", name="Inbox").click()
             page.wait_for_timeout(300)
+
+        # Кадры живого режима снимаются только против дашборда, СОБРАННОГО с
+        # NEXT_PUBLIC_API_URL: Next вшивает эту переменную в сборку, поэтому отдельной
+        # сборки не избежать. Оркестровка — `make shots-live`; здесь только съёмка.
+        # Без флага не снимаются намеренно: против мока получится ярлык «Live backend»
+        # над демо-данными, а это ровно та ложь, из-за которой прежние кадры 08/09
+        # показывали заглушку под видом живого извлечения.
+        if want_live("08"):
+            taken.append(shoot(page, "08-live-backend.png"))
+
+        if want_live("09"):
+            page.get_by_role("tab", name="New request").click()
+            page.wait_for_timeout(300)
+            page.get_by_role("button", name="Urgent team relocation (RU)").click()
+            page.wait_for_timeout(200)
+            page.get_by_role("button", name="Score this request").click()
+            # Живое извлечение идёт секундами, а не мгновенно: ждём карточку, а не таймер.
+            page.wait_for_selector(".card-head", timeout=90000)
+            page.wait_for_timeout(600)
+            # Снимается сама карточка, а не окно: на живом обращении она длиннее экрана,
+            # и кадр по окну обрезал её ровно перед черновиком — то есть перед тем, ради
+            # чего кадр и нужен.
+            taken.append(shoot(page, "09-live-new-request.png",
+                               page.locator(".panel").last))
 
         if want("03"):
             page.get_by_role("tab", name="New request").click()
