@@ -1,0 +1,1163 @@
+[
+ {
+  "type": "lei-records",
+  "id": "9845002DIE470D375048",
+  "attributes": {
+   "lei": "9845002DIE470D375048",
+   "entity": {
+    "legalName": {
+     "name": "ايكو اكس راب للخدمات الفنيه ش.ذ.م.م",
+     "language": "ar"
+    },
+    "otherNames": [
+     {
+      "name": "STAR EXIM GENERAL TRADING LLC",
+      "language": "en",
+      "type": "TRADING_OR_OPERATING_NAME"
+     },
+     {
+      "name": "ECO X WARP TECHNICAL SERVICES L.L.C",
+      "language": "en",
+      "type": "ALTERNATIVE_LANGUAGE_LEGAL_NAME"
+     }
+    ],
+    "transliteratedOtherNames": [],
+    "legalAddress": {
+     "language": "en",
+     "addressLines": [
+      "Deira Oud Al Muteena 3"
+     ],
+     "addressNumber": null,
+     "addressNumberWithinBuilding": null,
+     "mailRouting": null,
+     "city": "Dubai",
+     "region": "AE-DU",
+     "country": "AE",
+     "postalCode": null
+    },
+    "headquartersAddress": {
+     "language": "ar",
+     "addressLines": [
+      "مكتب 06-2901-ملك الصقر الادارة العقارات (ش.ذ.م.م) فرع دبي-المركز التجاري الثاني"
+     ],
+     "addressNumber": null,
+     "addressNumberWithinBuilding": null,
+     "mailRouting": null,
+     "city": "بردبي",
+     "region": "AE-DU",
+     "country": "AE",
+     "postalCode": null
+    },
+    "registeredAt": {
+     "id": "RA000752",
+     "other": null
+    },
+    "registeredAs": "2010000000001134210",
+    "jurisdiction": "AE",
+    "category": "GENERAL",
+    "legalForm": {
+     "id": "RWVW",
+     "other": null
+    },
+    "associatedEntity": {
+     "lei": null,
+     "name": null
+    },
+    "status": "NULL",
+    "expiration": {
+     "date": null,
+     "reason": null
+    },
+    "successorEntity": {
+     "lei": null,
+     "name": null
+    },
+    "successorEntities": [],
+    "creationDate": "2022-12-30T00:00:00Z",
+    "subCategory": null,
+    "otherAddresses": [],
+    "eventGroups": []
+   },
+   "registration": {
+    "initialRegistrationDate": "2023-11-29T11:12:39Z",
+    "lastUpdateDate": "2025-05-27T12:53:23Z",
+    "status": "ANNULLED",
+    "nextRenewalDate": "2024-11-29T11:12:42Z",
+    "managingLou": "529900T8BM49AURSDO55",
+    "corroborationLevel": "PARTIALLY_CORROBORATED",
+    "validatedAt": {
+     "id": "RA000752",
+     "other": null
+    },
+    "validatedAs": "2010000000001134210",
+    "otherValidationAuthorities": []
+   },
+   "bic": null,
+   "mic": null,
+   "ocid": null,
+   "qcc": null,
+   "gem": null,
+   "spglobal": null,
+   "conformityFlag": "NOT_APPLICABLE"
+  },
+  "relationships": {
+   "managing-lou": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/9845002DIE470D375048/managing-lou"
+    }
+   },
+   "lei-issuer": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/9845002DIE470D375048/lei-issuer"
+    }
+   },
+   "field-modifications": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/9845002DIE470D375048/field-modifications"
+    }
+   },
+   "direct-parent": {
+    "links": {
+     "reporting-exception": "https://api.gleif.org/api/v1/lei-records/9845002DIE470D375048/direct-parent-reporting-exception"
+    }
+   },
+   "ultimate-parent": {
+    "links": {
+     "reporting-exception": "https://api.gleif.org/api/v1/lei-records/9845002DIE470D375048/ultimate-parent-reporting-exception"
+    }
+   }
+  },
+  "links": {
+   "self": "https://api.gleif.org/api/v1/lei-records/9845002DIE470D375048"
+  }
+ },
+ {
+  "type": "lei-records",
+  "id": "558600FM4JX57HZ3B116",
+  "attributes": {
+   "lei": "558600FM4JX57HZ3B116",
+   "entity": {
+    "legalName": {
+     "name": "Qarar Consultancy FZ-LLC",
+     "language": "en-US"
+    },
+    "otherNames": [],
+    "transliteratedOtherNames": [],
+    "legalAddress": {
+     "language": "en-US",
+     "addressLines": [
+      "Dubai Internet City, Building 12",
+      "office 220"
+     ],
+     "addressNumber": null,
+     "addressNumberWithinBuilding": null,
+     "mailRouting": null,
+     "city": "Dubai",
+     "region": null,
+     "country": "AE",
+     "postalCode": "502390"
+    },
+    "headquartersAddress": {
+     "language": "en-US",
+     "addressLines": [
+      "Dubai Internet City, Building 12",
+      "office 220"
+     ],
+     "addressNumber": null,
+     "addressNumberWithinBuilding": null,
+     "mailRouting": null,
+     "city": "Dubai",
+     "region": null,
+     "country": "AE",
+     "postalCode": "502390"
+    },
+    "registeredAt": {
+     "id": "RA000568",
+     "other": null
+    },
+    "registeredAs": "91618",
+    "jurisdiction": "AE",
+    "category": "SOLE_PROPRIETOR",
+    "legalForm": {
+     "id": "RWVW",
+     "other": null
+    },
+    "associatedEntity": {
+     "lei": null,
+     "name": null
+    },
+    "status": "NULL",
+    "expiration": {
+     "date": null,
+     "reason": null
+    },
+    "successorEntity": {
+     "lei": null,
+     "name": null
+    },
+    "successorEntities": [],
+    "creationDate": "2013-06-16T21:00:00Z",
+    "subCategory": null,
+    "otherAddresses": [],
+    "eventGroups": []
+   },
+   "registration": {
+    "initialRegistrationDate": "2015-08-27T11:26:07Z",
+    "lastUpdateDate": "2022-10-22T07:56:41Z",
+    "status": "ANNULLED",
+    "nextRenewalDate": "2016-08-27T11:26:08Z",
+    "managingLou": "558600FNC30A8J9EGQ54",
+    "corroborationLevel": "FULLY_CORROBORATED",
+    "validatedAt": {
+     "id": "RA000568",
+     "other": null
+    },
+    "validatedAs": "91618",
+    "otherValidationAuthorities": []
+   },
+   "bic": null,
+   "mic": null,
+   "ocid": null,
+   "qcc": null,
+   "gem": null,
+   "spglobal": null,
+   "conformityFlag": "NOT_APPLICABLE"
+  },
+  "relationships": {
+   "managing-lou": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/558600FM4JX57HZ3B116/managing-lou"
+    }
+   },
+   "lei-issuer": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/558600FM4JX57HZ3B116/lei-issuer"
+    }
+   },
+   "field-modifications": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/558600FM4JX57HZ3B116/field-modifications"
+    }
+   },
+   "direct-parent": {
+    "links": {
+     "reporting-exception": "https://api.gleif.org/api/v1/lei-records/558600FM4JX57HZ3B116/direct-parent-reporting-exception"
+    }
+   },
+   "ultimate-parent": {
+    "links": {
+     "reporting-exception": "https://api.gleif.org/api/v1/lei-records/558600FM4JX57HZ3B116/ultimate-parent-reporting-exception"
+    }
+   }
+  },
+  "links": {
+   "self": "https://api.gleif.org/api/v1/lei-records/558600FM4JX57HZ3B116"
+  }
+ },
+ {
+  "type": "lei-records",
+  "id": "98450038601B0B0F6655",
+  "attributes": {
+   "lei": "98450038601B0B0F6655",
+   "entity": {
+    "legalName": {
+     "name": "مالبي مانيبال اوفرسيز فينتشرز ش.ذ.م.م-منطقة حرة",
+     "language": "ar"
+    },
+    "otherNames": [
+     {
+      "name": "Malpe Manipal Overseas Ventures L.L.C-FZ",
+      "language": "en",
+      "type": "ALTERNATIVE_LANGUAGE_LEGAL_NAME"
+     }
+    ],
+    "transliteratedOtherNames": [],
+    "legalAddress": {
+     "language": "en",
+     "addressLines": [
+      "Business Center 1, M Floor",
+      "The Meydan Hotel",
+      "Nad Al Sheba"
+     ],
+     "addressNumber": null,
+     "addressNumberWithinBuilding": null,
+     "mailRouting": null,
+     "city": "Dubai",
+     "region": "AE-DU",
+     "country": "AE",
+     "postalCode": null
+    },
+    "headquartersAddress": {
+     "language": "en",
+     "addressLines": [
+      "Business Center 1, M Floor",
+      "The Meydan Hotel",
+      "Nad Al Sheba"
+     ],
+     "addressNumber": null,
+     "addressNumberWithinBuilding": null,
+     "mailRouting": null,
+     "city": "Dubai",
+     "region": "AE-DU",
+     "country": "AE",
+     "postalCode": null
+    },
+    "registeredAt": {
+     "id": "RA000752",
+     "other": null
+    },
+    "registeredAs": "2280000000253400201",
+    "jurisdiction": "AE",
+    "category": "GENERAL",
+    "legalForm": {
+     "id": "8888",
+     "other": "Free Zone Limited Liability Company (FZ-LLC)"
+    },
+    "associatedEntity": {
+     "lei": null,
+     "name": null
+    },
+    "status": "ACTIVE",
+    "expiration": {
+     "date": null,
+     "reason": null
+    },
+    "successorEntity": {
+     "lei": null,
+     "name": null
+    },
+    "successorEntities": [],
+    "creationDate": "2025-07-04T00:00:00Z",
+    "subCategory": null,
+    "otherAddresses": [],
+    "eventGroups": []
+   },
+   "registration": {
+    "initialRegistrationDate": "2025-08-13T08:40:53Z",
+    "lastUpdateDate": "2026-09-09T14:04:51Z",
+    "status": "PENDING_TRANSFER",
+    "nextRenewalDate": "2026-08-13T08:40:55Z",
+    "managingLou": "529900T8BM49AURSDO55",
+    "corroborationLevel": "FULLY_CORROBORATED",
+    "validatedAt": {
+     "id": "RA000752",
+     "other": null
+    },
+    "validatedAs": "2280000000253400201",
+    "otherValidationAuthorities": []
+   },
+   "bic": null,
+   "mic": null,
+   "ocid": null,
+   "qcc": null,
+   "gem": null,
+   "spglobal": [
+    "1956731353"
+   ],
+   "conformityFlag": "NON_CONFORMING"
+  },
+  "relationships": {
+   "managing-lou": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/98450038601B0B0F6655/managing-lou"
+    }
+   },
+   "lei-issuer": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/98450038601B0B0F6655/lei-issuer"
+    }
+   },
+   "field-modifications": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/98450038601B0B0F6655/field-modifications"
+    }
+   },
+   "direct-parent": {
+    "links": {
+     "reporting-exception": "https://api.gleif.org/api/v1/lei-records/98450038601B0B0F6655/direct-parent-reporting-exception"
+    }
+   },
+   "ultimate-parent": {
+    "links": {
+     "reporting-exception": "https://api.gleif.org/api/v1/lei-records/98450038601B0B0F6655/ultimate-parent-reporting-exception"
+    }
+   }
+  },
+  "links": {
+   "self": "https://api.gleif.org/api/v1/lei-records/98450038601B0B0F6655"
+  }
+ },
+ {
+  "type": "lei-records",
+  "id": "254900YPRAFS93Z71748",
+  "attributes": {
+   "lei": "254900YPRAFS93Z71748",
+   "entity": {
+    "legalName": {
+     "name": "فورتونافي م.د.م.س",
+     "language": "ar"
+    },
+    "otherNames": [
+     {
+      "name": "FORTUNAVI DMCC",
+      "language": "en",
+      "type": "PREVIOUS_LEGAL_NAME"
+     }
+    ],
+    "transliteratedOtherNames": [
+     {
+      "name": "FORTUNAVI FZCO",
+      "language": "ar",
+      "type": "PREFERRED_ASCII_TRANSLITERATED_LEGAL_NAME"
+     }
+    ],
+    "legalAddress": {
+     "language": "en",
+     "addressLines": [
+      "Unit No: 603",
+      "Preatoni Tower",
+      "Plot No: JLT-PH1-L2A",
+      "Jumeirah Lakes Towers"
+     ],
+     "addressNumber": null,
+     "addressNumberWithinBuilding": null,
+     "mailRouting": null,
+     "city": "Dubai",
+     "region": "AE-DU",
+     "country": "AE",
+     "postalCode": "51950"
+    },
+    "headquartersAddress": {
+     "language": "en",
+     "addressLines": [
+      "Unit No: 603",
+      "Preatoni Tower",
+      "Plot No: JLT-PH1-L2A",
+      "Jumeirah Lakes Towers"
+     ],
+     "addressNumber": null,
+     "addressNumberWithinBuilding": null,
+     "mailRouting": null,
+     "city": "Dubai",
+     "region": "AE-DU",
+     "country": "AE",
+     "postalCode": "51950"
+    },
+    "registeredAt": {
+     "id": "RA000715",
+     "other": null
+    },
+    "registeredAs": "DMCC-816010",
+    "jurisdiction": "AE-DU",
+    "category": "GENERAL",
+    "legalForm": {
+     "id": "8888",
+     "other": "Free Zone Company"
+    },
+    "associatedEntity": {
+     "lei": null,
+     "name": null
+    },
+    "status": "ACTIVE",
+    "expiration": {
+     "date": null,
+     "reason": null
+    },
+    "successorEntity": {
+     "lei": null,
+     "name": null
+    },
+    "successorEntities": [],
+    "creationDate": "2021-06-28T00:00:00Z",
+    "subCategory": null,
+    "otherAddresses": [],
+    "eventGroups": [
+     {
+      "groupType": "STANDALONE",
+      "events": [
+       {
+        "validationDocuments": "SUPPORTING_DOCUMENTS",
+        "effectiveDate": "2025-06-16T00:00:00Z",
+        "recordedDate": "2025-09-26T00:00:00Z",
+        "type": "CHANGE_LEGAL_NAME",
+        "status": "COMPLETED"
+       }
+      ]
+     }
+    ]
+   },
+   "registration": {
+    "initialRegistrationDate": "2024-09-25T14:53:53Z",
+    "lastUpdateDate": "2026-09-07T15:43:57Z",
+    "status": "PENDING_TRANSFER",
+    "nextRenewalDate": "2026-10-29T14:39:35Z",
+    "managingLou": "5493001KJTIIGC8Y1R12",
+    "corroborationLevel": "FULLY_CORROBORATED",
+    "validatedAt": {
+     "id": "RA000715",
+     "other": null
+    },
+    "validatedAs": "DMCC-816010",
+    "otherValidationAuthorities": []
+   },
+   "bic": null,
+   "mic": null,
+   "ocid": null,
+   "qcc": "QAEMBDQUQ3",
+   "gem": null,
+   "spglobal": [
+    "1898652893"
+   ],
+   "conformityFlag": "NON_CONFORMING"
+  },
+  "relationships": {
+   "managing-lou": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/254900YPRAFS93Z71748/managing-lou"
+    }
+   },
+   "lei-issuer": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/254900YPRAFS93Z71748/lei-issuer"
+    }
+   },
+   "field-modifications": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/254900YPRAFS93Z71748/field-modifications"
+    }
+   },
+   "direct-parent": {
+    "links": {
+     "reporting-exception": "https://api.gleif.org/api/v1/lei-records/254900YPRAFS93Z71748/direct-parent-reporting-exception"
+    }
+   },
+   "ultimate-parent": {
+    "links": {
+     "reporting-exception": "https://api.gleif.org/api/v1/lei-records/254900YPRAFS93Z71748/ultimate-parent-reporting-exception"
+    }
+   }
+  },
+  "links": {
+   "self": "https://api.gleif.org/api/v1/lei-records/254900YPRAFS93Z71748"
+  }
+ },
+ {
+  "type": "lei-records",
+  "id": "98450082B7D64888EE36",
+  "attributes": {
+   "lei": "98450082B7D64888EE36",
+   "entity": {
+    "legalName": {
+     "name": "CHADWELL INTERNATIONAL FZ-LLC DMCC",
+     "language": "en"
+    },
+    "otherNames": [
+     {
+      "name": "تشادويل إنترناشيونال ش.م.ح - ذ.م.م م.د.م.س",
+      "language": "ar",
+      "type": "ALTERNATIVE_LANGUAGE_LEGAL_NAME"
+     }
+    ],
+    "transliteratedOtherNames": [],
+    "legalAddress": {
+     "language": "en",
+     "addressLines": [
+      "Unit No: AG-04-G",
+      "AG Tower",
+      "Plot No: JLT-PH1-I1A",
+      "Jumeirah Lakes Towers"
+     ],
+     "addressNumber": null,
+     "addressNumberWithinBuilding": null,
+     "mailRouting": null,
+     "city": "Dubai",
+     "region": "AE-DU",
+     "country": "AE",
+     "postalCode": null
+    },
+    "headquartersAddress": {
+     "language": "en",
+     "addressLines": [
+      "Unit No: AG-04-G",
+      "AG Tower",
+      "Plot No: JLT-PH1-I1A",
+      "Jumeirah Lakes Towers"
+     ],
+     "addressNumber": null,
+     "addressNumberWithinBuilding": null,
+     "mailRouting": null,
+     "city": "Dubai",
+     "region": "AE-DU",
+     "country": "AE",
+     "postalCode": null
+    },
+    "registeredAt": {
+     "id": "RA000715",
+     "other": null
+    },
+    "registeredAs": "DMCC192895",
+    "jurisdiction": "AE-DU",
+    "category": "GENERAL",
+    "legalForm": {
+     "id": "8888",
+     "other": "Free Zone Company (FZC)"
+    },
+    "associatedEntity": {
+     "lei": null,
+     "name": null
+    },
+    "status": "NULL",
+    "expiration": {
+     "date": null,
+     "reason": null
+    },
+    "successorEntity": {
+     "lei": "5493003K2TTIM4T8LT93",
+     "name": null
+    },
+    "successorEntities": [
+     {
+      "lei": "5493003K2TTIM4T8LT93"
+     }
+    ],
+    "creationDate": "2022-04-10T00:00:00Z",
+    "subCategory": null,
+    "otherAddresses": [
+     {
+      "fieldType": "OtherAddress",
+      "language": "ar",
+      "type": "ALTERNATIVE_LANGUAGE_LEGAL_ADDRESS",
+      "addressLines": [
+       "AG-04-G",
+       "برج الفضة",
+       "أرض رقم: جي ال تي- بي اتش1-آي 1 أي",
+       "ابراج بحيرات جميرا"
+      ],
+      "city": "دبي",
+      "region": "AE-DU",
+      "country": "AE"
+     },
+     {
+      "fieldType": "OtherAddress",
+      "language": "ar",
+      "type": "ALTERNATIVE_LANGUAGE_HEADQUARTERS_ADDRESS",
+      "addressLines": [
+       "AG-04-G",
+       "برج الفضة",
+       "أرض رقم: جي ال تي- بي اتش1-آي 1 أي",
+       "ابراج بحيرات جميرا"
+      ],
+      "city": "دبي",
+      "region": "AE-DU",
+      "country": "AE"
+     }
+    ],
+    "eventGroups": []
+   },
+   "registration": {
+    "initialRegistrationDate": "2026-08-26T06:10:01Z",
+    "lastUpdateDate": "2026-09-04T10:42:47Z",
+    "status": "DUPLICATE",
+    "nextRenewalDate": "2027-08-26T06:10:04Z",
+    "managingLou": "529900T8BM49AURSDO55",
+    "corroborationLevel": "FULLY_CORROBORATED",
+    "validatedAt": {
+     "id": "RA000715",
+     "other": null
+    },
+    "validatedAs": "DMCC192895",
+    "otherValidationAuthorities": []
+   },
+   "bic": null,
+   "mic": null,
+   "ocid": null,
+   "qcc": null,
+   "gem": null,
+   "spglobal": null,
+   "conformityFlag": "NOT_APPLICABLE"
+  },
+  "relationships": {
+   "managing-lou": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/98450082B7D64888EE36/managing-lou"
+    }
+   },
+   "lei-issuer": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/98450082B7D64888EE36/lei-issuer"
+    }
+   },
+   "field-modifications": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/98450082B7D64888EE36/field-modifications"
+    }
+   },
+   "direct-parent": {
+    "links": {
+     "reporting-exception": "https://api.gleif.org/api/v1/lei-records/98450082B7D64888EE36/direct-parent-reporting-exception"
+    }
+   },
+   "ultimate-parent": {
+    "links": {
+     "reporting-exception": "https://api.gleif.org/api/v1/lei-records/98450082B7D64888EE36/ultimate-parent-reporting-exception"
+    }
+   },
+   "successor-entity": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/98450082B7D64888EE36/successor-entity"
+    }
+   },
+   "successor-entities": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/98450082B7D64888EE36/successor-entities"
+    }
+   }
+  },
+  "links": {
+   "self": "https://api.gleif.org/api/v1/lei-records/98450082B7D64888EE36"
+  }
+ },
+ {
+  "type": "lei-records",
+  "id": "984500EA7F0536M3EQ76",
+  "attributes": {
+   "lei": "984500EA7F0536M3EQ76",
+   "entity": {
+    "legalName": {
+     "name": "إن إم دي سي إنيرجي - ش.م.ع",
+     "language": "ar"
+    },
+    "otherNames": [
+     {
+      "name": "NMDC ENERGY - P.J.S.C",
+      "language": "en",
+      "type": "ALTERNATIVE_LANGUAGE_LEGAL_NAME"
+     }
+    ],
+    "transliteratedOtherNames": [],
+    "legalAddress": {
+     "language": "en",
+     "addressLines": [
+      "MW-5 - (15)",
+      "Mussaffah"
+     ],
+     "addressNumber": null,
+     "addressNumberWithinBuilding": null,
+     "mailRouting": null,
+     "city": "Abu Dhabi",
+     "region": "AE-AZ",
+     "country": "AE",
+     "postalCode": null
+    },
+    "headquartersAddress": {
+     "language": "en",
+     "addressLines": [
+      "MW-5 - (15)",
+      "Mussaffah"
+     ],
+     "addressNumber": null,
+     "addressNumberWithinBuilding": null,
+     "mailRouting": null,
+     "city": "Abu Dhabi",
+     "region": "AE-AZ",
+     "country": "AE",
+     "postalCode": null
+    },
+    "registeredAt": {
+     "id": "RA000752",
+     "other": null
+    },
+    "registeredAs": "1020000000IN1001041",
+    "jurisdiction": "AE",
+    "category": "GENERAL",
+    "legalForm": {
+     "id": "JGNU",
+     "other": null
+    },
+    "associatedEntity": {
+     "lei": null,
+     "name": null
+    },
+    "status": "NULL",
+    "expiration": {
+     "date": null,
+     "reason": null
+    },
+    "successorEntity": {
+     "lei": "98450002B5J792BUCB43",
+     "name": null
+    },
+    "successorEntities": [
+     {
+      "lei": "98450002B5J792BUCB43"
+     }
+    ],
+    "creationDate": "1980-12-21T00:00:00Z",
+    "subCategory": null,
+    "otherAddresses": [],
+    "eventGroups": []
+   },
+   "registration": {
+    "initialRegistrationDate": "2026-04-29T11:20:37Z",
+    "lastUpdateDate": "2026-06-03T13:09:17Z",
+    "status": "DUPLICATE",
+    "nextRenewalDate": "2027-04-29T11:20:40Z",
+    "managingLou": "529900T8BM49AURSDO55",
+    "corroborationLevel": "FULLY_CORROBORATED",
+    "validatedAt": {
+     "id": "RA000752",
+     "other": null
+    },
+    "validatedAs": "1020000000IN1001041",
+    "otherValidationAuthorities": [
+     {
+      "validatedAt": {
+       "id": "RA000568"
+      },
+      "validatedAs": "IN1001041"
+     }
+    ]
+   },
+   "bic": null,
+   "mic": null,
+   "ocid": null,
+   "qcc": null,
+   "gem": null,
+   "spglobal": null,
+   "conformityFlag": "NOT_APPLICABLE"
+  },
+  "relationships": {
+   "managing-lou": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/984500EA7F0536M3EQ76/managing-lou"
+    }
+   },
+   "lei-issuer": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/984500EA7F0536M3EQ76/lei-issuer"
+    }
+   },
+   "field-modifications": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/984500EA7F0536M3EQ76/field-modifications"
+    }
+   },
+   "direct-parent": {
+    "links": {
+     "reporting-exception": "https://api.gleif.org/api/v1/lei-records/984500EA7F0536M3EQ76/direct-parent-reporting-exception"
+    }
+   },
+   "ultimate-parent": {
+    "links": {
+     "reporting-exception": "https://api.gleif.org/api/v1/lei-records/984500EA7F0536M3EQ76/ultimate-parent-reporting-exception"
+    }
+   },
+   "successor-entity": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/984500EA7F0536M3EQ76/successor-entity"
+    }
+   },
+   "successor-entities": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/984500EA7F0536M3EQ76/successor-entities"
+    }
+   }
+  },
+  "links": {
+   "self": "https://api.gleif.org/api/v1/lei-records/984500EA7F0536M3EQ76"
+  }
+ },
+ {
+  "type": "lei-records",
+  "id": "984500C660C0DC67A878",
+  "attributes": {
+   "lei": "984500C660C0DC67A878",
+   "entity": {
+    "legalName": {
+     "name": "سينتيلا نتورك م.م.ح",
+     "language": "ar"
+    },
+    "otherNames": [
+     {
+      "name": "Scintilla Network FZE",
+      "language": "en",
+      "type": "ALTERNATIVE_LANGUAGE_LEGAL_NAME"
+     }
+    ],
+    "transliteratedOtherNames": [],
+    "legalAddress": {
+     "language": "en",
+     "addressLines": [
+      "Office 09-116(001-003) Wework"
+     ],
+     "addressNumber": null,
+     "addressNumberWithinBuilding": null,
+     "mailRouting": null,
+     "city": "Dubai",
+     "region": "AE-DU",
+     "country": "AE",
+     "postalCode": null
+    },
+    "headquartersAddress": {
+     "language": "en",
+     "addressLines": [
+      "Office 09-116(001-003) Wework"
+     ],
+     "addressNumber": null,
+     "addressNumberWithinBuilding": null,
+     "mailRouting": null,
+     "city": "Dubai",
+     "region": "AE-DU",
+     "country": "AE",
+     "postalCode": null
+    },
+    "registeredAt": {
+     "id": "RA000752",
+     "other": null
+    },
+    "registeredAs": "22200000000000L2465",
+    "jurisdiction": "AE",
+    "category": "GENERAL",
+    "legalForm": {
+     "id": "8888",
+     "other": "Civil Company"
+    },
+    "associatedEntity": {
+     "lei": null,
+     "name": null
+    },
+    "status": "INACTIVE",
+    "expiration": {
+     "date": null,
+     "reason": null
+    },
+    "successorEntity": {
+     "lei": null,
+     "name": null
+    },
+    "successorEntities": [],
+    "creationDate": "2022-10-27T00:00:00Z",
+    "subCategory": null,
+    "otherAddresses": [],
+    "eventGroups": [
+     {
+      "groupType": "STANDALONE",
+      "events": [
+       {
+        "validationDocuments": "SUPPORTING_DOCUMENTS",
+        "effectiveDate": "2026-06-19T00:00:00Z",
+        "recordedDate": "2026-06-19T18:37:22Z",
+        "type": "DISSOLUTION",
+        "status": "COMPLETED"
+       }
+      ]
+     }
+    ]
+   },
+   "registration": {
+    "initialRegistrationDate": "2025-08-13T12:00:01Z",
+    "lastUpdateDate": "2026-06-19T18:37:22Z",
+    "status": "RETIRED",
+    "nextRenewalDate": "2026-08-13T12:00:03Z",
+    "managingLou": "529900T8BM49AURSDO55",
+    "corroborationLevel": "FULLY_CORROBORATED",
+    "validatedAt": {
+     "id": "RA000752",
+     "other": null
+    },
+    "validatedAs": "22200000000000L2465",
+    "otherValidationAuthorities": []
+   },
+   "bic": null,
+   "mic": null,
+   "ocid": null,
+   "qcc": null,
+   "gem": null,
+   "spglobal": [
+    "1956740281"
+   ],
+   "conformityFlag": "NOT_APPLICABLE"
+  },
+  "relationships": {
+   "managing-lou": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/984500C660C0DC67A878/managing-lou"
+    }
+   },
+   "lei-issuer": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/984500C660C0DC67A878/lei-issuer"
+    }
+   },
+   "field-modifications": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/984500C660C0DC67A878/field-modifications"
+    }
+   },
+   "direct-parent": {
+    "links": {
+     "reporting-exception": "https://api.gleif.org/api/v1/lei-records/984500C660C0DC67A878/direct-parent-reporting-exception"
+    }
+   },
+   "ultimate-parent": {
+    "links": {
+     "reporting-exception": "https://api.gleif.org/api/v1/lei-records/984500C660C0DC67A878/ultimate-parent-reporting-exception"
+    }
+   }
+  },
+  "links": {
+   "self": "https://api.gleif.org/api/v1/lei-records/984500C660C0DC67A878"
+  }
+ },
+ {
+  "type": "lei-records",
+  "id": "98450075E850BE9C5C47",
+  "attributes": {
+   "lei": "98450075E850BE9C5C47",
+   "entity": {
+    "legalName": {
+     "name": "سافكاب ار اس سي ليميتد",
+     "language": "ar"
+    },
+    "otherNames": [
+     {
+      "name": "SAFCAP RSC LIMITED",
+      "language": "en",
+      "type": "ALTERNATIVE_LANGUAGE_LEGAL_NAME"
+     }
+    ],
+    "transliteratedOtherNames": [],
+    "legalAddress": {
+     "language": "ar",
+     "addressLines": [
+      "مكتب 2902, D06, الطابق 29, برج سكاي",
+      "جزيرة الريم"
+     ],
+     "addressNumber": null,
+     "addressNumberWithinBuilding": null,
+     "mailRouting": null,
+     "city": "أبو ظبي",
+     "region": "AE-AZ",
+     "country": "AE",
+     "postalCode": null
+    },
+    "headquartersAddress": {
+     "language": "ar",
+     "addressLines": [
+      "مكتب 2902, D06, الطابق 29, برج سكاي",
+      "جزيرة الريم"
+     ],
+     "addressNumber": null,
+     "addressNumberWithinBuilding": null,
+     "mailRouting": null,
+     "city": "أبو ظبي",
+     "region": "AE-AZ",
+     "country": "AE",
+     "postalCode": null
+    },
+    "registeredAt": {
+     "id": "RA000569",
+     "other": null
+    },
+    "registeredAs": "26019",
+    "jurisdiction": "AE-AZ",
+    "category": "GENERAL",
+    "legalForm": {
+     "id": "B13W",
+     "other": null
+    },
+    "associatedEntity": {
+     "lei": null,
+     "name": null
+    },
+    "status": "INACTIVE",
+    "expiration": {
+     "date": null,
+     "reason": null
+    },
+    "successorEntity": {
+     "lei": null,
+     "name": null
+    },
+    "successorEntities": [],
+    "creationDate": "2025-04-07T00:00:00Z",
+    "subCategory": null,
+    "otherAddresses": [],
+    "eventGroups": [
+     {
+      "groupType": "STANDALONE",
+      "events": [
+       {
+        "validationDocuments": "SUPPORTING_DOCUMENTS",
+        "effectiveDate": "2026-04-06T00:00:00Z",
+        "recordedDate": "2026-04-26T20:30:38Z",
+        "type": "DISSOLUTION",
+        "status": "COMPLETED"
+       }
+      ]
+     }
+    ]
+   },
+   "registration": {
+    "initialRegistrationDate": "2025-05-05T09:23:17Z",
+    "lastUpdateDate": "2026-04-26T20:30:39Z",
+    "status": "RETIRED",
+    "nextRenewalDate": "2026-05-05T09:23:19Z",
+    "managingLou": "529900T8BM49AURSDO55",
+    "corroborationLevel": "FULLY_CORROBORATED",
+    "validatedAt": {
+     "id": "RA000569",
+     "other": null
+    },
+    "validatedAs": "26019",
+    "otherValidationAuthorities": [
+     {
+      "validatedAt": {
+       "id": "RA000752"
+      },
+      "validatedAs": "1120000000000026019"
+     }
+    ]
+   },
+   "bic": null,
+   "mic": null,
+   "ocid": null,
+   "qcc": "QAEBN41YRX",
+   "gem": null,
+   "spglobal": [
+    "1942152944"
+   ],
+   "conformityFlag": "NOT_APPLICABLE"
+  },
+  "relationships": {
+   "managing-lou": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/98450075E850BE9C5C47/managing-lou"
+    }
+   },
+   "lei-issuer": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/98450075E850BE9C5C47/lei-issuer"
+    }
+   },
+   "field-modifications": {
+    "links": {
+     "related": "https://api.gleif.org/api/v1/lei-records/98450075E850BE9C5C47/field-modifications"
+    }
+   },
+   "direct-parent": {
+    "links": {
+     "reporting-exception": "https://api.gleif.org/api/v1/lei-records/98450075E850BE9C5C47/direct-parent-reporting-exception"
+    }
+   },
+   "ultimate-parent": {
+    "links": {
+     "reporting-exception": "https://api.gleif.org/api/v1/lei-records/98450075E850BE9C5C47/ultimate-parent-reporting-exception"
+    }
+   }
+  },
+  "links": {
+   "self": "https://api.gleif.org/api/v1/lei-records/98450075E850BE9C5C47"
+  }
+ }
+]

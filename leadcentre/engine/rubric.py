@@ -13,6 +13,30 @@ NEW_ENTITY_DAYS = 90        # «создана недавно»
 RENEWAL_SOON_DAYS = 60      # «продление на подходе»
 LAPSED_FRESH_DAYS = 90      # просрочка свежее этого — полноценный повод
 
+# --- вокабуляр статуса регистрации (данные реестра, не порог) ---
+# Перечисление отдано самим API: запрос с заведомо неверным значением
+# `curl 'https://api.gleif.org/api/v1/lei-records?filter[registration.status]=ZZZ'`
+# отвечает 400 и списком «expected is one of ISSUED, LAPSED, ANNULLED, PENDING_TRANSFER,
+# PENDING_ARCHIVAL, DUPLICATE, RETIRED, MERGED». ИЗМЕРЕНО 2026-09-11; по ОАЭ (9369
+# записей) ISSUED 5297, LAPSED 3940, RETIRED 97, DUPLICATE 30, ANNULLED 3,
+# PENDING_TRANSFER 2, PENDING_ARCHIVAL 0, MERGED 0 — то есть 132 записи со статусом,
+# по которому ось B повода не считает.
+#
+# Список нужен ровно затем, чтобы отличить «известный статус, повода по нему нет» от
+# «слово, которого мы не знаем»: раньше и то и другое молча означало «повода нет».
+STATUS_LAPSED = "LAPSED"
+STATUS_ISSUED = "ISSUED"
+KNOWN_REGISTRATION_STATUSES = (
+    STATUS_ISSUED,
+    STATUS_LAPSED,
+    "ANNULLED",
+    "PENDING_TRANSFER",
+    "PENDING_ARCHIVAL",
+    "DUPLICATE",
+    "RETIRED",
+    "MERGED",
+)
+
 # --- целевая география (константа-решение) ---
 # SORP работает в эмирате Дубай. Реестр пишет город так, как его написал заявитель:
 # латиницей в любом регистре, по-арабски, районом вместо города и адресной строкой

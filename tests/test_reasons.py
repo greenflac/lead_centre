@@ -55,6 +55,11 @@ SAMPLE_PARAMS: dict[R.ReasonCode, dict[str, object]] = {
     R.ReasonCode.CITY_NOT_SET: {},
     R.ReasonCode.CITY_UNRECOGNISED: {"city": "Nad Al Sheba"},
     R.ReasonCode.ENTITY_INACTIVE: {},
+    R.ReasonCode.ENTITY_STATUS_UNKNOWN: {"status": "NULL"},
+    R.ReasonCode.ENTITY_STATUS_NOT_SET: {},
+    R.ReasonCode.REGISTRATION_STATUS_NO_EVENT: {"status": "RETIRED"},
+    R.ReasonCode.REGISTRATION_STATUS_UNKNOWN: {"status": "SUSPENDED"},
+    R.ReasonCode.REGISTRATION_STATUS_NOT_SET: {},
     R.ReasonCode.SPAM_OR_OFF_TOPIC: {},
     R.ReasonCode.NO_REQUEST_TYPE: {},
     R.ReasonCode.URGENT_TIMELINE: {"days": 14, "limit": 60},
@@ -91,7 +96,7 @@ def test_sample_params_cover_every_code():
     """Прибор измеряет весь каталог, а не его половину («проверено N»)."""
     missing = sorted(set(R.ReasonCode) - set(SAMPLE_PARAMS), key=lambda c: c.value)
     assert missing == [], f"нет показательных параметров для {[c.value for c in missing]}"
-    assert len(SAMPLE_PARAMS) == len(ALL_CODES) == 19
+    assert len(SAMPLE_PARAMS) == len(ALL_CODES) == 24
 
 
 def test_catalogue_declares_every_code():
@@ -149,8 +154,8 @@ def test_every_language_has_plural_forms_and_a_rule(language):
 
 
 def test_validate_catalogue_reports_how_much_it_checked():
-    """«Проверено N» вместо голого «нарушений нет»: 19 кодов x 2 языка."""
-    assert R.validate_catalogue() == 38
+    """«Проверено N» вместо голого «нарушений нет»: 24 кода x 2 языка."""
+    assert R.validate_catalogue() == 48
 
 
 def test_catalogue_has_no_two_codes_with_the_same_russian_text():
@@ -408,7 +413,7 @@ def test_the_product_catalogue_passes():
 
     Без него все проверки выше зеленели бы и на приборе, который всегда говорит «нет».
     """
-    assert R.validate_catalogue(R.CATALOGUE) == 38
+    assert R.validate_catalogue(R.CATALOGUE) == 48
 
 
 # --- негативные контроли: язык отрисовки ------------------------------------------

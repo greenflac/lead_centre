@@ -10,7 +10,7 @@ from datetime import date, timedelta
 
 import pytest
 
-from leadcentre.models import Company
+from leadcentre.models import Company, EntityStatus
 
 # Опорная «сегодня» для всех тестов: фиксирована, чтобы прогон не зависел от календаря.
 TODAY = date(2026, 9, 9)
@@ -35,7 +35,7 @@ def make_company(**overrides) -> Company:
         "registrar_id": "RA999999",
         "license_no": "LIC-1",
         "created_on": TODAY - timedelta(days=1000),
-        "entity_active": True,
+        "entity_status": EntityStatus.ACTIVE,
         "registration_status": "ISSUED",
         "next_renewal_on": TODAY + timedelta(days=300),
         "is_synthetic": True,

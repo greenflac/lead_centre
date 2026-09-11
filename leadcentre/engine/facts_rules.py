@@ -74,8 +74,22 @@ MONTHS = {
     "september": 9, "october": 10, "november": 11, "december": 12, "nov": 11, "dec": 12,
 }
 
-NUM_DAYS_RE = re.compile(r"(?:через|in|within)\s+(\d+)\s*(?:дн|дней|day|days)", re.IGNORECASE)
-NUM_WEEKS_RE = re.compile(r"(?:через|in|within)\s+(\d+)\s*(?:недел|week)", re.IGNORECASE)
+# Предлог необязателен: «срок - 3 недели» и «нужно за 10 дней» — такой же названный
+# клиентом срок, как «через 3 недели». Раньше предлог требовался, и обращение urg-06
+# из data/inbound_seed.csv теряло срок целиком (ИЗМЕРЕНО 2026-09-11: 1 обращение из 70).
+# «день» в списке единиц отдельно: основа «дн» покрывает дня/дней/дн., но не
+# именительный падеж — «срок - 1 день» не извлекался и с предлогом (тот же класс
+# дефекта, найден тестом на краю диапазона).
+NUM_DAYS_RE = re.compile(
+    r"(?:(?:через|in|within)\s+)?(\d+)\s*(?:дн|дней|день|day|days)", re.IGNORECASE
+)
+NUM_WEEKS_RE = re.compile(r"(?:(?:через|in|within)\s+)?(\d+)\s*(?:недел|week)", re.IGNORECASE)
+# Число без предлога ловит и рассказ о прошлом («две недели назад писали»), поэтому
+# совпадение с хвостом из этого списка не считается сроком: срок в прошлом — не срок.
+# Смотрим ровно на хвост, а не на всё предложение: «3 недели назад» и «через 3 недели,
+# а месяц назад…» — разные вещи.
+PAST_TAIL_MARKERS = ("назад", "ago")
+PAST_TAIL_CHARS = 12
 EXPIRES_RE = re.compile(
     r"(?:expires?|истека\w*|заканчива\w*|слетает)\D{0,25}(\d+)\s*(дн|day|week|недел)", re.IGNORECASE
 )
@@ -101,13 +115,28 @@ MONEY_RE = re.compile(
 )
 
 
+def _future_match(pattern: re.Pattern[str], low: str) -> re.Match[str] | None:
+    """Первое совпадение, за которым не стоит слово о прошлом.
+
+    Три исхода у самого поиска нет — есть «нашли срок» и «нет»; но совпадение,
+    за которым идёт «назад»/«ago», это не срок, а рассказ о прошлом, и считать его
+    сроком хуже, чем не найти ничего.
+    """
+    for match in pattern.finditer(low):
+        tail = low[match.end(): match.end() + PAST_TAIL_CHARS]
+        if any(marker in tail for marker in PAST_TAIL_MARKERS):
+            continue
+        return match
+    return None
+
+
 def _timeline_days(text: str, received_at: date) -> int | None:
     """Срок в днях, детерминированно. Не нашли — None, а не ноль (неизвестно != срочно)."""
     low = text.lower()
-    m = NUM_DAYS_RE.search(low)
+    m = _future_match(NUM_DAYS_RE, low)
     if m:
         return int(m.group(1))
-    m = NUM_WEEKS_RE.search(low)
+    m = _future_match(NUM_WEEKS_RE, low)
     if m:
         return int(m.group(1)) * 7
     m = EXPIRES_RE.search(low)

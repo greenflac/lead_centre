@@ -28,6 +28,7 @@ from leadcentre.models import (
     AddressType,
     CityMatch,
     Company,
+    EntityStatus,
     Event,
     Evidence,
     InboundMessage,
@@ -124,10 +125,51 @@ CITY_REASON: dict[CityMatch, ReasonCode] = {
 }
 
 
+def normalize_status(value: str) -> str:
+    """Статус реестра в виде, в котором его сравнивают со списком.
+
+    Регистр и пробелы снимаются с обеих сторон сравнения: `"lapsed"` и `" LAPSED "` —
+    тот же статус, а не «слово, которого мы не знаем». Сам GLEIF пишет верхним
+    регистром (ИЗМЕРЕНО 2026-09-11, 120 записей выборки), но `registration_status` —
+    поле общей модели, и второй источник в него кладёт что хочет.
+    """
+    return value.strip().upper()
+
+
+def status_reason(company: Company) -> Reason | None:
+    """Что сказать про статус регистрации, если по нему повода не вышло. Исхода три.
+
+    * статус пустой — `REGISTRATION_STATUS_NOT_SET`: решать не по чему;
+    * статус не из перечня реестра — `REGISTRATION_STATUS_UNKNOWN`: «не смогли
+      определить», а не «повода нет»;
+    * статус известный, но ось B по нему поводов не считает (RETIRED, DUPLICATE,
+      ANNULLED, MERGED, PENDING_TRANSFER, PENDING_ARCHIVAL) —
+      `REGISTRATION_STATUS_NO_EVENT`: решение принято и названо вслух.
+
+    Ступень эта причина не двигает: повод по оси B от неё не появляется и не исчезает,
+    она делает видимым уже принятое решение.
+    """
+    raw = company.registration_status.strip()
+    status = normalize_status(raw)
+    if not status:
+        return reason(ReasonCode.REGISTRATION_STATUS_NOT_SET)
+    if status not in rubric.KNOWN_REGISTRATION_STATUSES:
+        return reason(ReasonCode.REGISTRATION_STATUS_UNKNOWN, status=raw[:40])
+    if status in (rubric.STATUS_LAPSED, rubric.STATUS_ISSUED):
+        return None
+    return reason(ReasonCode.REGISTRATION_STATUS_NO_EVENT, status=raw[:40])
+
+
 def classify_event(company: Company, today: date) -> tuple[Event, tuple[Reason, ...]]:
-    """Ось B: самый сильный из поводов плюс причины кодами и параметрами."""
+    """Ось B: самый сильный из поводов плюс причины кодами и параметрами.
+
+    Статус регистрации сравнивается со списком `rubric.KNOWN_REGISTRATION_STATUSES`, а
+    не с двумя литералами: раньше любое третье слово реестра молча означало «повода
+    нет», и «повода нет» было не отличить от «слова мы не знаем» (см. `status_reason`).
+    """
     reasons: list[Reason] = []
-    if company.registration_status == "LAPSED" and company.next_renewal_on:
+    status = normalize_status(company.registration_status)
+    if status == rubric.STATUS_LAPSED and company.next_renewal_on:
         overdue = (today - company.next_renewal_on).days
         if 0 <= overdue <= rubric.LAPSED_FRESH_DAYS:
             reasons.append(reason(ReasonCode.LEI_LAPSED_FRESH, days=overdue))
@@ -140,11 +182,16 @@ def classify_event(company: Company, today: date) -> tuple[Event, tuple[Reason, 
         if 0 <= age <= rubric.NEW_ENTITY_DAYS:
             reasons.append(reason(ReasonCode.ENTITY_RECENTLY_CREATED, days=age))
             return Event.NEW_ENTITY, tuple(reasons)
-    if company.next_renewal_on and company.registration_status == "ISSUED":
+    if company.next_renewal_on and status == rubric.STATUS_ISSUED:
         left = (company.next_renewal_on - today).days
         if 0 <= left <= rubric.RENEWAL_SOON_DAYS:
             reasons.append(reason(ReasonCode.LEI_RENEWAL_SOON, days=left))
             return Event.RENEWAL_SOON, tuple(reasons)
+    # Повода не вышло — говорим, почему именно: «не смогли прочитать статус» и
+    # «статус прочитан, повода по нему нет» здесь расходятся.
+    about_status = status_reason(company)
+    if about_status is not None:
+        reasons.append(about_status)
     return Event.NONE, tuple(reasons)
 
 
@@ -181,9 +228,22 @@ def score(company: Company, today: date) -> Score:
 
     # Инварианты. Нарушение — не LOW, а INVALID. Нарушение — такой же код с
     # параметрами, как причина: текст ему собирает каталог, оба языка сразу.
-    if not company.entity_active:
+    # Статус юрлица: исхода три, а не два. Раньше здесь стояло `not entity_active`, и
+    # всё, что не равно слову ACTIVE, объявлялось неактивным — включая слово NULL,
+    # которым реестр сообщает «статус мне не передали» (36 записей по ОАЭ на 2026-09-11).
+    # Приговор юрлицу выносит только явное INACTIVE; молчание реестра ступень ограничивает
+    # средней — как неизмеренная уверенность в `score_inbound`, — но лид не хоронит.
+    if company.entity_status is EntityStatus.INACTIVE:
         tier = Tier.LOW
         reasons.append(reason(ReasonCode.ENTITY_INACTIVE))
+    elif company.entity_status is EntityStatus.UNKNOWN:
+        tier = min(tier, Tier.MEDIUM, key=rubric.TIER_LADDER.index)
+        raw_status = company.entity_status_raw.strip()
+        reasons.append(
+            reason(ReasonCode.ENTITY_STATUS_UNKNOWN, status=raw_status[:40])
+            if raw_status
+            else reason(ReasonCode.ENTITY_STATUS_NOT_SET)
+        )
     evidence = collect_evidence(company)
     if tier is Tier.HIGH and not evidence:
         violations.append(violation(ViolationCode.HIGH_WITHOUT_EVIDENCE))
