@@ -319,6 +319,18 @@ def test_discover_offline_reads_cache_and_stores(client, memory_store):
     assert len(memory_store.list_companies()) == 3
 
 
+def test_stored_company_carries_the_entity_status_not_only_the_flag(client, memory_store):
+    """Третий исход обязан доезжать до хранилища: булев `entity_active` его не несёт.
+
+    Литералы: в кэше `data/gleif_ae_lapsed_sample.json` все записи ACTIVE (ИЗМЕРЕНО
+    2026-09-11, 60 из 60), поэтому флаг True, а статус — слово `active`.
+    """
+    client.post("/discover/run", json={"mode": "lapsed", "limit": 3})
+    facts = [row["facts"] for row in memory_store.list_companies()]
+    assert [f["entity_active"] for f in facts] == [True, True, True]
+    assert [f["entity_status"] for f in facts] == ["active", "active", "active"]
+
+
 def test_leads_are_sorted_high_first(client, memory_store):
     for tier in ("LOW", "HIGH", "MEDIUM"):
         lead_id = memory_store.save_lead(_lead_row())
