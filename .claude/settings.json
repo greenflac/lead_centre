@@ -6,7 +6,7 @@
           {
             "type": "command",
             "timeout": 150,
-            "command": "[ -d \"$HOME/.harness/principles\" ] || git clone -q --depth 1 --branch main https://github.com/greenflac/green_harness \"$HOME/.harness\"; HARNESS_ROOT=\"$HOME/.harness\" bash \"$HOME/.harness/bin/harness-bootstrap.sh\"; HARNESS_PYTHON=$HOME/.harness-venv/bin/python HARNESS_ROOT=$HOME/.harness $HOME/.harness/bin/harness-intent-status.sh; HARNESS_PYTHON=$HOME/.harness-venv/bin/python HARNESS_ROOT=$HOME/.harness $HOME/.harness/bin/harness-session-context.sh"
+            "command": "[ -d \"$HOME/.harness/principles\" ] || git clone -q --depth 1 --branch main https://github.com/greenflac/green_harness \"$HOME/.harness\"; HARNESS_ROOT=\"$HOME/.harness\" bash \"$HOME/.harness/bin/harness-bootstrap.sh\"; HARNESS_PYTHON=$HOME/.harness-venv/bin/python HARNESS_ROOT=$HOME/.harness $HOME/.harness/bin/harness-intent-status.sh --rules"
           }
         ]
       }
