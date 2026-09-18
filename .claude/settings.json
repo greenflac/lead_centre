@@ -1,0 +1,78 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -d \"$HOME/.harness/principles\" ] || git clone -q --depth 1 --branch main https://github.com/greenflac/green_harness \"$HOME/.harness\"; HARNESS_ROOT=\"$HOME/.harness\" bash \"$HOME/.harness/bin/harness-bootstrap.sh\"",
+            "timeout": 120
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "timeout": 15,
+            "command": "HARNESS_PYTHON=$HOME/.harness-venv/bin/python HARNESS_ROOT=$HOME/.harness $HOME/.harness/bin/harness-intent-status.sh"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "HARNESS_PYTHON=$HOME/.harness-venv/bin/python HARNESS_ROOT=$HOME/.harness $HOME/.harness/bin/harness-session-context.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "HARNESS_PYTHON=$HOME/.harness-venv/bin/python HARNESS_ROOT=$HOME/.harness $HOME/.harness/bin/harness-write-gate.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "HARNESS_PYTHON=$HOME/.harness-venv/bin/python HARNESS_ROOT=$HOME/.harness $HOME/.harness/bin/harness-intent-capture.sh",
+            "timeout": 25
+          }
+        ]
+      }
+    ],
+    "PostToolBatch": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "HARNESS_PYTHON=$HOME/.harness-venv/bin/python HARNESS_ROOT=$HOME/.harness $HOME/.harness/bin/harness-intent-loop.sh",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "HARNESS_PYTHON=$HOME/.harness-venv/bin/python HARNESS_ROOT=$HOME/.harness $HOME/.harness/bin/harness-intent-loop.sh",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+}
