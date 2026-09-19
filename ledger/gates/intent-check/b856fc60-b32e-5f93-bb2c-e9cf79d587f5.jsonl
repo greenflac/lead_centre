@@ -1,0 +1,1 @@
+{"at": "2026-09-19T04:24:47+00:00", "bypassed": 0, "chain": "65e409da9c261d48", "checked": 0, "gate": "intent-check", "input_digest": "", "intents": "ADR-001,ADR-002,ADR-003,ADR-004", "mode": "audit", "ms": 9, "outcome": "не смогли проверить", "ref": "hook PostToolBatch", "unmeasurable": 0, "violations": 0, "writer": "b856fc60-b32e-5f93-bb2c-e9cf79d587f5"}
